@@ -83,7 +83,13 @@ public class Weather implements Script{
                     JsonObject  json = new JsonParser().parse(parameters).getAsJsonObject();
                     if(json.has("geo")){
                         //weather send
-
+                        String geo = json.get("geo").getAsString();
+						new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .message(geo)
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
 
                         buttons.add(List.of(
                                 new KeyboardButton()

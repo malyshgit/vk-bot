@@ -21,3 +21,7 @@ test.java
 test.class
 tests.java
 tests.class
+
+.settings/*
+.classpath
+.project
