@@ -49,6 +49,12 @@ public class DataBase {
                     " use            INT     DEFAULT 0," +
                     " job            INT     DEFAULT 0)";
             getStatement().executeUpdate(sql);
+            
+            sql = "DROP TABLE IF EXISTS settings";
+            getStatement().executeUpdate(sql);
+            sql = "CREATE TABLE settings " +
+                    "(parameters     TEXT    DEFAULT '{}')";
+            getStatement().executeUpdate(sql);
         } catch (SQLException e) {
             System.err.println(ExceptionUtils.getStackTrace(e));
         }

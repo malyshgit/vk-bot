@@ -16,6 +16,8 @@ import com.vk.api.sdk.objects.messages.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.gson.*;
+
 /**
  *
  * @author I1PABIJJA
@@ -101,7 +103,14 @@ public class AdminPanel implements Script{
                                             "{\"script\":\""+getClass().getName()+"\"," +
                                                     "\"step\":"+1+"}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Пересоздать БД"))
+                                            .setLabel("Пересоздать БД")),                
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.PRIMARY)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+2+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Отладка"))
                     ));
                     new Messages(Config.VK)
                             .send(Config.GROUP)
@@ -120,6 +129,23 @@ public class AdminPanel implements Script{
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, -1);
+                    break;
+                case 2:
+                	String parameters = DataBase.selectString("settings", "parameters", null, null, false);
+                	JsonObject jobj = new JsonParser().parse(parameters).getAsJsonObject();
+                	if(jobj.has("test")){
+                		new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message(jobj.get("test").getAsString())
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    send(message, -1);
+                	}else{
+                		jobj.addProperty("test", "test");
+                		String params = jobj.toString();
+                		DataBase.insert("settings", "parameters", params, null, null);
+                	}
                     break;
                 default:
                     break;
