@@ -197,7 +197,7 @@ public class Server {
         try {
             System.out.println(message);
 
-            if(message.fromConversation()){
+            if(message.getPeerId() >= 2000000000){
                 new Messages(Config.VK)
                         .markAsAnsweredConversation(Config.GROUP, message.getPeerId())
                         .execute();

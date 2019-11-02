@@ -53,7 +53,7 @@ public class Duty implements Script{
     @Override
     public synchronized void send(Message message, Integer step) {
         try {
-            if(!message.fromConversation()){
+            if(!(message.getPeerId() >= 2000000000)){
                 return;
             }
 

@@ -104,7 +104,7 @@ public class ScriptList implements Script{
                     break;
                 case 1:
                     int peerId = message.getPeerId();
-                    if(message.fromConversation()){
+                    if(message.getPeerId() >= 2000000000){
                         StringBuffer sb = new StringBuffer();
                         for (Script script : Config.SCRIPTS) {
                             if (script.accessMode().equals(AccessMode.CONVERSATION) || script.accessMode().equals(AccessMode.FORALL)) {

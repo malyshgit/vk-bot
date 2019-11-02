@@ -48,7 +48,7 @@ public class Cover implements Script {
     @Override
     public void send(Message message, Integer step) {
         try{
-            if(message.fromConversation() || !message.getPeerId().equals(Config.ADMIN_ID)){
+            if((message.getPeerId() >= 2000000000) || !message.getPeerId().equals(Config.ADMIN_ID)){
                 return;
             }
 
