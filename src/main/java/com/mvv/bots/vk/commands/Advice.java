@@ -54,14 +54,6 @@ public class Advice implements Script{
     @Override
     public void send(Message message, Integer step) {
         try {
-            sendDefault(message);
-        }catch (ApiException | ClientException e){
-            e.printStackTrace();
-        }
-    }
-
-    private synchronized void sendDefault(Message object) throws ClientException, ApiException {
-        try {
             Keyboard keyboard = new Keyboard();
 
             List<List<KeyboardButton>> buttons = new ArrayList<>();
@@ -81,10 +73,10 @@ public class Advice implements Script{
                     .send(Config.GROUP)
                     .message(advice())
                     .keyboard(keyboard)
-                    .peerId(object.getPeerId())
+                    .peerId(message.getPeerId())
                     .randomId(Utils.getRandomInt32())
                     .execute();
-        } catch (IOException e) {
+        }catch (ApiException | ClientException | IOException e){
             e.printStackTrace();
         }
     }

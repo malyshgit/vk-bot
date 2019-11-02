@@ -89,7 +89,7 @@ public class Weather implements Script{
                                         .setColor(KeyboardButtonColor.NEGATIVE)
                                         .setAction(new KeyboardButtonAction().setPayload(
                                                 "{\"script\":\"" + ScriptList.class.getName() + "\"," +
-                                                        "\"step\":" + 1 + "}"
+                                                        "\"step\":" + 0 + "}"
                                         ).setType(KeyboardButtonActionType.TEXT)
                                                 .setLabel("Назад"))
                         ));
@@ -112,7 +112,7 @@ public class Weather implements Script{
                                         .setColor(KeyboardButtonColor.NEGATIVE)
                                         .setAction(new KeyboardButtonAction().setPayload(
                                                 "{\"script\":\"" + ScriptList.class.getName() + "\"," +
-                                                        "\"step\":" + 1 + "}"
+                                                        "\"step\":" + 0 + "}"
                                         ).setType(KeyboardButtonActionType.TEXT)
                                                 .setLabel("Назад"))
                         ));

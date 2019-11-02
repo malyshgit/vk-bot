@@ -214,7 +214,7 @@ public class Server {
                 if(jobject.has("command")){
                     String command = jobject.get("command").getAsString();
                     if(command.equals("start")){
-                        new ScriptList().send(message, 1);
+                        new ScriptList().send(message, 0);
                         plusUse(message);
                     }
                 }else if(jobject.has("script") && jobject.has("step")){
@@ -227,7 +227,7 @@ public class Server {
                 }
             }else if(Script.containsByKey(message.getText())){
                 Script script = Script.getByKey(message.getText());
-                script.send(message, 1);
+                script.send(message, 0);
                 plusUse(message);
             }else{
 
