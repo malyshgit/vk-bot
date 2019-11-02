@@ -48,7 +48,7 @@ public class Cover implements Script {
     @Override
     public void send(Message message, Integer step) {
         try{
-            if(message.isChat() || !message.getPeerId().equals(Config.ADMIN_ID)){
+            if(message.fromConversation() || !message.getPeerId().equals(Config.ADMIN_ID)){
                 return;
             }
 

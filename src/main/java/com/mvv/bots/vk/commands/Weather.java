@@ -84,13 +84,6 @@ public class Weather implements Script{
                     if(json.has("geo")){
                         //weather send
                         String geo = json.get("geo").getAsString();
-						new Messages(Config.VK)
-                                .send(Config.GROUP)
-                                .message(geo)
-                                .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
-                                .execute();
-
                         buttons.add(List.of(
                                 new KeyboardButton()
                                         .setColor(KeyboardButtonColor.NEGATIVE)
@@ -107,10 +100,9 @@ public class Weather implements Script{
                                                         "\"step\":" + 1 + "}"
                                         ).setType(KeyboardButtonActionType.LOCATION))
                         ));
-                        new Messages(Config.VK)
+						new Messages(Config.VK)
                                 .send(Config.GROUP)
-                                .message("Погода - %данные%")
-                                .keyboard(keyboard)
+                                .message(geo)
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();

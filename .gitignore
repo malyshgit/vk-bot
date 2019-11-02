@@ -25,3 +25,4 @@ tests.class
 .settings/*
 .classpath
 .project
+bot.iml

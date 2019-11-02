@@ -48,7 +48,7 @@ public class Killer implements Script{
     @Override
     public synchronized void send(Message message, Integer step) {
         try {
-            if(!message.isChat()){
+            if(!message.fromConversation()){
                 return;
             }
 

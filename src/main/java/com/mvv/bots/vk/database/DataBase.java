@@ -52,7 +52,7 @@ public class DataBase {
             
             sql = "DROP TABLE IF EXISTS settings";
             getStatement().executeUpdate(sql);
-            sql = "CREATE TABLE settings " +
+            sql = "CREATE TABLE settings" +
                     "(parameters     TEXT    DEFAULT '{}')";
             getStatement().executeUpdate(sql);
         } catch (SQLException e) {

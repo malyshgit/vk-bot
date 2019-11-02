@@ -140,7 +140,7 @@ public class AdminPanel implements Script{
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    send(message, -1);
+                        send(message, -1);
                 	}else{
                 		jobj.addProperty("test", "test");
                 		String params = jobj.toString();

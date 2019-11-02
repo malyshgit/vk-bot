@@ -11,12 +11,14 @@ import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
-import com.vk.api.sdk.objects.messages.Message;
+import com.vk.api.sdk.objects.messages.*;
 import com.mvv.bots.vk.Config;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -60,9 +62,25 @@ public class Advice implements Script{
 
     private synchronized void sendDefault(Message object) throws ClientException, ApiException {
         try {
+            Keyboard keyboard = new Keyboard();
+
+            List<List<KeyboardButton>> buttons = new ArrayList<>();
+            keyboard.setOneTime(false);
+            keyboard.setInline(true);
+            keyboard.setButtons(buttons);
+            buttons.add(List.of(
+                    new KeyboardButton()
+                            .setColor(KeyboardButtonColor.PRIMARY)
+                            .setAction(new KeyboardButtonAction().setPayload(
+                                    "{\"script\":\""+getClass().getName()+"\"," +
+                                            "\"step\":"+0+"}"
+                            ).setType(KeyboardButtonActionType.TEXT)
+                                    .setLabel("Ещё"))
+            ));
             new Messages(Config.VK)
                     .send(Config.GROUP)
                     .message(advice())
+                    .keyboard(keyboard)
                     .peerId(object.getPeerId())
                     .randomId(Utils.getRandomInt32())
                     .execute();

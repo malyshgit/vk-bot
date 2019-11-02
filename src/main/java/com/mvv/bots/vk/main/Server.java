@@ -2,7 +2,6 @@ package com.mvv.bots.vk.main;
 
 import com.google.gson.*;
 import com.mvv.bots.vk.database.DataBase;
-import com.mvv.bots.vk.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -20,7 +19,6 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.regex.PatternSyntaxException;
 
@@ -199,7 +197,7 @@ public class Server {
         try {
             System.out.println(message);
 
-            if(message.isChat()){
+            if(message.fromConversation()){
                 new Messages(Config.VK)
                         .markAsAnsweredConversation(Config.GROUP, message.getPeerId())
                         .execute();

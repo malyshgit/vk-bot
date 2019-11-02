@@ -16,7 +16,6 @@ import com.mvv.bots.vk.Config;
 import com.vk.api.sdk.objects.users.UserFull;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -54,7 +53,7 @@ public class Duty implements Script{
     @Override
     public synchronized void send(Message message, Integer step) {
         try {
-            if(!message.isChat()){
+            if(!message.fromConversation()){
                 return;
             }
 

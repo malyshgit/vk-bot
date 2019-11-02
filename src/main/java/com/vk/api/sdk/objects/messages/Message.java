@@ -2,128 +2,70 @@ package com.vk.api.sdk.objects.messages;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import com.vk.api.sdk.objects.Validable;
+import com.vk.api.sdk.objects.annotations.Required;
 import com.vk.api.sdk.objects.base.BoolInt;
 import com.vk.api.sdk.objects.base.Geo;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Message object
- */
-public class Message {
+public class Message implements Validable {
     @SerializedName("action")
     private MessageAction action;
-
-    /**
-     * Only for messages from community. Contains user ID of community admin, who sent this message.
-     */
     @SerializedName("admin_author_id")
     private Integer adminAuthorId;
-
     @SerializedName("attachments")
     private List<MessageAttachment> attachments;
-
-    /**
-     * Unique auto-incremented number for all messages with this peer
-     */
     @SerializedName("conversation_message_id")
     private Integer conversationMessageId;
-
-    /**
-     * Date when the message has been sent in Unixtime
-     */
     @SerializedName("date")
+    @Required
     private Integer date;
-
-    /**
-     * Is it an deleted message
-     */
     @SerializedName("deleted")
     private BoolInt deleted;
-
-    /**
-     * Message author's ID
-     */
     @SerializedName("from_id")
     private Integer fromId;
-
-    /**
-     * Forwarded messages
-     */
     @SerializedName("fwd_messages")
     private List<ForeignMessage> fwdMessages;
-
     @SerializedName("geo")
     private Geo geo;
-
-    /**
-     * Message ID
-     */
     @SerializedName("id")
+    @Required
     private Integer id;
-
-    /**
-     * Is it an important message
-     */
     @SerializedName("important")
     private Boolean important;
-
     @SerializedName("is_hidden")
     private Boolean isHidden;
-
     @SerializedName("keyboard")
     private Keyboard keyboard;
-
-    /**
-     * Members number
-     */
     @SerializedName("members_count")
     private Integer membersCount;
-
-    /**
-     * Information whether the message is outcoming
-     */
     @SerializedName("out")
+    @Required
     private BoolInt out;
-
     @SerializedName("payload")
     private String payload;
-
-    /**
-     * Peer ID
-     */
     @SerializedName("peer_id")
     private Integer peerId;
-
-    /**
-     * ID used for sending messages. It returned only for outgoing messages
-     */
     @SerializedName("random_id")
     private Integer randomId;
-
     @SerializedName("ref")
     private String ref;
-
     @SerializedName("ref_source")
     private String refSource;
-
     @SerializedName("reply_message")
     private ForeignMessage replyMessage;
-
-    /**
-     * Message text
-     */
     @SerializedName("text")
+    @Required
     private String text;
-
-    /**
-     * Date when the message has been updated in Unixtime
-     */
     @SerializedName("update_time")
     private Integer updateTime;
 
+    public Message() {
+    }
+
     public MessageAction getAction() {
-        return action;
+        return this.action;
     }
 
     public Message setAction(MessageAction action) {
@@ -132,7 +74,7 @@ public class Message {
     }
 
     public Integer getAdminAuthorId() {
-        return adminAuthorId;
+        return this.adminAuthorId;
     }
 
     public Message setAdminAuthorId(Integer adminAuthorId) {
@@ -141,7 +83,7 @@ public class Message {
     }
 
     public List<MessageAttachment> getAttachments() {
-        return attachments;
+        return this.attachments;
     }
 
     public Message setAttachments(List<MessageAttachment> attachments) {
@@ -149,12 +91,12 @@ public class Message {
         return this;
     }
 
-    public Integer getConversationMessageId() {
-        return conversationMessageId;
+    public Boolean fromConversation(){
+        return this.peerId >= 2000000000;
     }
 
-    public boolean isChat(){
-        return peerId >= 2000000000;
+    public Integer getConversationMessageId() {
+        return this.conversationMessageId;
     }
 
     public Message setConversationMessageId(Integer conversationMessageId) {
@@ -163,7 +105,7 @@ public class Message {
     }
 
     public Integer getDate() {
-        return date;
+        return this.date;
     }
 
     public Message setDate(Integer date) {
@@ -172,15 +114,15 @@ public class Message {
     }
 
     public boolean isDeleted() {
-        return deleted == BoolInt.YES;
+        return this.deleted == BoolInt.YES;
     }
 
     public BoolInt getDeleted() {
-        return deleted;
+        return this.deleted;
     }
 
     public Integer getFromId() {
-        return fromId;
+        return this.fromId;
     }
 
     public Message setFromId(Integer fromId) {
@@ -189,7 +131,7 @@ public class Message {
     }
 
     public List<ForeignMessage> getFwdMessages() {
-        return fwdMessages;
+        return this.fwdMessages;
     }
 
     public Message setFwdMessages(List<ForeignMessage> fwdMessages) {
@@ -198,7 +140,7 @@ public class Message {
     }
 
     public Geo getGeo() {
-        return geo;
+        return this.geo;
     }
 
     public Message setGeo(Geo geo) {
@@ -207,7 +149,7 @@ public class Message {
     }
 
     public Integer getId() {
-        return id;
+        return this.id;
     }
 
     public Message setId(Integer id) {
@@ -216,7 +158,7 @@ public class Message {
     }
 
     public Boolean getImportant() {
-        return important;
+        return this.important;
     }
 
     public Message setImportant(Boolean important) {
@@ -225,7 +167,7 @@ public class Message {
     }
 
     public Boolean getIsHidden() {
-        return isHidden;
+        return this.isHidden;
     }
 
     public Message setIsHidden(Boolean isHidden) {
@@ -234,7 +176,7 @@ public class Message {
     }
 
     public Keyboard getKeyboard() {
-        return keyboard;
+        return this.keyboard;
     }
 
     public Message setKeyboard(Keyboard keyboard) {
@@ -243,7 +185,7 @@ public class Message {
     }
 
     public Integer getMembersCount() {
-        return membersCount;
+        return this.membersCount;
     }
 
     public Message setMembersCount(Integer membersCount) {
@@ -252,15 +194,15 @@ public class Message {
     }
 
     public boolean isOut() {
-        return out == BoolInt.YES;
+        return this.out == BoolInt.YES;
     }
 
     public BoolInt getOut() {
-        return out;
+        return this.out;
     }
 
     public String getPayload() {
-        return payload;
+        return this.payload;
     }
 
     public Message setPayload(String payload) {
@@ -269,7 +211,7 @@ public class Message {
     }
 
     public Integer getPeerId() {
-        return peerId;
+        return this.peerId;
     }
 
     public Message setPeerId(Integer peerId) {
@@ -278,7 +220,7 @@ public class Message {
     }
 
     public Integer getRandomId() {
-        return randomId;
+        return this.randomId;
     }
 
     public Message setRandomId(Integer randomId) {
@@ -287,7 +229,7 @@ public class Message {
     }
 
     public String getRef() {
-        return ref;
+        return this.ref;
     }
 
     public Message setRef(String ref) {
@@ -296,7 +238,7 @@ public class Message {
     }
 
     public String getRefSource() {
-        return refSource;
+        return this.refSource;
     }
 
     public Message setRefSource(String refSource) {
@@ -305,7 +247,7 @@ public class Message {
     }
 
     public ForeignMessage getReplyMessage() {
-        return replyMessage;
+        return this.replyMessage;
     }
 
     public Message setReplyMessage(ForeignMessage replyMessage) {
@@ -314,7 +256,7 @@ public class Message {
     }
 
     public String getText() {
-        return text;
+        return this.text;
     }
 
     public Message setText(String text) {
@@ -323,7 +265,7 @@ public class Message {
     }
 
     public Integer getUpdateTime() {
-        return updateTime;
+        return this.updateTime;
     }
 
     public Message setUpdateTime(Integer updateTime) {
@@ -331,72 +273,51 @@ public class Message {
         return this;
     }
 
-    @Override
     public int hashCode() {
-        return Objects.hash(date, peerId, keyboard, membersCount, attachments, adminAuthorId, updateTime, fromId, isHidden, refSource, out, geo, important, ref, fwdMessages, randomId, deleted, conversationMessageId, payload, replyMessage, action, id, text);
+        return Objects.hash(new Object[]{this.date, this.peerId, this.keyboard, this.membersCount, this.attachments, this.adminAuthorId, this.updateTime, this.fromId, this.isHidden, this.refSource, this.out, this.geo, this.important, this.ref, this.fwdMessages, this.randomId, this.deleted, this.conversationMessageId, this.payload, this.replyMessage, this.action, this.id, this.text});
     }
 
-    @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Message message = (Message) o;
-        return Objects.equals(date, message.date) &&
-                Objects.equals(keyboard, message.keyboard) &&
-                Objects.equals(attachments, message.attachments) &&
-                Objects.equals(fromId, message.fromId) &&
-                Objects.equals(isHidden, message.isHidden) &&
-                Objects.equals(refSource, message.refSource) &&
-                Objects.equals(conversationMessageId, message.conversationMessageId) &&
-                Objects.equals(out, message.out) &&
-                Objects.equals(peerId, message.peerId) &&
-                Objects.equals(geo, message.geo) &&
-                Objects.equals(important, message.important) &&
-                Objects.equals(ref, message.ref) &&
-                Objects.equals(updateTime, message.updateTime) &&
-                Objects.equals(deleted, message.deleted) &&
-                Objects.equals(payload, message.payload) &&
-                Objects.equals(action, message.action) &&
-                Objects.equals(adminAuthorId, message.adminAuthorId) &&
-                Objects.equals(fwdMessages, message.fwdMessages) &&
-                Objects.equals(membersCount, message.membersCount) &&
-                Objects.equals(id, message.id) &&
-                Objects.equals(randomId, message.randomId) &&
-                Objects.equals(text, message.text) &&
-                Objects.equals(replyMessage, message.replyMessage);
+        if (this == o) {
+            return true;
+        } else if (o != null && this.getClass() == o.getClass()) {
+            Message message = (Message)o;
+            return Objects.equals(this.date, message.date) && Objects.equals(this.keyboard, message.keyboard) && Objects.equals(this.attachments, message.attachments) && Objects.equals(this.fromId, message.fromId) && Objects.equals(this.isHidden, message.isHidden) && Objects.equals(this.refSource, message.refSource) && Objects.equals(this.conversationMessageId, message.conversationMessageId) && Objects.equals(this.out, message.out) && Objects.equals(this.peerId, message.peerId) && Objects.equals(this.geo, message.geo) && Objects.equals(this.important, message.important) && Objects.equals(this.ref, message.ref) && Objects.equals(this.updateTime, message.updateTime) && Objects.equals(this.deleted, message.deleted) && Objects.equals(this.payload, message.payload) && Objects.equals(this.action, message.action) && Objects.equals(this.adminAuthorId, message.adminAuthorId) && Objects.equals(this.fwdMessages, message.fwdMessages) && Objects.equals(this.membersCount, message.membersCount) && Objects.equals(this.id, message.id) && Objects.equals(this.randomId, message.randomId) && Objects.equals(this.text, message.text) && Objects.equals(this.replyMessage, message.replyMessage);
+        } else {
+            return false;
+        }
     }
 
-    @Override
     public String toString() {
-        final Gson gson = new Gson();
+        Gson gson = new Gson();
         return gson.toJson(this);
     }
 
     public String toPrettyString() {
-        final StringBuilder sb = new StringBuilder("Message{");
-        sb.append("date=").append(date);
-        sb.append(", keyboard=").append(keyboard);
-        sb.append(", attachments=").append(attachments);
-        sb.append(", fromId=").append(fromId);
-        sb.append(", isHidden=").append(isHidden);
-        sb.append(", refSource='").append(refSource).append("'");
-        sb.append(", conversationMessageId=").append(conversationMessageId);
-        sb.append(", out=").append(out);
-        sb.append(", peerId=").append(peerId);
-        sb.append(", geo=").append(geo);
-        sb.append(", important=").append(important);
-        sb.append(", ref='").append(ref).append("'");
-        sb.append(", updateTime=").append(updateTime);
-        sb.append(", deleted=").append(deleted);
-        sb.append(", payload='").append(payload).append("'");
-        sb.append(", action=").append(action);
-        sb.append(", adminAuthorId=").append(adminAuthorId);
-        sb.append(", fwdMessages=").append(fwdMessages);
-        sb.append(", membersCount=").append(membersCount);
-        sb.append(", id=").append(id);
-        sb.append(", randomId=").append(randomId);
-        sb.append(", text='").append(text).append("'");
-        sb.append(", replyMessage=").append(replyMessage);
+        StringBuilder sb = new StringBuilder("Message{");
+        sb.append("date=").append(this.date);
+        sb.append(", keyboard=").append(this.keyboard);
+        sb.append(", attachments=").append(this.attachments);
+        sb.append(", fromId=").append(this.fromId);
+        sb.append(", isHidden=").append(this.isHidden);
+        sb.append(", refSource='").append(this.refSource).append("'");
+        sb.append(", conversationMessageId=").append(this.conversationMessageId);
+        sb.append(", out=").append(this.out);
+        sb.append(", peerId=").append(this.peerId);
+        sb.append(", geo=").append(this.geo);
+        sb.append(", important=").append(this.important);
+        sb.append(", ref='").append(this.ref).append("'");
+        sb.append(", updateTime=").append(this.updateTime);
+        sb.append(", deleted=").append(this.deleted);
+        sb.append(", payload='").append(this.payload).append("'");
+        sb.append(", action=").append(this.action);
+        sb.append(", adminAuthorId=").append(this.adminAuthorId);
+        sb.append(", fwdMessages=").append(this.fwdMessages);
+        sb.append(", membersCount=").append(this.membersCount);
+        sb.append(", id=").append(this.id);
+        sb.append(", randomId=").append(this.randomId);
+        sb.append(", text='").append(this.text).append("'");
+        sb.append(", replyMessage=").append(this.replyMessage);
         sb.append('}');
         return sb.toString();
     }
