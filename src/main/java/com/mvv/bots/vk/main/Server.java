@@ -2,6 +2,8 @@ package com.mvv.bots.vk.main;
 
 import com.google.gson.*;
 import com.mvv.bots.vk.database.DataBase;
+import com.mvv.bots.vk.database.models.User;
+import com.mvv.bots.vk.database.services.UserService;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -31,7 +33,7 @@ public class Server {
             System.out.println("Запуск сервера.");
             DataBase.createDataBase();
             HttpServer server = HttpServer.create();
-            server.bind(new InetSocketAddress(Integer.valueOf(System.getenv("PORT"))), 0);
+            server.bind(new InetSocketAddress(Integer.parseInt(System.getenv("PORT"))), 0);
             server.createContext("/callback", new CallbackHandler());
             server.createContext("/", new MainHandler());
             server.setExecutor(null);
@@ -239,8 +241,17 @@ public class Server {
     }
 
     private static void plusUse(Message message){
-        int uses = DataBase.selectInteger("users", "use", "id", message.getFromId(), false);
-        DataBase.insert("users", "use", uses+1, "id", message.getFromId());
+        UserService userService = new UserService();
+        User user = userService.findUser(message.getFromId());
+        if(user == null){
+            user = new User(message.getFromId());
+            user.setUse(1);
+            userService.saveUser(user);
+        }else{
+            int use = user.getUse();
+            user.setUse(use + 1);
+            userService.updateUser(user);
+        }
     }
 
 }

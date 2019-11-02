@@ -100,18 +100,20 @@
 
 
 
-    <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
-    <!--<dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-      <version>1.7.25</version>
-    </dependency>-->
-
+    <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>9.4.1208</version>
+      <version>42.2.8</version>
     </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <version>5.4.7.Final</version>
+    </dependency>
+
 
   </dependencies>
 
