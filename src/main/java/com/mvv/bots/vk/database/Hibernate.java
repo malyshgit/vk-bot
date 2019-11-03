@@ -20,14 +20,15 @@ public class Hibernate {
                 Configuration configuration = new Configuration().configure();
                 configuration.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQL10Dialect");
                 configuration.setProperty("hibernate.connection.driver_class", "org.postgresql.Driver");
-                String url = "jdbc:"
-                        +Config.DB_PROPS.get(Config.DB.NAME)
+                String url = ("jdbc:"
+                        + Config.DB_PROPS.get(Config.DB.NAME)).equals("postgres") ? "postgresql" : Config.DB_PROPS.get(Config.DB.NAME)
                         +"://"
                         +Config.DB_PROPS.get(Config.DB.HOST)
                         +":"
                         +Config.DB_PROPS.get(Config.DB.PORT)
                         +"/"
-                        +Config.DB_PROPS.get(Config.DB.DATABASE);
+                        +Config.DB_PROPS.get(Config.DB.DATABASE)
+                        +"?autoReconnect=true";
                 configuration.setProperty("hibernate.connection.url", url);
                 configuration.setProperty("hibernate.connection.username", Config.DB_PROPS.get(Config.DB.USER));
                 configuration.setProperty("hibernate.connection.password", Config.DB_PROPS.get(Config.DB.PASS));
