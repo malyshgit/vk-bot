@@ -1,8 +1,7 @@
 package com.mvv.bots.vk.main;
 
 import com.google.gson.*;
-import com.mvv.bots.vk.database.models.User;
-import com.mvv.bots.vk.database.services.UserService;
+import com.mvv.bots.vk.database.tables.Users;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -239,21 +238,14 @@ public class Server {
     }
 
     private static void plusUse(Message message){
-        UserService userService = new UserService();
-        System.out.println(1);
-        System.out.println(message.getFromId());
-        User user = userService.findUser(message.getFromId());
-        System.out.println(2);
-        if(user == null){
-            System.out.println(3);
-            user = new User(message.getFromId());
-            user.setUse(1);
-            userService.saveUser(user);
+        Users.User user = Users.find(message.getFromId());
+        if(user != null){
+            user.setUse(user.getUse()+1);
+            Users.update(user);
         }else{
-            System.out.println(4);
-            int use = user.getUse();
-            user.setUse(use + 1);
-            userService.updateUser(user);
+            user = new Users.User(message.getFromId());
+            user.setUse(1);
+            Users.add(user);
         }
     }
 
