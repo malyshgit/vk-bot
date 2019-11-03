@@ -252,7 +252,7 @@ public class Server {
             System.out.println(4);
             int use = user.getUse();
             user.setUse(use + 1);
-            userService.saveUser(user);
+            userService.updateUser(user);
         }
     }
 

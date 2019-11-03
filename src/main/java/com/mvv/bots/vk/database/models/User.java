@@ -6,14 +6,11 @@ import javax.persistence.*;
 @Table(name = "users")
 public class User {
 
-    @GeneratedValue
     @Id
     private Integer id;
 
-    @Column(nullable = false, columnDefinition = "int default 0")
     private Integer job;
 
-    @Column(nullable = false, columnDefinition = "int default 0")
     private Integer use;
 
     public User(Integer id) {

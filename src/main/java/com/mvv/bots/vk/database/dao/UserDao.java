@@ -9,7 +9,7 @@ import java.util.List;
 
 public class UserDao {
 
-    public User findById(int id) {
+    public User findById(Integer id) {
         return Hibernate.getSessionFactory().openSession().get(User.class, id);
     }
 
