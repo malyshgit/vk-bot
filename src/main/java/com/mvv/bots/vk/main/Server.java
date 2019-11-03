@@ -250,8 +250,6 @@ public class Server {
             user.setUse(use + 1);
             userService.updateUser(user);
         }
-        System.out.println(user.getId());
-        System.out.println(user.getUse());
     }
 
 }
