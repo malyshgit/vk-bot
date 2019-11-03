@@ -8,7 +8,6 @@ package com.mvv.bots.vk.commands;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.DataBase;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -78,7 +77,7 @@ public class Weather implements Script{
                             .execute();
                     break;
                 case 0:
-                    String parameters = DataBase.selectString("users", "parameters", "id", message.getPeerId(), false);
+                    /*String parameters = DataBase.selectString("users", "parameters", "id", message.getPeerId(), false);
                     if(parameters == null) parameters = "{}";
                     JsonObject  json = new JsonParser().parse(parameters).getAsJsonObject();
                     if(json.has("geo")){
@@ -105,8 +104,8 @@ public class Weather implements Script{
                                 .message(geo)
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
-                                .execute();
-                    }else {
+                                .execute();*/
+                    /*}else {
                         buttons.add(List.of(
                                 new KeyboardButton()
                                         .setColor(KeyboardButtonColor.NEGATIVE)
@@ -130,10 +129,10 @@ public class Weather implements Script{
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
-                    }
+                    }*/
                     break;
                 case 1:
-                    parameters = DataBase.selectString("users", "parameters", "id", message.getPeerId(), false);
+                    /*parameters = DataBase.selectString("users", "parameters", "id", message.getPeerId(), false);
                     if(parameters == null) parameters = "{}";
                     String geo = message.getGeo().toString();
                     json = new JsonParser().parse(parameters).getAsJsonObject();
@@ -145,7 +144,7 @@ public class Weather implements Script{
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    send(message, 0);
+                    send(message, 0);*/
                     break;
                 default:
                     break;

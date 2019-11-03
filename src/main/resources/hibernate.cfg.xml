@@ -4,6 +4,5 @@
         "http://hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
     <session-factory>
-        <mapping resource="book.hbm.xml" />
     </session-factory>
 </hibernate-configuration>

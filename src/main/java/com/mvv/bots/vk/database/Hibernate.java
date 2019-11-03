@@ -17,9 +17,9 @@ public class Hibernate {
     public static SessionFactory getSessionFactory() {
         if (sessionFactory == null) {
             try {
-                Configuration configuration = new Configuration().configure();
+                Configuration configuration = new Configuration().configure("hibernate.cfg.xml");
                 Properties properties = new Properties();
-                properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQL9Dialect");
+                properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQL95Dialect");
                 properties.setProperty("hibernate.connection.driver_class", "org.postgresql.Driver");
                 String url = "jdbc:"
                         +Config.DB_PROPS.get(Config.DB.NAME)
@@ -33,7 +33,7 @@ public class Hibernate {
                 properties.setProperty("hibernate.connection.username", Config.DB_PROPS.get(Config.DB.USER));
                 properties.setProperty("hibernate.connection.password", Config.DB_PROPS.get(Config.DB.PASS));
                 properties.setProperty("hibernate.show_sql", "true");
-                properties.setProperty("hibernate.hbm2ddl.auto", "create");
+                properties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
                 configuration.setProperties(properties);
                 configuration.addAnnotatedClass(User.class);
                 configuration.addAnnotatedClass(Settings.class);

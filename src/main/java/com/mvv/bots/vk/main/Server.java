@@ -1,7 +1,6 @@
 package com.mvv.bots.vk.main;
 
 import com.google.gson.*;
-import com.mvv.bots.vk.database.DataBase;
 import com.mvv.bots.vk.database.models.User;
 import com.mvv.bots.vk.database.services.UserService;
 import com.sun.net.httpserver.HttpExchange;
@@ -31,7 +30,6 @@ public class Server {
     public Server(){
         try {
             System.out.println("Запуск сервера.");
-            DataBase.createDataBase();
             HttpServer server = HttpServer.create();
             server.bind(new InetSocketAddress(Integer.parseInt(System.getenv("PORT"))), 0);
             server.createContext("/callback", new CallbackHandler());

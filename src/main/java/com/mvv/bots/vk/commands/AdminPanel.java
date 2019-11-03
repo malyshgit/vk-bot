@@ -6,7 +6,6 @@
 package com.mvv.bots.vk.commands;
 
 import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.DataBase;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -121,7 +120,6 @@ public class AdminPanel implements Script{
                             .execute();
                     break;
                 case 1:
-                    DataBase.createDataBase();
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("БД пересоздана.")
@@ -129,23 +127,6 @@ public class AdminPanel implements Script{
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, -1);
-                    break;
-                case 2:
-                	String parameters = DataBase.selectString("settings", "parameters", null, null, false);
-                	JsonObject jobj = new JsonParser().parse(parameters).getAsJsonObject();
-                	if(jobj.has("test")){
-                		new Messages(Config.VK)
-                            .send(Config.GROUP)
-                            .message(jobj.get("test").getAsString())
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                        send(message, -1);
-                	}else{
-                		jobj.addProperty("test", "test");
-                		String params = jobj.toString();
-                		DataBase.insert("settings", "parameters", params, null, null);
-                	}
                     break;
                 default:
                     break;

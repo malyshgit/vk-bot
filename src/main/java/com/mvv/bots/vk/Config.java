@@ -33,7 +33,6 @@ public interface Config {
     }
 
     static HashMap<DB, String> parseDBURL(){
-        System.out.println(DB_URL);
         HashMap<DB, String> map = new HashMap<>();
         if(DB_URL == null) return map;
         Pattern pattern = Pattern.compile(
@@ -49,7 +48,6 @@ public interface Config {
             map.put(DB.PORT, matcher.group(5));
             map.put(DB.DATABASE, matcher.group(6));
         }
-        System.out.println(map);
         return map;
     }
 
