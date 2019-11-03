@@ -241,6 +241,7 @@ public class Server {
     private static void plusUse(Message message){
         UserService userService = new UserService();
         System.out.println(1);
+        System.out.println(message.getFromId());
         User user = userService.findUser(message.getFromId());
         System.out.println(2);
         if(user == null){
