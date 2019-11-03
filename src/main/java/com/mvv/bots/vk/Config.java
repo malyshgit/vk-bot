@@ -19,6 +19,7 @@ public interface Config {
     int GROUP_ID = Integer.parseInt(System.getenv("GROUP_ID"));
     String GROUP_TOKEN = System.getenv("GROUP_TOKEN");
     String ADMIN_TOKEN = System.getenv("ADMIN_TOKEN");
+    String DB_URL = System.getenv("JDBC_DATABASE_URL");
     HashMap<DB, String> DB_PROPS = parseDBURL();
     static enum DB{
         NAME,
@@ -31,8 +32,8 @@ public interface Config {
     }
 
     static HashMap<DB, String> parseDBURL(){
+        System.out.println(DB_URL);
         HashMap<DB, String> map = new HashMap<>();
-        String DB_URL = System.getenv("JDBC_DATABASE_URL");
         if(DB_URL == null) return map;
         Pattern pattern = Pattern.compile(
                 "^(\\w+)://(\\w+):(\\w+)@(.+):(\\d+)/(\\w+)$",
