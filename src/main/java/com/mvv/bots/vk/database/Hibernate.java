@@ -35,7 +35,6 @@ public class Hibernate {
                 configuration.addAnnotatedClass(User.class);
                 configuration.addAnnotatedClass(Settings.class);
                 StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
-                System.out.println(configuration.getProperties());
                 sessionFactory = configuration.buildSessionFactory(builder.build());
 
             } catch (Exception e) {

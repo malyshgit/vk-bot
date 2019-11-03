@@ -241,15 +241,15 @@ public class Server {
     private static void plusUse(Message message){
         UserService userService = new UserService();
         User user = userService.findUser(message.getFromId());
-        System.out.println(user);
         if(user == null){
             user = new User(message.getFromId());
             user.setUse(1);
             userService.saveUser(user);
         }else{
+            System.out.println(user);
             int use = user.getUse();
             user.setUse(use + 1);
-            userService.updateUser(user);
+            userService.saveUser(user);
         }
     }
 

@@ -43,4 +43,9 @@ public class User {
     public int getJob() {
         return job;
     }
+
+    @Override
+    public String toString() {
+        return "User{id:"+id+", job:"+job+", use:"+use+"}";
+    }
 }
