@@ -8,24 +8,24 @@ public class User {
 
     @GeneratedValue
     @Id
-    private int id;
+    private Integer id;
 
     @Column(nullable = false, columnDefinition = "int default 0")
-    private int job;
+    private Integer job;
 
     @Column(nullable = false, columnDefinition = "int default 0")
-    private int use;
+    private Integer use;
 
-    public User(int id) {
+    public User(Integer id) {
         this.id = id;
     }
 
-    public User(int id, int job) {
+    public User(Integer id, Integer job) {
         this.id = id;
         this.job = job;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
