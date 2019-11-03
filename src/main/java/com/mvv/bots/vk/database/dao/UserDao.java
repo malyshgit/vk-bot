@@ -10,7 +10,9 @@ import java.util.List;
 public class UserDao {
 
     public User findById(Integer id) {
-        return Hibernate.getSessionFactory().openSession().get(User.class, id);
+        User user = Hibernate.getSessionFactory().openSession().get(User.class, id);
+        System.out.println(user.toString());
+        return user;
     }
 
     public void save(User user) {

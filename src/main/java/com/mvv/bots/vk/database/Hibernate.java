@@ -33,7 +33,6 @@ public class Hibernate {
                 configuration.setProperty("hibernate.connection.username", Config.DB_PROPS.get(Config.DB.USER));
                 configuration.setProperty("hibernate.connection.password", Config.DB_PROPS.get(Config.DB.PASS));
                 configuration.addAnnotatedClass(User.class);
-                configuration.addAnnotatedClass(Settings.class);
                 StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
                 sessionFactory = configuration.buildSessionFactory(builder.build());
 
