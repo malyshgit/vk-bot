@@ -47,6 +47,7 @@ public interface Config {
             map.put(DB.PORT, matcher.group(5));
             map.put(DB.DATABASE, matcher.group(6));
         }
+        System.out.println(map);
         return map;
     }
 
