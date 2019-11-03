@@ -240,13 +240,16 @@ public class Server {
 
     private static void plusUse(Message message){
         UserService userService = new UserService();
+        System.out.println(1);
         User user = userService.findUser(message.getFromId());
-        System.out.println(user);
+        System.out.println(2);
         if(user == null){
+            System.out.println(3);
             user = new User(message.getFromId());
             user.setUse(1);
             userService.saveUser(user);
         }else{
+            System.out.println(4);
             int use = user.getUse();
             user.setUse(use + 1);
             userService.saveUser(user);
