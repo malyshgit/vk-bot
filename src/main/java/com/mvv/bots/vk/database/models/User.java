@@ -7,22 +7,22 @@ import javax.persistence.*;
 public class User {
 
     @Id
-    private Integer id;
+    private int id;
 
-    private Integer job;
+    private int job;
 
-    private Integer use;
+    private int use;
 
-    public User(Integer id) {
+    public User(int id) {
         this.id = id;
     }
 
-    public User(Integer id, Integer job) {
+    public User(int id, int job) {
         this.id = id;
         this.job = job;
     }
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
