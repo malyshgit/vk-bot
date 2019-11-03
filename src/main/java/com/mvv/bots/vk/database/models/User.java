@@ -10,8 +10,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(nullable = false, columnDefinition = "int default 0")
     private int job;
 
+    @Column(nullable = false, columnDefinition = "int default 0")
     private int use;
 
     public User(int id) {
