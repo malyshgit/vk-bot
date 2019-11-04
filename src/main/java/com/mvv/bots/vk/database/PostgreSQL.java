@@ -21,7 +21,7 @@ public class PostgreSQL {
             try {
                 Class.forName("org.postgresql.Driver");
                 connection = DriverManager.getConnection(Config.JDBC_DATABASE_URL);
-                connection.setAutoCommit(false);
+                //connection.setAutoCommit(false);
             } catch (Exception e) {
                 LOG.error(e);
             }

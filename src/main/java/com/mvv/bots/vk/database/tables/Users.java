@@ -16,13 +16,17 @@ public class Users {
 
     public final static String tableString = "CREATE TABLE USERS " +
             "(ID INT PRIMARY KEY     NOT NULL," +
-            " JOB            INT     NOT NULL," +
-            " USE            INT     NOT NULL," +
-            " PARAMETERS     TEXT    NOT NULL);";
+            " JOB            INT     DEFAULT 0," +
+            " USE            INT     DEFAULT 0," +
+            " PARAMETERS     TEXT    DEFAULT '');";
 
     public static void create(){
         try {
             Statement statement = PostgreSQL.getConnection().createStatement();
+            statement.executeUpdate("DROP TABLE IF EXISTS USERS;");
+            statement.close();
+            PostgreSQL.commit();
+            statement = PostgreSQL.getConnection().createStatement();
             statement.executeUpdate(tableString);
             statement.close();
             PostgreSQL.commit();
