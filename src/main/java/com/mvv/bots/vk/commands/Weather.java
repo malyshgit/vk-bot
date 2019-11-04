@@ -5,15 +5,22 @@
  */
 package com.mvv.bots.vk.commands;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mvv.bots.vk.Config;
+import com.mvv.bots.vk.database.tables.Users;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.messages.*;
+import org.apache.commons.io.IOUtils;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,12 +84,18 @@ public class Weather implements Script{
                             .execute();
                     break;
                 case 0:
-                    /*String parameters = DataBase.selectString("users", "parameters", "id", message.getPeerId(), false);
-                    if(parameters == null) parameters = "{}";
-                    JsonObject  json = new JsonParser().parse(parameters).getAsJsonObject();
-                    if(json.has("geo")){
-                        //weather send
-                        String geo = json.get("geo").getAsString();
+                    Users.User user = Users.find(message.getFromId());
+                    if(user.getParameters().has("geo")){
+                        String geo = (String)user.getParameters().get("geo");
+                        JsonElement jelement = new JsonParser().parse(geo);
+                        JsonObject  jobject = jelement.getAsJsonObject();
+                        JsonObject coord = jobject.get("coordinates").getAsJsonObject();
+                        float lat = coord.get("latitude").getAsFloat();
+                        float lon = coord.get("longitude").getAsFloat();
+                        String url = String
+                                .format("https://forecast.weather.gov/MapClick.php?lat=%f&lon=%f&FcstType=json", lat, lon);
+                        //https://forecast.weather.gov/MapClick.php?lat=38.4247341&lon=-86.9624086&FcstType=json
+                        String weather = IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
                         buttons.add(List.of(
                                 new KeyboardButton()
                                         .setColor(KeyboardButtonColor.NEGATIVE)
@@ -101,11 +114,11 @@ public class Weather implements Script{
                         ));
 						new Messages(Config.VK)
                                 .send(Config.GROUP)
-                                .message(geo)
+                                .message(weather)
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
-                                .execute();*/
-                    /*}else {
+                                .execute();
+                    }else {
                         buttons.add(List.of(
                                 new KeyboardButton()
                                         .setColor(KeyboardButtonColor.NEGATIVE)
@@ -129,27 +142,24 @@ public class Weather implements Script{
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
-                    }*/
+                    }
                     break;
                 case 1:
-                    /*parameters = DataBase.selectString("users", "parameters", "id", message.getPeerId(), false);
-                    if(parameters == null) parameters = "{}";
                     String geo = message.getGeo().toString();
-                    json = new JsonParser().parse(parameters).getAsJsonObject();
-                    json.addProperty("geo", geo);
-                    DataBase.update("users", "parameters", "'"+json.toString()+"'", "id", message.getPeerId(), false);
+                    user = Users.find(message.getFromId());
+                    user.getParameters().put("geo", geo);
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Местоположение сохранено.")
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    send(message, 0);*/
+                    send(message, 0);
                     break;
                 default:
                     break;
             }
-        }catch (ApiException | ClientException e){
+        }catch (ApiException | ClientException | IOException e){
             LOG.error(e);
         }
     }

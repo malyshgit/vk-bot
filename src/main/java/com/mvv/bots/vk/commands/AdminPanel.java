@@ -6,6 +6,7 @@
 package com.mvv.bots.vk.commands;
 
 import com.mvv.bots.vk.Config;
+import com.mvv.bots.vk.database.tables.Users;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -120,6 +121,7 @@ public class AdminPanel implements Script{
                             .execute();
                     break;
                 case 1:
+                    Users.create();
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("БД пересоздана.")
