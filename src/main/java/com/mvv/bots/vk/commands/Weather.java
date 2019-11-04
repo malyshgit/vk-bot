@@ -148,6 +148,7 @@ public class Weather implements Script{
                     String geo = message.getGeo().toString();
                     user = Users.find(message.getFromId());
                     user.getParameters().put("geo", geo);
+                    Users.update(user);
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Местоположение сохранено.")
