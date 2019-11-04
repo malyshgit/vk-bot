@@ -73,11 +73,11 @@ public class Users {
                 int job = resultSet.getInt("job");
                 int use = resultSet.getInt("use");
                 String parameters = resultSet.getString("parameters");
-                LOG.debug(job+" "+use+" "+parameters);
                 user = new User(id);
                 user.setJob(job);
                 user.setUse(use);
                 user.setParameters(new User.Parameters(parameters));
+                LOG.debug(user);
                 return user;
             }
             resultSet.close();
@@ -131,6 +131,11 @@ public class Users {
 
         public int getId() {
             return id;
+        }
+
+        @Override
+        public String toString() {
+            return "User{id="+id+", job="+job+", use="+use+", parameters="+parameters+"}";
         }
 
         public static class Parameters{
