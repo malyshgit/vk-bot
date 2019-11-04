@@ -87,11 +87,9 @@ public class Weather implements Script{
                     Users.User user = Users.find(message.getFromId());
                     if(user.getParameters().has("geo")){
                         String geo = (String)user.getParameters().get("geo");
-                        JsonElement jelement = new JsonParser().parse(geo);
-                        JsonObject  jobject = jelement.getAsJsonObject();
-                        JsonObject coord = jobject.get("coordinates").getAsJsonObject();
-                        float lat = coord.get("latitude").getAsFloat();
-                        float lon = coord.get("longitude").getAsFloat();
+                        String[] coord = geo.split(":");
+                        float lat = Float.parseFloat(coord[0]);
+                        float lon = Float.parseFloat(coord[1]);
                         String url = String
                                 .format("https://forecast.weather.gov/MapClick.php?lat=%f&lon=%f&FcstType=json", lat, lon);
                         //https://forecast.weather.gov/MapClick.php?lat=38.4247341&lon=-86.9624086&FcstType=json
@@ -146,8 +144,13 @@ public class Weather implements Script{
                     break;
                 case 1:
                     String geo = message.getGeo().toString();
+                    JsonElement jelement = new JsonParser().parse(geo);
+                    JsonObject  jobject = jelement.getAsJsonObject();
+                    JsonObject coord = jobject.get("coordinates").getAsJsonObject();
+                    float lat = coord.get("latitude").getAsFloat();
+                    float lon = coord.get("longitude").getAsFloat();
                     user = Users.find(message.getFromId());
-                    user.getParameters().put("geo", geo);
+                    user.getParameters().put("geo", lat+":"+lon);
                     Users.update(user);
                     new Messages(Config.VK)
                             .send(Config.GROUP)

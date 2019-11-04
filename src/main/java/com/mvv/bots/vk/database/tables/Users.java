@@ -18,7 +18,7 @@ public class Users {
             "(ID INT PRIMARY KEY     NOT NULL," +
             " JOB            INT     DEFAULT 0," +
             " USE            INT     DEFAULT 0," +
-            " PARAMETERS     TEXT    DEFAULT '');";
+            " PARAMETERS     TEXT);";
 
     public static void create(){
         try {
@@ -40,6 +40,7 @@ public class Users {
                     "UPDATE USERS SET JOB=%d, USE=%d, PARAMETERS='%s' "
                             +"WHERE ID=%d;",
                     user.getJob(), user.getUse(), user.getParameters(), user.getId());
+            LOG.debug(sql);
             statement.executeUpdate(sql);
             statement.close();
         } catch ( Exception e ) {
@@ -54,6 +55,7 @@ public class Users {
                     "INSERT INTO USERS (ID,JOB,USE,PARAMETERS) "
                    +"VALUES (%d, %d, %d, '%s');",
                     user.getId(), user.getJob(), user.getUse(), user.getParameters());
+            LOG.debug(sql);
             statement.executeUpdate(sql);
             statement.close();
         } catch ( Exception e ) {
@@ -66,6 +68,7 @@ public class Users {
             User user;
             Statement statement = PostgreSQL.getConnection().createStatement();
             String sql = String.format("SELECT * FROM USERS WHERE ID=%d;", id);
+            LOG.debug(sql);
             ResultSet resultSet = statement.executeQuery(sql);
             if(resultSet.next()){
                 int job = resultSet.getInt("job");
