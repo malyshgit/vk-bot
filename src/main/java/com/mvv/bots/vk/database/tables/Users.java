@@ -25,11 +25,9 @@ public class Users {
             Statement statement = PostgreSQL.getConnection().createStatement();
             statement.executeUpdate("DROP TABLE IF EXISTS USERS;");
             statement.close();
-            PostgreSQL.commit();
             statement = PostgreSQL.getConnection().createStatement();
             statement.executeUpdate(tableString);
             statement.close();
-            PostgreSQL.commit();
         } catch ( Exception e ) {
             LOG.error(e);
         }
@@ -44,7 +42,6 @@ public class Users {
                     user.getJob(), user.getUse(), user.getParameters(), user.getId());
             statement.executeUpdate(sql);
             statement.close();
-            PostgreSQL.commit();
         } catch ( Exception e ) {
             LOG.error(e);
         }
@@ -59,7 +56,6 @@ public class Users {
                     user.getId(), user.getJob(), user.getUse(), user.getParameters());
             statement.executeUpdate(sql);
             statement.close();
-            PostgreSQL.commit();
         } catch ( Exception e ) {
             LOG.error(e);
         }
@@ -83,7 +79,6 @@ public class Users {
             }
             resultSet.close();
             statement.close();
-            PostgreSQL.commit();
         } catch ( Exception e ) {
             LOG.error(e);
         }
