@@ -18,7 +18,7 @@ public class Users {
             "(ID INT PRIMARY KEY     NOT NULL," +
             " JOB            INT     DEFAULT 0," +
             " USE            INT     DEFAULT 0," +
-            " PARAMETERS     TEXT    DEFAULT '')";
+            " PARAMETERS     TEXT    DEFAULT '');";
 
     public static void create(){
         try {
