@@ -150,7 +150,7 @@ public class Users {
             public Parameters(String parameters){
                 if(parameters == null) parameters = "";
                 this.parameters = parameters;
-                if(parameters.matches("(\\w+=\\w+\n?)+")){
+                if(parameters.matches("(\\w+=.+\n?)+")){
                     map = (HashMap<String, Object>) Arrays
                             .stream(parameters.split("\n"))
                             .map(s -> s.split("="))
