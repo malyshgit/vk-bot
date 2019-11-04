@@ -37,7 +37,7 @@ public class Users {
         try {
             Statement statement = PostgreSQL.getConnection().createStatement();
             String sql = String.format(
-                    "UPDATE USERS SET JOB=%d, USE=%d, PARAMETERS=%s "
+                    "UPDATE USERS SET JOB=%d, USE=%d, PARAMETERS='%s' "
                             +"WHERE ID=%d;",
                     user.getJob(), user.getUse(), user.getParameters(), user.getId());
             statement.executeUpdate(sql);
@@ -52,7 +52,7 @@ public class Users {
             Statement statement = PostgreSQL.getConnection().createStatement();
             String sql = String.format(
                     "INSERT INTO USERS (ID,JOB,USE,PARAMETERS) "
-                   +"VALUES (%d, %d, %d, %s);",
+                   +"VALUES (%d, %d, %d, '%s');",
                     user.getId(), user.getJob(), user.getUse(), user.getParameters());
             statement.executeUpdate(sql);
             statement.close();
