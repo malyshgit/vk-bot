@@ -24,9 +24,6 @@ public class Users {
         try {
             Statement statement = PostgreSQL.getConnection().createStatement();
             statement.executeUpdate("DROP TABLE IF EXISTS USERS;");
-            statement.close();
-            PostgreSQL.commit();
-            statement = PostgreSQL.getConnection().createStatement();
             statement.executeUpdate(tableString);
             statement.close();
             PostgreSQL.commit();
