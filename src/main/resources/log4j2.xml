@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN">
+<Configuration status="INFO">
     <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n" />
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="<your_package_name>.<your_class_name>" level="debug">
-            <AppenderRef ref="Console"/>
-        </Logger>
-        <Root level="WARN">
-            <AppenderRef ref="Console"/>
+        <Root level="debug" additivity="false">
+            <AppenderRef ref="console" />
         </Root>
     </Loggers>
 </Configuration>
