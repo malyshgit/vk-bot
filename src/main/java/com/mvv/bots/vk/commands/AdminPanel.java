@@ -132,7 +132,7 @@ public class AdminPanel implements Script{
                     break;
             }
         }catch (ApiException | ClientException e){
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
     

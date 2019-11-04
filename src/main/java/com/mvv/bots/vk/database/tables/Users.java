@@ -1,12 +1,15 @@
 package com.mvv.bots.vk.database.tables;
 
 import com.mvv.bots.vk.database.PostgreSQL;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
 
 
 public class Users {
+    private static final Logger LOG = LogManager.getLogger(Users.class);
 
     public final static String tableString = "CREATE TABLE USERS " +
             "(ID INT PRIMARY KEY     NOT NULL," +
@@ -20,7 +23,7 @@ public class Users {
             statement.close();
             PostgreSQL.commit();
         } catch ( Exception e ) {
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 
@@ -35,7 +38,7 @@ public class Users {
             statement.close();
             PostgreSQL.commit();
         } catch ( Exception e ) {
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 
@@ -50,7 +53,7 @@ public class Users {
             statement.close();
             PostgreSQL.commit();
         } catch ( Exception e ) {
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 
@@ -72,7 +75,7 @@ public class Users {
             statement.close();
             PostgreSQL.commit();
         } catch ( Exception e ) {
-            e.printStackTrace();
+            LOG.error(e);
         }
         return null;
     }

@@ -5,8 +5,11 @@
  */
 package com.mvv.bots.vk.commands;
 
+import com.mvv.bots.vk.main.Server;
 import com.vk.api.sdk.objects.messages.Message;
 import com.mvv.bots.vk.Config;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +18,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public interface Script {
+    Logger LOG = LogManager.getLogger(Script.class);
 
     String smile();
 

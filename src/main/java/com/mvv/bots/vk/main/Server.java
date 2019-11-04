@@ -2,6 +2,7 @@ package com.mvv.bots.vk.main;
 
 import com.google.gson.*;
 import com.mvv.bots.vk.database.tables.Users;
+import com.mvv.bots.vk.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -9,11 +10,14 @@ import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.callback.CallbackApi;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
+import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.objects.messages.Message;
 import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.commands.Script;
 import com.mvv.bots.vk.commands.ScriptList;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -23,26 +27,27 @@ import java.util.List;
 import java.util.regex.PatternSyntaxException;
 
 public class Server {
+    private static final Logger LOG = LogManager.getLogger(Server.class);
 
     private static int restartsCount = 0;
 
     public Server(){
         try {
-            System.out.println("Запуск сервера.");
+            LOG.debug("Запуск сервера.");
             HttpServer server = HttpServer.create();
             server.bind(new InetSocketAddress(Integer.parseInt(System.getenv("PORT"))), 0);
             server.createContext("/callback", new CallbackHandler());
             server.createContext("/", new MainHandler());
             server.setExecutor(null);
             server.start();
-            System.out.println("Сервер запущен.");
+            LOG.debug("Сервер запущен.");
         } catch (IOException e) {
-            System.out.println("Сервер остановлен с ошибкой.");
-            e.printStackTrace(System.out);
-            System.out.println("Попытка запуска №"+restartsCount+"...");
+            LOG.error("Сервер остановлен с ошибкой.");
+            LOG.error(e);
+            LOG.debug("Попытка запуска №"+restartsCount+"...");
             restartsCount++;
             if(restartsCount > 3){
-                System.out.println("Остановка.");
+                LOG.error("Остановка.");
                 System.exit(0);
             }
             new Server();
@@ -51,7 +56,7 @@ public class Server {
 
     public static void main(String[] args) {
         if(args.length > 0){
-            System.out.println(List.of(args));
+            LOG.debug(List.of(args));
             for(String arg : args){
                 if(arg.equals("%update%")){
                     update();
@@ -63,6 +68,7 @@ public class Server {
     }
 
     private static class CallbackHandler implements HttpHandler {
+        private static final Logger LOG = LogManager.getLogger(CallbackHandler.class);
 
         private static List<String> spamList = new ArrayList<>();
 
@@ -71,12 +77,12 @@ public class Server {
             try {
                 String request = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8)).readLine();
 
-                System.out.println("Запрос: "+request);
+                LOG.debug("Запрос: "+request);
 
                 OutputStream response = exchange.getResponseBody();
 
                 if(spamList.contains(request)) {
-                    System.out.println("Спам: " + request);
+                    LOG.warn("Спам: " + request);
                     String answer = "OK";
                     byte[] bytes = answer.getBytes();
                     try {
@@ -86,7 +92,7 @@ public class Server {
                         response.close();
                         exchange.close();
                     }catch (IOException e) {
-                        e.printStackTrace();
+                        LOG.error(e);
                     }
                     return;
                 }
@@ -97,20 +103,20 @@ public class Server {
                     @Override
                     public void confirmation(Integer groupId) {
                         if(groupId != Config.GROUP_ID){
-                            System.out.println("Не совпадает группа: "+groupId);
+                            LOG.warn("Не совпадает группа: "+groupId);
                             return;
                         }
-                        System.out.println("Подтверждение токена.");
+                        LOG.debug("Подтверждение токена.");
                         answer(Config.CONFIRMATION_TOKEN);
                     }
 
                     @Override
                     public void messageNew(Integer groupId, Message message) {
                         if(groupId != Config.GROUP_ID){
-                            System.out.println("Не совпадает группа: "+groupId);
+                            LOG.warn("Не совпадает группа: "+groupId);
                             return;
                         }
-                        System.out.println("Новое сообщение: "+message);
+                        LOG.debug("Новое сообщение: "+message);
                         parseMessage(message);
                         answer("OK");
                     }
@@ -124,18 +130,19 @@ public class Server {
                             response.close();
                             exchange.close();
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            LOG.error(e);
                         }
                     }
                 };
 
                 callback.parse(request);
             }catch (IOException e){
-                e.printStackTrace();
+                LOG.error(e);
             }
         }
     }
     private static class MainHandler implements HttpHandler {
+        private static final Logger LOG = LogManager.getLogger(MainHandler.class);
 
         @Override
         public void handle(HttpExchange exchange) {
@@ -173,14 +180,14 @@ public class Server {
                 exchange.getResponseBody().close();
                 bytes.close();
             }catch (IOException e){
-                e.printStackTrace();
+                LOG.error(e);
             }
         }
     }
 
     private static void update() {
         Config.SCRIPTS.forEach(Script::update);
-        /*try {
+        try {
             new Messages(Config.VK)
                     .send(Config.GROUP)
                     .message("Обновление.")
@@ -188,14 +195,12 @@ public class Server {
                     .randomId(Utils.getRandomInt32())
                     .execute();
         } catch (ApiException | ClientException e) {
-            e.printStackTrace();
-        }*/
+            LOG.error(e);
+        }
     }
 
     private static void parseMessage(Message message) {
         try {
-            System.out.println(message);
-
             if(message.getPeerId() >= 2000000000){
                 new Messages(Config.VK)
                         .markAsAnsweredConversation(Config.GROUP, message.getPeerId())
@@ -233,7 +238,7 @@ public class Server {
             }
 
         }catch (PatternSyntaxException | ClientException | ApiException e){
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 

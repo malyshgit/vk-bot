@@ -93,7 +93,7 @@ public class Killer implements Script{
             }
 
         }catch (ApiException | ClientException | InterruptedException e){
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
     

@@ -115,7 +115,7 @@ public class Duty implements Script{
                     .execute();
 
         }catch (ApiException | ClientException e){
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
     

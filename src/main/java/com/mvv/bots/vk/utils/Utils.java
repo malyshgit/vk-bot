@@ -1,5 +1,9 @@
 package com.mvv.bots.vk.utils;
 
+import com.mvv.bots.vk.main.Server;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.awt.*;
 import java.util.LinkedList;
 import java.util.concurrent.ThreadLocalRandom;
@@ -8,6 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Created by I1PABIJJA on 07.05.2017.
  */
 public class Utils {
+    private static final Logger LOG = LogManager.getLogger(Utils.class);
 
     public static int getRandom(int f, int l){
         return ThreadLocalRandom.current().nextInt(f, l+1);

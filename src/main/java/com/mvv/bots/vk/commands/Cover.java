@@ -60,7 +60,7 @@ public class Cover implements Script {
                     .execute();
 
         }catch (PatternSyntaxException | ApiException | ClientException e){
-            e.printStackTrace();
+            LOG.error(e);
         }
 
 

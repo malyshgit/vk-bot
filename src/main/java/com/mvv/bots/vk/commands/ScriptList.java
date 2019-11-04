@@ -174,7 +174,7 @@ public class ScriptList implements Script{
                         .execute();
             }
         }catch (ApiException | ClientException e){
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
     public static void open(Message message){

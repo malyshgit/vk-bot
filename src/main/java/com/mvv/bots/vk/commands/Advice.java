@@ -17,6 +17,7 @@ import com.mvv.bots.vk.Config;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,13 +78,13 @@ public class Advice implements Script{
                     .randomId(Utils.getRandomInt32())
                     .execute();
         }catch (ApiException | ClientException | IOException e){
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 
     public static String advice() throws IOException {
         URL url = new URL("http://fucking-great-advice.ru/api/random");
-        String json =  new String(url.openStream().readAllBytes(), Charset.forName("UTF-8"));
+        String json =  new String(url.openStream().readAllBytes(), StandardCharsets.UTF_8);
         JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
         return jsonObject.get("text").getAsString();
     }

@@ -1,12 +1,16 @@
 package com.mvv.bots.vk.database;
 
 import com.mvv.bots.vk.Config;
+import com.mvv.bots.vk.main.Server;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class PostgreSQL {
+    private static final Logger LOG = LogManager.getLogger(PostgreSQL.class);
 
     private static Connection connection = null;
 
@@ -19,7 +23,7 @@ public class PostgreSQL {
                 connection = DriverManager.getConnection(Config.JDBC_DATABASE_URL);
                 connection.setAutoCommit(false);
             } catch (Exception e) {
-                e.printStackTrace();
+                LOG.error(e);
             }
         }
         return connection;
@@ -29,7 +33,7 @@ public class PostgreSQL {
         try {
             connection.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 
@@ -37,7 +41,7 @@ public class PostgreSQL {
         try {
             connection.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 
