@@ -23,7 +23,6 @@ public class Users {
     public static void create(){
         try {
             Statement statement = PostgreSQL.getConnection().createStatement();
-            statement.executeUpdate("DROP TABLE IF EXISTS USERS;");
             statement.executeUpdate(tableString);
             statement.close();
             PostgreSQL.commit();
