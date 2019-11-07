@@ -9,8 +9,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -63,6 +65,35 @@ public class Users {
         } catch ( Exception e ) {
             LOG.error(e);
         }
+    }
+
+    public static List<User> findAll(){
+        try {
+            List<User> users = new ArrayList<>();
+            Statement statement = PostgreSQL.getConnection().createStatement();
+            String sql = "SELECT * FROM USERS;";
+            LOG.debug(sql);
+            ResultSet resultSet = statement.executeQuery(sql);
+            while(resultSet.next()){
+                User user;
+                int id = resultSet.getInt("id");
+                int job = resultSet.getInt("job");
+                int use = resultSet.getInt("use");
+                String parameters = resultSet.getString("parameters");
+                user = new User(id);
+                user.setJob(job);
+                user.setUse(use);
+                user.setParameters(new User.Parameters(parameters));
+                users.add(user);
+            }
+            resultSet.close();
+            statement.close();
+            LOG.debug(users);
+            return users;
+        } catch ( Exception e ) {
+            LOG.error(e);
+        }
+        return null;
     }
 
     public static User find(int id){
@@ -162,7 +193,7 @@ public class Users {
                 return parameters.getAsJsonObject().has(key);
             }
 
-            public Object get(String key){
+            public String get(String key){
                 return parameters.getAsJsonObject().get(key).getAsString();
             }
 
