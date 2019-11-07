@@ -87,17 +87,21 @@ public class Weather implements Script{
                     Users.User user = Users.find(message.getFromId());
                     if(user.getParameters().has("geo")){
                         String geo = (String)user.getParameters().get("geo");
+                        JsonElement jelement = new JsonParser().parse(geo);
+                        JsonObject  jobject = jelement.getAsJsonObject();
+                        JsonObject coordinates = jobject.get("coordinates").getAsJsonObject();
                         LOG.debug(geo);
-                        String[] coord = geo.split(":");
-                        float lat = Float.parseFloat(coord[0]);
-                        float lon = Float.parseFloat(coord[1]);
-                        LOG.debug(lat+":"+lon);
+                        float lat = coordinates.get("latitude").getAsFloat();
+                        float lon = coordinates.get("longitude").getAsFloat();
                         String url = String
                                 .format("https://api.darksky.net/forecast/%s/%f,%f?lang=ru&units=si", Config.DARKSKY_API_KEY, lat, lon);
                         String weather = IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
-                        JsonElement jelement = new JsonParser().parse(weather);
-                        JsonObject  jobject = jelement.getAsJsonObject();
+                        jelement = new JsonParser().parse(weather);
+                        jobject = jelement.getAsJsonObject();
                         JsonObject currently = jobject.get("currently").getAsJsonObject();
+                        String summary = currently.get("summary").getAsString();
+                        int temperature = (int)currently.get("temperature").getAsFloat();
+                        String info = summary+"\n"+temperature+"˚C";
                         keyboard.setInline(true);
                         buttons.add(List.of(
                                 new KeyboardButton()
@@ -108,7 +112,7 @@ public class Weather implements Script{
                         ));
 						new Messages(Config.VK)
                                 .send(Config.GROUP)
-                                .message(currently.toString())
+                                .message(info)
                                 .keyboard(keyboard)
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
@@ -141,13 +145,8 @@ public class Weather implements Script{
                     break;
                 case 1:
                     String geo = message.getGeo().toString();
-                    JsonElement jelement = new JsonParser().parse(geo);
-                    JsonObject  jobject = jelement.getAsJsonObject();
-                    JsonObject coord = jobject.get("coordinates").getAsJsonObject();
-                    float lat = coord.get("latitude").getAsFloat();
-                    float lon = coord.get("longitude").getAsFloat();
                     user = Users.find(message.getFromId());
-                    user.getParameters().put("geo", lat+":"+lon);
+                    user.getParameters().put("geo", geo);
                     Users.update(user);
                     new Messages(Config.VK)
                             .send(Config.GROUP)

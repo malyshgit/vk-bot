@@ -1,5 +1,8 @@
 package com.mvv.bots.vk.database.tables;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mvv.bots.vk.database.PostgreSQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -139,46 +142,37 @@ public class Users {
         }
 
         public static class Parameters{
-            private String parameters;
-            private HashMap<String, Object> map;
+            private JsonElement parameters;
 
             public Parameters(){
-                this.parameters = "";
-                map = new HashMap<>();
+                this.parameters = new JsonParser().parse("{}");
             }
 
             public Parameters(String parameters){
-                if(parameters == null) parameters = "";
-                this.parameters = parameters;
-                if(parameters.matches("(\\w+=.+\n?)+")){
-                    map = (HashMap<String, Object>) Arrays
-                            .stream(parameters.split("\n"))
-                            .map(s -> s.split("="))
-                            .collect(Collectors.toMap(e -> e[0], e -> (Object)e[1]));
-                }else{
-                    map = new HashMap<>();
-                }
+                if(parameters == null) parameters = "{}";
+                this.parameters = new JsonParser().parse(parameters);
             }
 
             public void put(String key, Object value){
-                map.put(key, value);
+                String stringValue = String.valueOf(value);
+                parameters.getAsJsonObject().addProperty(key, stringValue);
             }
 
             public boolean has(String key){
-                return map.containsKey(key);
+                return parameters.getAsJsonObject().has(key);
             }
 
             public Object get(String key){
-                return map.get(key);
+                return parameters.getAsJsonObject().get(key).getAsString();
             }
 
-            public void set(HashMap<String, Object> map){
-                this.map = map;
+            public void set(JsonElement parameters){
+                this.parameters = parameters;
             }
 
             @Override
             public String toString() {
-                return map.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n"));
+                return parameters.toString();
             }
         }
     }
