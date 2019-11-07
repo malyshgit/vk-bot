@@ -93,7 +93,7 @@ public class Weather implements Script{
                         float lon = Float.parseFloat(coord[1]);
                         LOG.debug(lat+":"+lon);
                         String url = String
-                                .format("https://api.darksky.net/forecast/%s/%f,%f", Config.DARKSKY_API_KEY, lat, lon);
+                                .format("https://api.darksky.net/forecast/%s/%f,%f?lang=ru&units=si", Config.DARKSKY_API_KEY, lat, lon);
                         String weather = IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
                         JsonElement jelement = new JsonParser().parse(weather);
                         JsonObject  jobject = jelement.getAsJsonObject();
