@@ -159,7 +159,7 @@ public class AdminPanel implements Script{
                         }
                     }else{
                         debbug = new Settings.Option("debbug", "false");
-                        Settings.save(debbug);
+                        Settings.add(debbug);
                         send(message, 2);
                         return;
                     }
