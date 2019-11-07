@@ -147,6 +147,7 @@ public class Weather implements Script{
                             user.getParameters().put("weatherupdate", false);
                             Users.update(user);
                             send(message, 0);
+                            return;
                         }
 						new Messages(Config.VK)
                                 .send(Config.GROUP)
@@ -156,15 +157,7 @@ public class Weather implements Script{
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
                     }else {
-                        buttons.add(List.of(
-                                new KeyboardButton()
-                                        .setColor(KeyboardButtonColor.NEGATIVE)
-                                        .setAction(new KeyboardButtonAction().setPayload(
-                                                "{\"script\":\"" + ScriptList.class.getName() + "\"," +
-                                                        "\"step\":" + 0 + "}"
-                                        ).setType(KeyboardButtonActionType.TEXT)
-                                                .setLabel("Назад"))
-                        ));
+                        keyboard.setInline(true);
                         buttons.add(List.of(
                                 new KeyboardButton()
                                         .setAction(new KeyboardButtonAction().setPayload(
