@@ -146,6 +146,7 @@ public class Weather implements Script{
                         }else{
                             user.getParameters().put("weatherupdate", false);
                             Users.update(user);
+                            send(message, 0);
                         }
 						new Messages(Config.VK)
                                 .send(Config.GROUP)
