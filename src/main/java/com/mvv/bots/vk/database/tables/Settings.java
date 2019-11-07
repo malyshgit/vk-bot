@@ -17,8 +17,9 @@ public class Settings {
     private static final String name = "SETTINGS";
 
     public final static String tableString = "CREATE TABLE "+name+" " +
-            "(KEY TEXT PRIMARY KEY     NOT NULL," +
-            " VALUE            INT     NOT NULL);";
+            "(ID               SERIAL  PRIMARY KEY," +
+            " KEY              TEXT    NOT NULL UNIQUE," +
+            " VALUE            TEXT    NOT NULL);";
 
     public static void create(){
         try {
