@@ -145,7 +145,7 @@ public class Weather implements Script{
                             }
                         }else{
                             user.getParameters().put("weatherupdate", false);
-                            Users.update(user);
+                            Users.save(user);
                             send(message, 0);
                             return;
                         }
