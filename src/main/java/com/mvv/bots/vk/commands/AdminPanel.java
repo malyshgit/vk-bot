@@ -123,6 +123,7 @@ public class AdminPanel implements Script{
                     break;
                 case 1:
                     Users.create();
+                    Settings.create();
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("БД пересоздана.")
