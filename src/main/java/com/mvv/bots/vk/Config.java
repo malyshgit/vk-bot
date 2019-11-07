@@ -20,6 +20,7 @@ public interface Config {
     String GROUP_TOKEN = System.getenv("GROUP_TOKEN");
     String ADMIN_TOKEN = System.getenv("ADMIN_TOKEN");
     String JDBC_DATABASE_URL = System.getenv("JDBC_DATABASE_URL");
+    String DARKSKY_API_KEY = System.getenv("DARKSKY_API_KEY");
 
     VkApiClient VK = new VkApiClient(HttpTransportClient.getInstance());
     GroupActor GROUP = new GroupActor(GROUP_ID, GROUP_TOKEN);

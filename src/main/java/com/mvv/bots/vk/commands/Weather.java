@@ -87,22 +87,18 @@ public class Weather implements Script{
                     Users.User user = Users.find(message.getFromId());
                     if(user.getParameters().has("geo")){
                         String geo = (String)user.getParameters().get("geo");
+                        LOG.debug(geo);
                         String[] coord = geo.split(":");
                         float lat = Float.parseFloat(coord[0]);
                         float lon = Float.parseFloat(coord[1]);
+                        LOG.debug(lat+":"+lon);
                         String url = String
-                                .format("https://forecast.weather.gov/MapClick.php?lat=%f&lon=%f&FcstType=json", lat, lon);
-                        //https://forecast.weather.gov/MapClick.php?lat=38.4247341&lon=-86.9624086&FcstType=json
+                                .format("https://api.darksky.net/forecast/%s/%f,%f", Config.DARKSKY_API_KEY, lat, lon);
                         String weather = IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
-                        buttons.add(List.of(
-                                new KeyboardButton()
-                                        .setColor(KeyboardButtonColor.NEGATIVE)
-                                        .setAction(new KeyboardButtonAction().setPayload(
-                                                "{\"script\":\"" + ScriptList.class.getName() + "\"," +
-                                                        "\"step\":" + 0 + "}"
-                                        ).setType(KeyboardButtonActionType.TEXT)
-                                                .setLabel("Назад"))
-                        ));
+                        JsonElement jelement = new JsonParser().parse(weather);
+                        JsonObject  jobject = jelement.getAsJsonObject();
+                        JsonObject currently = jobject.get("currently").getAsJsonObject();
+                        keyboard.setInline(true);
                         buttons.add(List.of(
                                 new KeyboardButton()
                                         .setAction(new KeyboardButtonAction().setPayload(
@@ -112,7 +108,8 @@ public class Weather implements Script{
                         ));
 						new Messages(Config.VK)
                                 .send(Config.GROUP)
-                                .message(weather)
+                                .message(currently.toString())
+                                .keyboard(keyboard)
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
