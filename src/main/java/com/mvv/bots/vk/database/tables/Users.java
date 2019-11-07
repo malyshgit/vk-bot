@@ -18,8 +18,9 @@ import java.util.stream.Collectors;
 
 public class Users {
     private static final Logger LOG = LogManager.getLogger(Users.class);
+    private static final String name = "USERS";
 
-    public final static String tableString = "CREATE TABLE USERS " +
+    public final static String tableString = "CREATE TABLE "+name+" " +
             "(ID INT PRIMARY KEY     NOT NULL," +
             " JOB            INT     DEFAULT 0," +
             " USE            INT     DEFAULT 0," +
@@ -28,7 +29,7 @@ public class Users {
     public static void create(){
         try {
             Statement statement = PostgreSQL.getConnection().createStatement();
-            statement.executeUpdate("DROP TABLE IF EXISTS USERS;");
+            statement.executeUpdate("DROP TABLE IF EXISTS "+name+";");
             statement.close();
             statement = PostgreSQL.getConnection().createStatement();
             statement.executeUpdate(tableString);
@@ -42,7 +43,7 @@ public class Users {
         try {
             Statement statement = PostgreSQL.getConnection().createStatement();
             String sql = String.format(
-                    "UPDATE USERS SET JOB=%d, USE=%d, PARAMETERS='%s' WHERE ID=%d;",
+                    "UPDATE "+name+" SET JOB=%d, USE=%d, PARAMETERS='%s' WHERE ID=%d;",
                     user.getJob(), user.getUse(), user.getParameters(), user.getId());
             LOG.debug(sql);
             statement.executeUpdate(sql);
@@ -56,7 +57,7 @@ public class Users {
         try {
             Statement statement = PostgreSQL.getConnection().createStatement();
             String sql = String.format(
-                    "INSERT INTO USERS (ID,JOB,USE,PARAMETERS) "
+                    "INSERT INTO "+name+" (ID,JOB,USE,PARAMETERS) "
                                 +"VALUES (%d, %d, %d, '%s');",
                     user.getId(), user.getJob(), user.getUse(), user.getParameters());
             LOG.debug(sql);
@@ -71,7 +72,7 @@ public class Users {
         try {
             List<User> users = new ArrayList<>();
             Statement statement = PostgreSQL.getConnection().createStatement();
-            String sql = "SELECT * FROM USERS;";
+            String sql = "SELECT * FROM "+name+";";
             LOG.debug(sql);
             ResultSet resultSet = statement.executeQuery(sql);
             while(resultSet.next()){
@@ -100,7 +101,7 @@ public class Users {
         try {
             User user;
             Statement statement = PostgreSQL.getConnection().createStatement();
-            String sql = String.format("SELECT * FROM USERS WHERE ID=%d;", id);
+            String sql = String.format("SELECT * FROM "+name+" WHERE ID=%d;", id);
             LOG.debug(sql);
             ResultSet resultSet = statement.executeQuery(sql);
             if(resultSet.next()){

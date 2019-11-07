@@ -1,6 +1,7 @@
 package com.mvv.bots.vk.main;
 
 import com.google.gson.*;
+import com.mvv.bots.vk.database.tables.Settings;
 import com.mvv.bots.vk.database.tables.Users;
 import com.mvv.bots.vk.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
@@ -188,12 +189,17 @@ public class Server {
     private static void update() {
         Config.SCRIPTS.forEach(Script::update);
         try {
-            new Messages(Config.VK)
-                    .send(Config.GROUP)
-                    .message("Обновление.")
-                    .peerId(Config.ADMIN_ID)
-                    .randomId(Utils.getRandomInt32())
-                    .execute();
+            Settings.Option debbug = Settings.find("debbug");
+            if(debbug != null){
+                if(Boolean.parseBoolean(debbug.getValue())){
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Обновление.")
+                            .peerId(Config.ADMIN_ID)
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                }
+            }
         } catch (ApiException | ClientException e) {
             LOG.error(e);
         }

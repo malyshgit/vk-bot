@@ -6,6 +6,7 @@
 package com.mvv.bots.vk.commands;
 
 import com.mvv.bots.vk.Config;
+import com.mvv.bots.vk.database.tables.Settings;
 import com.mvv.bots.vk.database.tables.Users;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
@@ -128,7 +129,70 @@ public class AdminPanel implements Script{
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    send(message, -1);
+                    send(message, 0);
+                    break;
+                case 2:
+                    Settings.Option debbug = Settings.find("debbug");
+                    if(debbug != null){
+                        keyboard.setInline(true);
+                        if(Boolean.parseBoolean(debbug.getValue())){
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.NEGATIVE)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    "{\"script\":\"" + getClass().getName() + "\"," +
+                                                            "\"step\":" + 4 + "}"
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Отключить"))
+                            ));
+                        }else{
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.POSITIVE)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    "{\"script\":\"" + getClass().getName() + "\"," +
+                                                            "\"step\":" + 3 + "}"
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Включить"))
+                            ));
+                        }
+                    }else{
+                        debbug = new Settings.Option("debbug", "false");
+                        Settings.update(debbug);
+                        send(message, 2);
+                        return;
+                    }
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Отладка")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 3:
+                    debbug = Settings.find("debbug");
+                    debbug.setValue("true");
+                    Settings.update(debbug);
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Отладка включена.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    send(message, 0);
+                    break;
+                case 4:
+                    debbug = Settings.find("debbug");
+                    debbug.setValue("false");
+                    Settings.update(debbug);
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Отладка отключена.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    send(message, 0);
                     break;
                 default:
                     break;
