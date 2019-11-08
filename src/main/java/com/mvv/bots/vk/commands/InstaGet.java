@@ -108,9 +108,13 @@ public class InstaGet implements Script{
                     Users.User user = Users.find(message.getFromId());
                     List<Photo> attach = new ArrayList<>();
                     if(user.getParameters().has("instaget")){
+                        LOG.debug(1);
                         String instaget = (String)user.getParameters().get("instaget");
+                        LOG.debug(2);
                         JsonElement jelement = new JsonParser().parse(instaget);
+                        LOG.debug(3);
                         JsonObject  jobject = jelement.getAsJsonObject();
+                        LOG.debug(4);
                         JsonArray tags = jobject.get("tags").getAsJsonArray();
                         LOG.debug(instaget);
                         PhotoUpload photoUpload = new Photos(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();

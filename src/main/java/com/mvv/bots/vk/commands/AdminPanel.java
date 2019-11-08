@@ -94,8 +94,8 @@ public class AdminPanel implements Script{
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+-1+"}"
+                                            "{\"script\":\""+ScriptList.class.getName()+"\"," +
+                                                    "\"step\":"+1+"}"
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад")),
                             new KeyboardButton()
