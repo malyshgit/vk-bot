@@ -119,10 +119,24 @@ public class InstaGet implements Script{
                         tags.forEach(e -> {
                             String url = String
                                     .format("https://www.instagram.com/explore/tags/%s/?__a=1", e.getAsString());
+                            LOG.debug(url);
                             try {
+                                String json = IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
+                                JsonElement el = new JsonParser().parse(json);
+                                JsonObject el1 = el.getAsJsonObject();
+                                JsonObject el2 = el1.get("graphql").getAsJsonObject();
+                                JsonObject el3 = el2.get("hashtag").getAsJsonObject();
+                                JsonObject el4 = el3.get("edge_hashtag_to_media").getAsJsonObject();
+                                JsonArray el5 = el4.get("edges").getAsJsonArray();
+                                LOG.debug(el5.toString());
+                                JsonObject el6 = el5.get(0).getAsJsonObject();
+                                LOG.debug(el6.toString());
+                                String phurl = el6.get("display_url").getAsString();
                                 File photo = new File("temp.jpg");
-                                FileUtils.copyURLToFile(new URL(url), photo);
-                                MessageUploadResponse messageUploadResponse = new Upload(Config.VK).photoMessage(photoUpload.getUploadUrl().toString(), photo).execute();
+                                FileUtils.copyURLToFile(new URL(phurl), photo);
+                                LOG.debug(photo.getTotalSpace());
+                                MessageUploadResponse messageUploadResponse = new Upload(Config.VK)
+                                        .photoMessage(photoUpload.getUploadUrl().toString(), photo).execute();
                                 Files.deleteIfExists(photo.toPath());
                                 List<Photo> photos = new Photos(Config.VK)
                                         .saveMessagesPhoto(Config.GROUP, messageUploadResponse.getPhoto())
