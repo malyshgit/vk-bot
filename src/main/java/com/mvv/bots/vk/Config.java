@@ -43,8 +43,8 @@ public interface Config {
             new Cover(),
             new Duty(),
             new Killer(),
+            new InstaGet(),
             new Weather(),
-
             new ScriptList()
     }));
 }
