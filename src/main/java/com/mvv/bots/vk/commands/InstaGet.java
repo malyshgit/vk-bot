@@ -107,16 +107,14 @@ public class InstaGet implements Script{
                 case 0:
                     Users.User user = Users.find(message.getFromId());
                     List<Photo> attach = new ArrayList<>();
-                    if(user.getParameters().has("instaget")){
+                    if(user.getParameters().has("instagettags")){
                         LOG.debug(1);
-                        String instaget = (String)user.getParameters().get("instaget");
+                        String instagettags = (String)user.getParameters().get("instagettags");
                         LOG.debug(2);
-                        JsonElement jelement = new JsonParser().parse(instaget);
+                        JsonElement jelement = new JsonParser().parse(instagettags);
                         LOG.debug(3);
-                        JsonObject  jobject = jelement.getAsJsonObject();
-                        LOG.debug(4);
-                        JsonArray tags = jobject.get("tags").getAsJsonArray();
-                        LOG.debug(instaget);
+                        JsonArray  tags = jelement.getAsJsonArray();
+                        LOG.debug(tags);
                         PhotoUpload photoUpload = new Photos(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
                         tags.forEach(e -> {
                             String url = String
@@ -137,6 +135,15 @@ public class InstaGet implements Script{
                         });
 
                         keyboard.setInline(true);
+                        buttons.add(List.of(
+                                new KeyboardButton()
+                                        .setColor(KeyboardButtonColor.PRIMARY)
+                                        .setAction(new KeyboardButtonAction().setPayload(
+                                                "{\"script\":\"" + getClass().getName() + "\"," +
+                                                        "\"step\":" + 4 + "}"
+                                        ).setType(KeyboardButtonActionType.TEXT)
+                                                .setLabel("Изменить теги"))
+                        ));
                         if(user.getParameters().has("instagetupdate")){
                             if(Boolean.parseBoolean(user.getParameters().get("instagetupdate"))){
                                 buttons.add(List.of(
@@ -194,11 +201,11 @@ public class InstaGet implements Script{
                                                 "{\"script\":\"" + getClass().getName() + "\"," +
                                                         "\"step\":" + 1 + "}"
                                         ).setType(KeyboardButtonActionType.TEXT)
-                                                .setLabel("Тэги"))
+                                                .setLabel("Сохранить"))
                         ));
                         new Messages(Config.VK)
                                 .send(Config.GROUP)
-                                .message("Инстагет - местоположение")
+                                .message("Инстагет - введите теги через запятую и нажмите \"Сохранить\".")
                                 .keyboard(keyboard)
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
@@ -212,7 +219,7 @@ public class InstaGet implements Script{
                     user = Users.find(message.getFromId());
                     JsonArray array = new JsonArray();
                     List.of(tags.split(",")).forEach(array::add);
-                    user.getParameters().put("instaget", array.toString());
+                    user.getParameters().put("instagettags", array.toString());
                     Users.update(user);
                     new Messages(Config.VK)
                             .send(Config.GROUP)
@@ -222,6 +229,25 @@ public class InstaGet implements Script{
                             .execute();
                     send(message, 0);
                     ScriptList.open(message);
+                    break;
+                case 4:
+                    keyboard.setInline(true);
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.PRIMARY)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 1 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Сохранить"))
+                    ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Инстагет - введите теги через запятую и нажмите \"Сохранить\".")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
                     break;
                 case 2:
                     user = Users.find(message.getFromId());
