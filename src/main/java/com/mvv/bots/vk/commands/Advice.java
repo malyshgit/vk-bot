@@ -7,6 +7,7 @@ package com.mvv.bots.vk.commands;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mvv.bots.vk.database.tables.Users;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -49,6 +50,17 @@ public class Advice implements Script{
 
     @Override
     public void update() {
+        Users.findAll().forEach(user -> {
+            if(user.getParameters().has("adviceupdate")){
+                boolean b = Boolean.parseBoolean(user.getParameters().get("adviceupdate"));
+                if(b){
+                    Message m = new Message();
+                    m.setFromId(user.getId());
+                    m.setPeerId(user.getId());
+                    send(m, 0);
+                }
+            }
+        });
         return;
     }
 
@@ -59,24 +71,75 @@ public class Advice implements Script{
 
             List<List<KeyboardButton>> buttons = new ArrayList<>();
             keyboard.setOneTime(false);
-            keyboard.setInline(true);
             keyboard.setButtons(buttons);
-            buttons.add(List.of(
-                    new KeyboardButton()
-                            .setColor(KeyboardButtonColor.PRIMARY)
-                            .setAction(new KeyboardButtonAction().setPayload(
-                                    "{\"script\":\""+getClass().getName()+"\"," +
-                                            "\"step\":"+0+"}"
-                            ).setType(KeyboardButtonActionType.TEXT)
-                                    .setLabel("Ещё"))
-            ));
-            new Messages(Config.VK)
-                    .send(Config.GROUP)
-                    .message(advice())
-                    .keyboard(keyboard)
-                    .peerId(message.getPeerId())
-                    .randomId(Utils.getRandomInt32())
-                    .execute();
+
+            switch (step) {
+                case 0:
+                    Users.User user = Users.find(message.getFromId());
+                    keyboard.setInline(true);
+                    if(user.getParameters().has("adviceupdate")){
+                        if(Boolean.parseBoolean(user.getParameters().get("adviceupdate"))){
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.NEGATIVE)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    "{\"script\":\"" + getClass().getName() + "\"," +
+                                                            "\"step\":" + 3 + "}"
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Отписаться"))
+                            ));
+                        }else{
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.POSITIVE)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    "{\"script\":\"" + getClass().getName() + "\"," +
+                                                            "\"step\":" + 2 + "}"
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Подписаться"))
+                            ));
+                        }
+                    }else{
+                        user.getParameters().put("adviceupdate", false);
+                        Users.update(user);
+                        send(message, 0);
+                        return;
+                    }
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message(advice())
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 2:
+                    user = Users.find(message.getFromId());
+                    user.getParameters().put("adviceupdate", "true");
+                    Users.update(user);
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Подписка активирована.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    send(message, 0);
+                    ScriptList.open(message);
+                    break;
+                case 3:
+                    user = Users.find(message.getFromId());
+                    user.getParameters().put("adviceupdate", "false");
+                    Users.update(user);
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Подписка деактивирована.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    send(message, 0);
+                    ScriptList.open(message);
+                    break;
+            }
         }catch (ApiException | ClientException | IOException e){
             LOG.error(e);
         }

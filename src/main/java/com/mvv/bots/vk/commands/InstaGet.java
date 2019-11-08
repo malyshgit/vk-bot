@@ -62,9 +62,9 @@ public class InstaGet implements Script{
 
     @Override
     public void update() {
-        /*Users.findAll().forEach(user -> {
-            if(user.getParameters().has("weatherupdate")){
-                boolean b = Boolean.parseBoolean(user.getParameters().get("weatherupdate"));
+        Users.findAll().forEach(user -> {
+            if(user.getParameters().has("instagetupdate")){
+                boolean b = Boolean.parseBoolean(user.getParameters().get("instagetupdate"));
                 if(b){
                     Message m = new Message();
                     m.setFromId(user.getId());
@@ -72,7 +72,7 @@ public class InstaGet implements Script{
                     send(m, 0);
                 }
             }
-        });*/
+        });
         return;
     }
 
@@ -108,18 +108,13 @@ public class InstaGet implements Script{
                     Users.User user = Users.find(message.getFromId());
                     List<Photo> attach = new ArrayList<>();
                     if(user.getParameters().has("instagettags")){
-                        LOG.debug(1);
                         String instagettags = (String)user.getParameters().get("instagettags");
-                        LOG.debug(2);
                         JsonElement jelement = new JsonParser().parse(instagettags);
-                        LOG.debug(3);
                         JsonArray  tags = jelement.getAsJsonArray();
-                        LOG.debug(tags);
                         PhotoUpload photoUpload = new Photos(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
                         tags.forEach(e -> {
                             String url = String
                                     .format("https://www.instagram.com/explore/tags/%s/?__a=1", e.getAsString());
-                            LOG.debug(url);
                             try {
                                 String json = IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
                                 JsonElement el = new JsonParser().parse(json);
@@ -130,11 +125,9 @@ public class InstaGet implements Script{
                                 JsonArray el5 = el4.get("edges").getAsJsonArray();
                                 JsonObject el6 = el5.get(0).getAsJsonObject();
                                 JsonObject el7 = el6.get("node").getAsJsonObject();
-                                LOG.debug(el7.toString());
                                 String phurl = el7.get("display_url").getAsString();
                                 File photo = new File("temp.jpg");
                                 FileUtils.copyURLToFile(new URL(phurl), photo);
-                                LOG.debug(photo.getTotalSpace());
                                 MessageUploadResponse messageUploadResponse = new Upload(Config.VK)
                                         .photoMessage(photoUpload.getUploadUrl().toString(), photo).execute();
                                 Files.deleteIfExists(photo.toPath());
@@ -192,7 +185,11 @@ public class InstaGet implements Script{
                                     .attachment(attach.stream().map(photo -> {
                                         return "photo"+photo.getOwnerId()+"_"+photo.getId();
                                     }).collect(Collectors.joining(",")))
-                                    .message(tags.toString())
+                                    .message(tags.toString()
+                                            .replace("[", "")
+                                            .replace("]", "")
+                                            .replace("\"", "")
+                                    )
                                     .keyboard(keyboard)
                                     .peerId(message.getPeerId())
                                     .randomId(Utils.getRandomInt32())
@@ -200,7 +197,11 @@ public class InstaGet implements Script{
                         }else{
                             new Messages(Config.VK)
                                     .send(Config.GROUP)
-                                    .message(tags.toString())
+                                    .message(tags.toString()
+                                            .replace("[", "")
+                                            .replace("]", "")
+                                            .replace("\"", "")
+                                    )
                                     .keyboard(keyboard)
                                     .peerId(message.getPeerId())
                                     .randomId(Utils.getRandomInt32())
