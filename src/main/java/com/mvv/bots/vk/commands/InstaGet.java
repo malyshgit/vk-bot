@@ -128,10 +128,10 @@ public class InstaGet implements Script{
                                 JsonObject el3 = el2.get("hashtag").getAsJsonObject();
                                 JsonObject el4 = el3.get("edge_hashtag_to_media").getAsJsonObject();
                                 JsonArray el5 = el4.get("edges").getAsJsonArray();
-                                LOG.debug(el5.toString());
                                 JsonObject el6 = el5.get(0).getAsJsonObject();
-                                LOG.debug(el6.toString());
-                                String phurl = el6.get("display_url").getAsString();
+                                JsonObject el7 = el6.get("node").getAsJsonObject();
+                                LOG.debug(el7.toString());
+                                String phurl = el7.get("display_url").getAsString();
                                 File photo = new File("temp.jpg");
                                 FileUtils.copyURLToFile(new URL(phurl), photo);
                                 LOG.debug(photo.getTotalSpace());
