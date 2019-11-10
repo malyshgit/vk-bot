@@ -247,6 +247,8 @@ public class AdminPanel implements Script{
             g2d.setColor(Color.BLACK);
             g2d.fillRect(0,0,1590,400);
             GroupFull groupFull = new Groups(Config.VK).getById(Config.GROUP).groupId(String.valueOf(Config.GROUP_ID)).execute().get(0);
+            g2d.setColor(Color.WHITE);
+            g2d.setFont(Font.getFont("Arial").deriveFont(48f));
             Utils.drawIntoRect(groupFull.getName(), new Rectangle(0,0,1590,400), Utils.Align.CENTER, g2d);
             File coverFile = new File("cover.png");
             ImageIO.write(coverImage, "png", coverFile);

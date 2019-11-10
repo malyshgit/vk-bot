@@ -3,6 +3,7 @@ package com.mvv.bots.vk;
 import com.mvv.bots.vk.commands.*;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.GroupActor;
+import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 
 import java.util.HashMap;
@@ -23,6 +24,7 @@ public interface Config {
     String DARKSKY_API_KEY = System.getenv("DARKSKY_API_KEY");
 
     VkApiClient VK = new VkApiClient(HttpTransportClient.getInstance());
+    UserActor ADMIN = new UserActor(ADMIN_ID, ADMIN_TOKEN);
     GroupActor GROUP = new GroupActor(GROUP_ID, GROUP_TOKEN);
 
     /*Font FONT = loadFont();
