@@ -105,7 +105,7 @@ public class Advice implements Script{
                         send(message, 0);
                         return;
                     }
-                    boolean censored;
+                    /*boolean censored;
                     if(user.getParameters().has("advicecensored")){
                         censored = Boolean.parseBoolean(user.getParameters().get("advicecensored"));
                         if(censored){
@@ -134,10 +134,10 @@ public class Advice implements Script{
                         Users.update(user);
                         send(message, 0);
                         return;
-                    }
+                    }*/
                     new Messages(Config.VK)
                             .send(Config.GROUP)
-                            .message(advice(censored))
+                            .message(advice(false))
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
