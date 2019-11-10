@@ -241,17 +241,17 @@ public class AdminPanel implements Script{
                     .cropX(0).cropX2(1590)
                     .cropY(0).cropY2(400)
                     .execute();
-            BufferedImage coverImage = new BufferedImage(1590,400,BufferedImage.TYPE_INT_ARGB);
+            BufferedImage coverImage = new BufferedImage(1590,400,BufferedImage.TYPE_INT_RGB);
             Graphics2D g2d = coverImage.createGraphics();
             Utils.applyQualityRenderingHints(g2d);
             g2d.setColor(Color.BLACK);
             g2d.fillRect(0,0,1590,400);
             GroupFull groupFull = new Groups(Config.VK).getById(Config.GROUP).groupId(String.valueOf(Config.GROUP_ID)).execute().get(0);
             g2d.setColor(Color.WHITE);
-            g2d.setFont(Font.getFont("Arial").deriveFont(48f));
+            g2d.setFont(Font.getFont("Arial").deriveFont(72f));
             Utils.drawIntoRect(groupFull.getName(), new Rectangle(0,0,1590,400), Utils.Align.CENTER, g2d);
-            File coverFile = new File("cover.png");
-            ImageIO.write(coverImage, "png", coverFile);
+            File coverFile = new File("cover.jpg");
+            ImageIO.write(coverImage, "jpg", coverFile);
             OwnerCoverUploadResponse coverUploadResponse = new Upload(Config.VK).photoOwnerCover(uploadServer.getUploadUrl().toString(), coverFile).execute();
             List<Image> images = new Photos(Config.VK).saveOwnerCoverPhoto(Config.GROUP, coverUploadResponse.getHash(), coverUploadResponse.getPhoto()).execute();
         } catch (ApiException | ClientException | IOException e) {
