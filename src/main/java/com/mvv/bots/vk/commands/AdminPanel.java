@@ -9,15 +9,28 @@ import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.database.tables.Settings;
 import com.mvv.bots.vk.database.tables.Users;
 import com.mvv.bots.vk.utils.Utils;
+import com.vk.api.sdk.actions.Groups;
 import com.vk.api.sdk.actions.Messages;
+import com.vk.api.sdk.actions.Photos;
+import com.vk.api.sdk.actions.Upload;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
+import com.vk.api.sdk.objects.base.Image;
+import com.vk.api.sdk.objects.base.UploadServer;
+import com.vk.api.sdk.objects.groups.GroupFull;
 import com.vk.api.sdk.objects.messages.*;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.*;
+import com.vk.api.sdk.objects.responses.OwnerCoverUploadResponse;
+
+import javax.imageio.ImageIO;
 
 /**
  *
@@ -113,6 +126,15 @@ public class AdminPanel implements Script{
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Отладка"))
                     ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.PRIMARY)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+5+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Обложка"))
+                    ));
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Меню")
@@ -195,10 +217,42 @@ public class AdminPanel implements Script{
                             .execute();
                     send(message, 0);
                     break;
+                case 5:
+                    drawCover();
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Обложка перерисована.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
                 default:
                     break;
             }
         }catch (ApiException | ClientException e){
+            LOG.error(e);
+        }
+    }
+
+    private static void drawCover(){
+        try {
+            UploadServer uploadServer = new Photos(Config.VK)
+                    .getOwnerCoverPhotoUploadServer(Config.GROUP, Config.GROUP_ID)
+                    .cropX(0).cropX2(1590)
+                    .cropY(0).cropY2(400)
+                    .execute();
+            BufferedImage coverImage = new BufferedImage(1590,400,BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = coverImage.createGraphics();
+            Utils.applyQualityRenderingHints(g2d);
+            g2d.setColor(Color.BLACK);
+            g2d.fillRect(0,0,1590,400);
+            GroupFull groupFull = new Groups(Config.VK).getById(Config.GROUP).groupId(String.valueOf(Config.GROUP_ID)).execute().get(0);
+            Utils.drawIntoRect(groupFull.getName(), new Rectangle(0,0,1590,400), Utils.Align.CENTER, g2d);
+            File coverFile = new File("cover.png");
+            ImageIO.write(coverImage, "png", coverFile);
+            OwnerCoverUploadResponse coverUploadResponse = new Upload(Config.VK).photoOwnerCover(uploadServer.getUploadUrl().toString(), coverFile).execute();
+            List<Image> images = new Photos(Config.VK).saveOwnerCoverPhoto(Config.GROUP, coverUploadResponse.getHash(), coverUploadResponse.getPhoto()).execute();
+        } catch (ApiException | ClientException | IOException e) {
             LOG.error(e);
         }
     }

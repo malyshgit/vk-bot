@@ -40,7 +40,6 @@ public interface Config {
     List<Script> SCRIPTS = Script.getSortedList(List.of(new Script[]{
             new AdminPanel(),
             new Advice(),
-            new Cover(),
             new Duty(),
             new Killer(),
             new InstaGet(),

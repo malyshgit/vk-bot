@@ -105,9 +105,39 @@ public class Advice implements Script{
                         send(message, 0);
                         return;
                     }
+                    boolean censored;
+                    if(user.getParameters().has("advicecensored")){
+                        censored = Boolean.parseBoolean(user.getParameters().get("advicecensored"));
+                        if(censored){
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.DEFAULT)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    "{\"script\":\"" + getClass().getName() + "\"," +
+                                                            "\"step\":" + 5 + "}"
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Цензура: вкл"))
+                            ));
+                        }else{
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.DEFAULT)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    "{\"script\":\"" + getClass().getName() + "\"," +
+                                                            "\"step\":" + 4 + "}"
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Цензура: выкл"))
+                            ));
+                        }
+                    }else{
+                        user.getParameters().put("advicecensored", true);
+                        Users.update(user);
+                        send(message, 0);
+                        return;
+                    }
                     new Messages(Config.VK)
                             .send(Config.GROUP)
-                            .message(advice())
+                            .message(advice(censored))
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
@@ -139,14 +169,45 @@ public class Advice implements Script{
                     send(message, 0);
                     ScriptList.open(message);
                     break;
+                case 4:
+                    user = Users.find(message.getFromId());
+                    user.getParameters().put("advicecensored", "true");
+                    Users.update(user);
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Цензура включена.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    send(message, 0);
+                    ScriptList.open(message);
+                    break;
+                case 5:
+                    user = Users.find(message.getFromId());
+                    user.getParameters().put("advicecensored", "false");
+                    Users.update(user);
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Цензура выключена.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    send(message, 0);
+                    ScriptList.open(message);
+                    break;
             }
         }catch (ApiException | ClientException | IOException e){
             LOG.error(e);
         }
     }
 
-    public static String advice() throws IOException {
-        URL url = new URL("http://fucking-great-advice.ru/api/random");
+    public static String advice(boolean censored) throws IOException {
+        URL url;
+        if(censored){
+            url = new URL("http://fucking-great-advice.ru/api/random/censored");
+        }else{
+            url = new URL("http://fucking-great-advice.ru/api/random");
+        }
         String json =  new String(url.openStream().readAllBytes(), StandardCharsets.UTF_8);
         JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
         return jsonObject.get("text").getAsString();
