@@ -208,23 +208,7 @@ public class InstaGet implements Script{
                                     .execute();
                         }
                     }else {
-                        keyboard.setInline(true);
-                        buttons.add(List.of(
-                                new KeyboardButton()
-                                        .setColor(KeyboardButtonColor.PRIMARY)
-                                        .setAction(new KeyboardButtonAction().setPayload(
-                                                "{\"script\":\"" + getClass().getName() + "\"," +
-                                                        "\"step\":" + 1 + "}"
-                                        ).setType(KeyboardButtonActionType.TEXT)
-                                                .setLabel("Сохранить"))
-                        ));
-                        new Messages(Config.VK)
-                                .send(Config.GROUP)
-                                .message("Инстагет - введите теги через запятую и нажмите \"Сохранить\".")
-                                .keyboard(keyboard)
-                                .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
-                                .execute();
+                        send(message, 4);
                     }
                     break;
                 case 1:
@@ -256,9 +240,18 @@ public class InstaGet implements Script{
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Сохранить"))
                     ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 0 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Отмена"))
+                    ));
                     new Messages(Config.VK)
                             .send(Config.GROUP)
-                            .message("Инстагет - введите теги через запятую и нажмите \"Сохранить\".")
+                            .message("Отправьте теги через запятую и нажмите \"Сохранить\".")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
