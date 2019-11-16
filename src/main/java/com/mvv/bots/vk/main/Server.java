@@ -11,7 +11,6 @@ import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.callback.CallbackApi;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
-import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.objects.messages.Message;
 import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.commands.Script;
@@ -58,9 +57,14 @@ public class Server {
     public static void main(String[] args) {
         if(args.length > 0){
             LOG.debug(List.of(args));
-            for(String arg : args){
-                if(arg.equals("%update%")){
-                    update();
+            Settings.Option update = Settings.find("update");
+            if(update != null){
+                if(Boolean.parseBoolean(update.getValue())) {
+                    for (String arg : args) {
+                        if (arg.equals("%update%")) {
+                            update();
+                        }
+                    }
                 }
             }
             return;
@@ -187,17 +191,22 @@ public class Server {
     }
 
     private static void update() {
-        Config.SCRIPTS.forEach(Script::update);
         try {
-            Settings.Option debbug = Settings.find("debbug");
-            if(debbug != null){
-                if(Boolean.parseBoolean(debbug.getValue())){
-                    new Messages(Config.VK)
-                            .send(Config.GROUP)
-                            .message("Обновление.")
-                            .peerId(Config.ADMIN_ID)
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
+            Settings.Option update = Settings.find("update");
+            if(update != null) {
+                if (Boolean.parseBoolean(update.getValue())) {
+                    Config.SCRIPTS.forEach(Script::update);
+                    Settings.Option debbug = Settings.find("debbug");
+                    if (debbug != null) {
+                        if (Boolean.parseBoolean(debbug.getValue())) {
+                            new Messages(Config.VK)
+                                    .send(Config.GROUP)
+                                    .message("Обновление.")
+                                    .peerId(Config.ADMIN_ID)
+                                    .randomId(Utils.getRandomInt32())
+                                    .execute();
+                        }
+                    }
                 }
             }
         } catch (ApiException | ClientException e) {

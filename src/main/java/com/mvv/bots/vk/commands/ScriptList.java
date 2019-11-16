@@ -18,10 +18,6 @@ import com.mvv.bots.vk.Config;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author I1PABIJJA
- */
 public class ScriptList implements Script{
 
     @Override
@@ -167,7 +163,7 @@ public class ScriptList implements Script{
                 }
                 new Messages(Config.VK)
                         .send(Config.GROUP)
-                        .message("Команды - список")
+                        .message("Список")
                         .keyboard(keyboard)
                         .peerId(peerId)
                         .randomId(Utils.getRandomInt32())

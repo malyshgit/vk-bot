@@ -18,10 +18,6 @@ import com.vk.api.sdk.objects.users.UserFull;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author I1PABIJJA
- */
 public class Duty implements Script{
 
     @Override

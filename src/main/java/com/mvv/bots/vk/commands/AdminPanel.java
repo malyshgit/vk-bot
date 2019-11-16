@@ -26,16 +26,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.gson.*;
 import com.vk.api.sdk.objects.responses.OwnerCoverUploadResponse;
 
 import javax.imageio.ImageIO;
 
-/**
- *
- * @author I1PABIJJA
- */
 public class AdminPanel implements Script{
 
     @Override
@@ -117,7 +114,7 @@ public class AdminPanel implements Script{
                                             "{\"script\":\""+getClass().getName()+"\"," +
                                                     "\"step\":"+1+"}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Пересоздать БД")),                
+                                            .setLabel("Базы данных")),
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
@@ -131,9 +128,16 @@ public class AdminPanel implements Script{
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+5+"}"
+                                                    "\"step\":"+3+"}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Обложка"))
+                                            .setLabel("Обложка")),
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.PRIMARY)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+4+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Обновление"))
                     ));
                     new Messages(Config.VK)
                             .send(Config.GROUP)
@@ -144,11 +148,169 @@ public class AdminPanel implements Script{
                             .execute();
                     break;
                 case 1:
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+0+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Назад")),
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.PRIMARY)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+10+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Список")),
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.PRIMARY)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+11+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Пересоздать"))
+                    ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Меню")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 10:
+                    keyboard.setInline(true);
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+101+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Настройки"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+102+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Пользователи"))
+                    ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Список")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 101:
+                    keyboard.setInline(true);
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+1011+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Показать"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+1012+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Пересоздать"))
+                    ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("База данных \"Настройки\"")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 1011:
+                    List<Settings.Option> options = Settings.findAll();
+                    if(!options.isEmpty()){
+                        String info = options.stream().map(Settings.Option::toString).collect(Collectors.joining("\n"));
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .message(info)
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                    }
+                    break;
+                case 1012:
+                    Settings.create();
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("База данных пересоздана.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 102:
+                    keyboard.setInline(true);
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+1021+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Показать"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+1022+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Пересоздать"))
+                    ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("База данных \"Пользователи\"")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 1021:
+                    List<Users.User> users = Users.findAll();
+                    if(!users.isEmpty()){
+                        String info = users.stream().map(Users.User::toString).collect(Collectors.joining("\n"));
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .message(info)
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                    }
+                    break;
+                case 1022:
+                    Users.create();
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("База данных пересоздана.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 11:
                     Users.create();
                     Settings.create();
                     new Messages(Config.VK)
                             .send(Config.GROUP)
-                            .message("БД пересоздана.")
+                            .message("Базы данных пересозданы.")
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
@@ -164,7 +326,7 @@ public class AdminPanel implements Script{
                                             .setColor(KeyboardButtonColor.NEGATIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
                                                     "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 4 + "}"
+                                                            "\"step\":" + 22 + "}"
                                             ).setType(KeyboardButtonActionType.TEXT)
                                                     .setLabel("Отключить"))
                             ));
@@ -174,7 +336,7 @@ public class AdminPanel implements Script{
                                             .setColor(KeyboardButtonColor.POSITIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
                                                     "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 3 + "}"
+                                                            "\"step\":" + 21 + "}"
                                             ).setType(KeyboardButtonActionType.TEXT)
                                                     .setLabel("Включить"))
                             ));
@@ -193,7 +355,7 @@ public class AdminPanel implements Script{
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     break;
-                case 3:
+                case 21:
                     debbug = Settings.find("debbug");
                     debbug.setValue("true");
                     Settings.update(debbug);
@@ -205,7 +367,7 @@ public class AdminPanel implements Script{
                             .execute();
                     send(message, 0);
                     break;
-                case 4:
+                case 22:
                     debbug = Settings.find("debbug");
                     debbug.setValue("false");
                     Settings.update(debbug);
@@ -217,7 +379,7 @@ public class AdminPanel implements Script{
                             .execute();
                     send(message, 0);
                     break;
-                case 5:
+                case 3:
                     drawCover();
                     new Messages(Config.VK)
                             .send(Config.GROUP)
@@ -225,6 +387,69 @@ public class AdminPanel implements Script{
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
+                    break;
+                case 4:
+                    Settings.Option update = Settings.find("update");
+                    if(update != null){
+                        keyboard.setInline(true);
+                        if(Boolean.parseBoolean(update.getValue())){
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.NEGATIVE)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    "{\"script\":\"" + getClass().getName() + "\"," +
+                                                            "\"step\":" + 42 + "}"
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Отключить"))
+                            ));
+                        }else{
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.POSITIVE)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    "{\"script\":\"" + getClass().getName() + "\"," +
+                                                            "\"step\":" + 41 + "}"
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Включить"))
+                            ));
+                        }
+                    }else{
+                        update = new Settings.Option("update", "false");
+                        Settings.add(update);
+                        send(message, 4);
+                        return;
+                    }
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Обновление")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 41:
+                    update = Settings.find("update");
+                    update.setValue("true");
+                    Settings.update(update);
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Обновление включено.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    send(message, 0);
+                    break;
+                case 42:
+                    update = Settings.find("update");
+                    update.setValue("false");
+                    Settings.update(update);
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Обновление отключено.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    send(message, 0);
                     break;
                 default:
                     break;

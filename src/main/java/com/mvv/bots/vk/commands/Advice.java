@@ -22,10 +22,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author I1PABIJJA
- */
 public class Advice implements Script{
 
     @Override

@@ -8,9 +8,6 @@ import java.awt.*;
 import java.util.LinkedList;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Created by I1PABIJJA on 07.05.2017.
- */
 public class Utils {
     private static final Logger LOG = LogManager.getLogger(Utils.class);
 

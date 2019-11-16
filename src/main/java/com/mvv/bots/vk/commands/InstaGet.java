@@ -34,10 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- *
- * @author I1PABIJJA
- */
 public class InstaGet implements Script{
 
     @Override
@@ -147,7 +143,7 @@ public class InstaGet implements Script{
                                         .setColor(KeyboardButtonColor.PRIMARY)
                                         .setAction(new KeyboardButtonAction().setPayload(
                                                 "{\"script\":\"" + getClass().getName() + "\"," +
-                                                        "\"step\":" + 4 + "}"
+                                                        "\"step\":" + 1 + "}"
                                         ).setType(KeyboardButtonActionType.TEXT)
                                                 .setLabel("Изменить теги"))
                         ));
@@ -158,7 +154,7 @@ public class InstaGet implements Script{
                                                 .setColor(KeyboardButtonColor.NEGATIVE)
                                                 .setAction(new KeyboardButtonAction().setPayload(
                                                         "{\"script\":\"" + getClass().getName() + "\"," +
-                                                                "\"step\":" + 3 + "}"
+                                                                "\"step\":" + 22 + "}"
                                                 ).setType(KeyboardButtonActionType.TEXT)
                                                         .setLabel("Отписаться"))
                                 ));
@@ -168,7 +164,7 @@ public class InstaGet implements Script{
                                                 .setColor(KeyboardButtonColor.POSITIVE)
                                                 .setAction(new KeyboardButtonAction().setPayload(
                                                         "{\"script\":\"" + getClass().getName() + "\"," +
-                                                                "\"step\":" + 2 + "}"
+                                                                "\"step\":" + 21 + "}"
                                                 ).setType(KeyboardButtonActionType.TEXT)
                                                         .setLabel("Подписаться"))
                                 ));
@@ -212,31 +208,13 @@ public class InstaGet implements Script{
                     }
                     break;
                 case 1:
-                    GetByIdResponse getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
-                    String tags = getByIdResponse.getItems().get(0).getText();
-                    LOG.debug(tags);
-                    user = Users.find(message.getFromId());
-                    JsonArray array = new JsonArray();
-                    List.of(tags.split(",")).forEach(array::add);
-                    user.getParameters().put("instagettags", array.toString());
-                    Users.update(user);
-                    new Messages(Config.VK)
-                            .send(Config.GROUP)
-                            .message("Тэги сохранены.")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    send(message, 0);
-                    ScriptList.open(message);
-                    break;
-                case 4:
                     keyboard.setInline(true);
                     buttons.add(List.of(
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 1 + "}"
+                                                    "\"step\":" + 11 + "}"
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Сохранить"))
                     ));
@@ -257,7 +235,25 @@ public class InstaGet implements Script{
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     break;
-                case 2:
+                case 11:
+                    GetByIdResponse getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
+                    String tags = getByIdResponse.getItems().get(0).getText().replaceAll("\\s+", "");
+                    LOG.debug(tags);
+                    user = Users.find(message.getFromId());
+                    JsonArray array = new JsonArray();
+                    List.of(tags.split(",")).forEach(array::add);
+                    user.getParameters().put("instagettags", array.toString());
+                    Users.update(user);
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Тэги сохранены.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    send(message, 0);
+                    ScriptList.open(message);
+                    break;
+                case 21:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("instagetupdate", "true");
                     Users.update(user);
@@ -270,7 +266,7 @@ public class InstaGet implements Script{
                     send(message, 0);
                     ScriptList.open(message);
                     break;
-                case 3:
+                case 22:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("instagetupdate", "false");
                     Users.update(user);

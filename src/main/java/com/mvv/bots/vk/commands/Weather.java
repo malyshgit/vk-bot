@@ -24,10 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author I1PABIJJA
- */
 public class Weather implements Script{
 
     @Override
@@ -88,7 +84,7 @@ public class Weather implements Script{
                     ));
                     new Messages(Config.VK)
                             .send(Config.GROUP)
-                            .message("Погода - описание")
+                            .message("Описание")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
@@ -128,7 +124,7 @@ public class Weather implements Script{
                                                 .setColor(KeyboardButtonColor.NEGATIVE)
                                                 .setAction(new KeyboardButtonAction().setPayload(
                                                         "{\"script\":\"" + getClass().getName() + "\"," +
-                                                                "\"step\":" + 3 + "}"
+                                                                "\"step\":" + 22 + "}"
                                                 ).setType(KeyboardButtonActionType.TEXT)
                                                         .setLabel("Отписаться"))
                                 ));
@@ -138,7 +134,7 @@ public class Weather implements Script{
                                                 .setColor(KeyboardButtonColor.POSITIVE)
                                                 .setAction(new KeyboardButtonAction().setPayload(
                                                         "{\"script\":\"" + getClass().getName() + "\"," +
-                                                                "\"step\":" + 2 + "}"
+                                                                "\"step\":" + 21 + "}"
                                                 ).setType(KeyboardButtonActionType.TEXT)
                                                         .setLabel("Подписаться"))
                                 ));
@@ -167,7 +163,7 @@ public class Weather implements Script{
                         ));
                         new Messages(Config.VK)
                                 .send(Config.GROUP)
-                                .message("Погода - местоположение")
+                                .message("Местоположение")
                                 .keyboard(keyboard)
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
@@ -188,26 +184,26 @@ public class Weather implements Script{
                     send(message, 0);
                     ScriptList.open(message);
                     break;
-                case 2:
+                case 21:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("weatherupdate", "true");
                     Users.update(user);
                     new Messages(Config.VK)
                             .send(Config.GROUP)
-                            .message("Подписка на погоду активирована.")
+                            .message("Подписка активирована.")
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
                     ScriptList.open(message);
                     break;
-                case 3:
+                case 22:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("weatherupdate", "false");
                     Users.update(user);
                     new Messages(Config.VK)
                             .send(Config.GROUP)
-                            .message("Подписка на погоду деактивирована.")
+                            .message("Подписка деактивирована.")
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
