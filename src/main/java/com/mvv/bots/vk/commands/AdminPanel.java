@@ -521,7 +521,7 @@ public class AdminPanel implements Script{
                             try {
                                 long size = FileUtils.sizeOfDirectory(dir);
                                 LOG.debug(size);
-                                if(size > 250*1024*1024){
+                                if(size > 48*1024*1024){
                                     File file = new File(System.currentTimeMillis()+".zip");
                                     pack(dir.getPath(), file.getPath());
                                     UploadServer uploadServer = new Docs(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
@@ -551,6 +551,24 @@ public class AdminPanel implements Script{
                                 LOG.error(e);
                             }
                         });
+                        if(dir.listFiles().length < 1) break;
+                        File file = new File(System.currentTimeMillis()+".zip");
+                        pack(dir.getPath(), file.getPath());
+                        UploadServer uploadServer = new Docs(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
+                        DocUploadResponse messageUploadResponse = new Upload(Config.VK)
+                                .doc(uploadServer.getUploadUrl().toString(), file).execute();
+                        SaveResponse doc = new Docs(Config.VK)
+                                .save(Config.GROUP, messageUploadResponse.getFile())
+                                .title(FilenameUtils.getName(file.getPath())).execute();
+                        Files.deleteIfExists(file.toPath());
+                        Files.deleteIfExists(dir.toPath());
+                        dir.mkdirs();
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .attachment("doc"+doc.getDoc().getOwnerId()+"_"+doc.getDoc().getId())
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
                     }else{
                         new Messages(Config.VK)
                                 .send(Config.GROUP)
