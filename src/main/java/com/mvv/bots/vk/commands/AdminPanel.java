@@ -531,7 +531,7 @@ public class AdminPanel implements Script{
                                             .save(Config.GROUP, messageUploadResponse.getFile())
                                             .title(FilenameUtils.getName(file.getPath())).execute();
                                     Files.deleteIfExists(file.toPath());
-                                    Files.deleteIfExists(dir.toPath());
+                                    FileUtils.deleteDirectory(dir);
                                     dir.mkdirs();
                                     new Messages(Config.VK)
                                             .send(Config.GROUP)
@@ -561,7 +561,7 @@ public class AdminPanel implements Script{
                                 .save(Config.GROUP, messageUploadResponse.getFile())
                                 .title(FilenameUtils.getName(file.getPath())).execute();
                         Files.deleteIfExists(file.toPath());
-                        Files.deleteIfExists(dir.toPath());
+                        FileUtils.deleteDirectory(dir);
                         dir.mkdirs();
                         new Messages(Config.VK)
                                 .send(Config.GROUP)
