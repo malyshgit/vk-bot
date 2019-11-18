@@ -150,7 +150,6 @@ public class Advice implements Script{
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
-                    ScriptList.open(message);
                     break;
                 case 3:
                     user = Users.find(message.getFromId());
@@ -163,7 +162,6 @@ public class Advice implements Script{
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
-                    ScriptList.open(message);
                     break;
                 case 4:
                     user = Users.find(message.getFromId());
@@ -176,7 +174,6 @@ public class Advice implements Script{
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
-                    ScriptList.open(message);
                     break;
                 case 5:
                     user = Users.find(message.getFromId());
@@ -189,7 +186,6 @@ public class Advice implements Script{
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
-                    ScriptList.open(message);
                     break;
             }
         }catch (ApiException | ClientException | IOException e){

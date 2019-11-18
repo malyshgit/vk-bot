@@ -182,7 +182,6 @@ public class Weather implements Script{
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
-                    ScriptList.open(message);
                     break;
                 case 21:
                     user = Users.find(message.getFromId());
@@ -195,7 +194,6 @@ public class Weather implements Script{
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
-                    ScriptList.open(message);
                     break;
                 case 22:
                     user = Users.find(message.getFromId());
@@ -208,7 +206,6 @@ public class Weather implements Script{
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
-                    ScriptList.open(message);
                     break;
                 default:
                     break;

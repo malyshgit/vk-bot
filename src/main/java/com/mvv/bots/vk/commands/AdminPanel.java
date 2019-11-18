@@ -9,14 +9,14 @@ import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.database.tables.Settings;
 import com.mvv.bots.vk.database.tables.Users;
 import com.mvv.bots.vk.utils.Utils;
-import com.vk.api.sdk.actions.Groups;
-import com.vk.api.sdk.actions.Messages;
-import com.vk.api.sdk.actions.Photos;
-import com.vk.api.sdk.actions.Upload;
+import com.vk.api.sdk.actions.*;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.base.Image;
 import com.vk.api.sdk.objects.base.UploadServer;
+import com.vk.api.sdk.objects.docs.Doc;
+import com.vk.api.sdk.objects.docs.responses.DocUploadResponse;
+import com.vk.api.sdk.objects.docs.responses.SaveResponse;
 import com.vk.api.sdk.objects.groups.GroupFull;
 import com.vk.api.sdk.objects.messages.*;
 
@@ -24,12 +24,28 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import com.google.gson.*;
+import com.vk.api.sdk.objects.messages.responses.GetByIdResponse;
+import com.vk.api.sdk.objects.photos.Photo;
+import com.vk.api.sdk.objects.photos.PhotoUpload;
+import com.vk.api.sdk.objects.photos.responses.MessageUploadResponse;
 import com.vk.api.sdk.objects.responses.OwnerCoverUploadResponse;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 
 import javax.imageio.ImageIO;
 
@@ -137,7 +153,14 @@ public class AdminPanel implements Script{
                                             "{\"script\":\""+getClass().getName()+"\"," +
                                                     "\"step\":"+4+"}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Обновление"))
+                                            .setLabel("Обновление")),
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.PRIMARY)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+5+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Загрузки"))
                     ));
                     new Messages(Config.VK)
                             .send(Config.GROUP)
@@ -451,10 +474,94 @@ public class AdminPanel implements Script{
                             .execute();
                     send(message, 0);
                     break;
+                case 5:
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 0 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Назад")),
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.POSITIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 51 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Начать"))
+                    ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Отправьте файл со ссылками и нажмите \"Начать\"")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 51:
+                    GetByIdResponse getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
+                    List<MessageAttachment> attachments = getByIdResponse.getItems().get(0).getAttachments();
+                    if(attachments.isEmpty()){
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .message("Отправьте файл со ссылками и нажмите \"Начать\"")
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                    }
+                    if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)){
+                        URL url = attachments.get(0).getDoc().getUrl();
+                        List<String> lines = IOUtils.readLines(url.openStream(), StandardCharsets.UTF_8);
+                        File dir = new File("./tmp");
+                        if (!dir.exists()){
+                            dir.mkdirs();
+                        }
+                        lines.forEach(s -> {
+                            try {
+                                long size = FileUtils.sizeOfDirectory(dir);
+                                if(size > 250*1024*1024){
+                                    File file = new File(System.currentTimeMillis()+".zip");
+                                    pack(dir.getPath(), file.getPath());
+                                    UploadServer uploadServer = new Docs(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
+                                    DocUploadResponse messageUploadResponse = new Upload(Config.VK)
+                                            .doc(uploadServer.getUploadUrl().toString(), file).execute();
+                                    SaveResponse doc = new Docs(Config.VK)
+                                            .save(Config.GROUP, messageUploadResponse.getFile())
+                                            .title(FilenameUtils.getName(file.getPath())).execute();
+                                    Files.deleteIfExists(file.toPath());
+                                    Files.deleteIfExists(dir.toPath());
+                                    dir.mkdirs();
+                                    new Messages(Config.VK)
+                                            .send(Config.GROUP)
+                                            .attachment("doc"+doc.getDoc().getOwnerId()+"_"+doc.getDoc().getId())
+                                            .peerId(message.getPeerId())
+                                            .randomId(Utils.getRandomInt32())
+                                            .execute();
+                                }
+                                URL urlS = new URL(s);
+                                String name = System.currentTimeMillis()+"."+FilenameUtils.getExtension(urlS.getPath());
+                                File fileS = new File(dir, name);
+                                FileUtils.copyURLToFile(
+                                        urlS,
+                                        fileS);
+                            } catch (IOException | ApiException | ClientException e) {
+                                LOG.error(e);
+                            }
+                        });
+                    }else{
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .message("Отправьте файл со ссылками и нажмите \"Начать\"")
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                    }
+                    break;
                 default:
                     break;
             }
-        }catch (ApiException | ClientException e){
+        }catch (ApiException | ClientException | IOException e){
             LOG.error(e);
         }
     }
@@ -479,6 +586,29 @@ public class AdminPanel implements Script{
             OwnerCoverUploadResponse coverUploadResponse = new Upload(Config.VK).photoOwnerCover(uploadServer.getUploadUrl().toString(), coverFile).execute();
             List<Image> images = new Photos(Config.VK).saveOwnerCoverPhoto(Config.GROUP, coverUploadResponse.getHash(), coverUploadResponse.getPhoto()).execute();
         } catch (ApiException | ClientException | IOException e) {
+            LOG.error(e);
+        }
+    }
+
+    public static void pack(String sourceDirPath, String zipFilePath) {
+        try {
+            Path p = Files.createFile(Paths.get(zipFilePath));
+            try (ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(p))) {
+                Path pp = Paths.get(sourceDirPath);
+                Files.walk(pp)
+                        .filter(path -> !Files.isDirectory(path))
+                        .forEach(path -> {
+                            ZipEntry zipEntry = new ZipEntry(pp.relativize(path).toString());
+                            try {
+                                zs.putNextEntry(zipEntry);
+                                Files.copy(path, zs);
+                                zs.closeEntry();
+                            } catch (IOException e) {
+                                LOG.error(e);
+                            }
+                        });
+            }
+        } catch (IOException e) {
             LOG.error(e);
         }
     }
