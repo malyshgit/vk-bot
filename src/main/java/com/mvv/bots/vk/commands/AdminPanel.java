@@ -520,6 +520,7 @@ public class AdminPanel implements Script{
                         lines.forEach(s -> {
                             try {
                                 long size = FileUtils.sizeOfDirectory(dir);
+                                LOG.debug(size);
                                 if(size > 250*1024*1024){
                                     File file = new File(System.currentTimeMillis()+".zip");
                                     pack(dir.getPath(), file.getPath());
@@ -541,6 +542,7 @@ public class AdminPanel implements Script{
                                 }
                                 URL urlS = new URL(s);
                                 String name = System.currentTimeMillis()+"."+FilenameUtils.getExtension(urlS.getPath());
+                                LOG.debug(name);
                                 File fileS = new File(dir, name);
                                 FileUtils.copyURLToFile(
                                         urlS,
