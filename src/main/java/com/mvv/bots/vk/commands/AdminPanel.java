@@ -793,7 +793,7 @@ public class AdminPanel implements Script{
             int offset = 0;
             List<PhotoAlbumFull> albums = new ArrayList<>();
             response.getItems().forEach(a -> {
-                if(a.getTitle().startWith("AutoAlbum_")){
+                if(a.getTitle().startsWith("AutoAlbum_")){
                     albums.add(a);
                 }
             });
