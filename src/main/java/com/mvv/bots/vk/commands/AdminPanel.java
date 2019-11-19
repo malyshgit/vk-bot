@@ -823,7 +823,7 @@ public class AdminPanel implements Script{
                         });
                         i += 1000;
                     }
-                    if(a.getSize() >= 10000) return;
+                    if(a.getSize() >= 10000) continue;
                     lastAlbum = a;
                     break;
                 }
@@ -867,7 +867,7 @@ public class AdminPanel implements Script{
             File img = null;
             for(String url : urls) {
                 if(!threadStarted) break;
-                if(captions.contains(url)){LOG.debug("skip"); return;}
+                if(captions.contains(url)){LOG.debug("skip"); continue;}
                 if(offset >= 10000){
                     if(isGroup) {
                         lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount)
