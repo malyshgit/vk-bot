@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -40,9 +41,14 @@ import java.util.zip.ZipOutputStream;
 import com.google.gson.*;
 import com.vk.api.sdk.objects.messages.responses.GetByIdResponse;
 import com.vk.api.sdk.objects.photos.Photo;
+import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
 import com.vk.api.sdk.objects.photos.PhotoUpload;
+import com.vk.api.sdk.objects.photos.responses.GetAlbumsResponse;
+import com.vk.api.sdk.objects.photos.responses.GetResponse;
 import com.vk.api.sdk.objects.photos.responses.MessageUploadResponse;
+import com.vk.api.sdk.objects.photos.responses.PhotoUploadResponse;
 import com.vk.api.sdk.objects.responses.OwnerCoverUploadResponse;
+import com.vk.api.sdk.objects.wall.WallpostFull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -160,7 +166,7 @@ public class AdminPanel implements Script{
                                             "{\"script\":\""+getClass().getName()+"\"," +
                                                     "\"step\":"+5+"}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Загрузки"))
+                                            .setLabel("Утилиты"))
                     ));
                     new Messages(Config.VK)
                             .send(Config.GROUP)
@@ -482,26 +488,147 @@ public class AdminPanel implements Script{
                                             "{\"script\":\"" + getClass().getName() + "\"," +
                                                     "\"step\":" + 0 + "}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Назад")),
+                                            .setLabel("Назад"))
+                    ));
+                    buttons.add(List.of(
                             new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.POSITIVE)
+                                    .setColor(KeyboardButtonColor.DEFAULT)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             "{\"script\":\"" + getClass().getName() + "\"," +
                                                     "\"step\":" + 51 + "}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Начать"))
+                                            .setLabel("Заполнение альбомов"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 52 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Загрузка в архивы"))
                     ));
                     new Messages(Config.VK)
                             .send(Config.GROUP)
-                            .message("Отправьте файл со ссылками и нажмите \"Начать\"")
+                            .message("Действия со списком ссылок")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     break;
                 case 51:
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 5 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Назад"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 511 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Альбомы группы"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 512 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Альбомы админа"))
+                    ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Выберите какие альбомы заполнить")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 511:
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 51 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Назад")),
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 5111 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Начать"))
+                    ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .keyboard(keyboard)
+                            .message("Отправьте файл со ссылками и нажмите \"Начать\"")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 5111:
                     GetByIdResponse getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
                     List<MessageAttachment> attachments = getByIdResponse.getItems().get(0).getAttachments();
+                    if(attachments.isEmpty()){
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .message("Отправьте файл со ссылками и нажмите \"Начать\"")
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                    }
+                    if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)) {
+                        URL url = attachments.get(0).getDoc().getUrl();
+                        List<String> lines = IOUtils.readLines(url.openStream(), StandardCharsets.UTF_8);
+                        pushPhotos(true, lines);
+                    }else{
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .message("Отправьте файл со ссылками и нажмите \"Начать\"")
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                    }
+                    break;
+                case 512:
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 51 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Назад")),
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 5121 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Начать"))
+                    ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .keyboard(keyboard)
+                            .message("Отправьте файл со ссылками и нажмите \"Начать\"")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 5121:
+                    /*getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
+                    attachments = getByIdResponse.getItems().get(0).getAttachments();
                     if(attachments.isEmpty()){
                         new Messages(Config.VK)
                                 .send(Config.GROUP)
@@ -576,12 +703,144 @@ public class AdminPanel implements Script{
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
-                    }
+                    }*/
                     break;
                 default:
                     break;
             }
         }catch (ApiException | ClientException | IOException e){
+            LOG.error(e);
+        }
+    }
+
+    private static boolean threadStarted = false;
+    private static void pushPhotos(boolean isGroup, List<String> urls) {
+        if(threadStarted) return;
+        new Thread(() -> {
+            threadStarted = true;
+            pushPhotosThread(isGroup, urls);
+            threadStarted = false;
+        }).start();
+    }
+
+    private static void pushPhotosThread(boolean isGroup, List<String> urls) {
+        try {
+            int owner = isGroup ? Config.GROUP_ID : Config.ADMIN_ID;
+            GetAlbumsResponse response = new Photos(Config.VK).getAlbums(Config.ADMIN).ownerId(owner).execute();
+            int offset = 0;
+            List<PhotoAlbumFull> albums = new ArrayList<>();
+            response.getItems().forEach(a -> {
+                if(a.getTitle().matches("AutoAlbum_\\d+")){
+                    albums.add(a);
+                }
+            });
+            albums.sort((o1, o2) -> {
+                int s1 = Integer.parseInt(o1.getTitle().replace("AutoAlbum_", ""));
+                int s2 = Integer.parseInt(o2.getTitle().replace("AutoAlbum_", ""));
+                return Integer.compare(s2, s1);
+            });
+            PhotoAlbumFull lastAlbum = null;
+
+            HashSet<String> captions = new HashSet<>();
+
+            if(!albums.isEmpty()){
+                for(PhotoAlbumFull a : albums){
+                    int i = 0;
+                    while(i < a.getSize()) {
+                        GetResponse resp = new Photos(Config.VK).get(Config.ADMIN)
+                                .ownerId(a.getOwnerId())
+                                .albumId(String.valueOf(a.getId()))
+                                .offset(i)
+                                .count(1000)
+                                .execute();
+                        resp.getItems().forEach(photo -> {
+                            captions.add(photo.getText());
+                        });
+                        i += 1000;
+                    }
+                    if(a.getSize() >= 10000) return;
+                    lastAlbum = a;
+                    break;
+                }
+                if(lastAlbum == null){
+                    if(isGroup) {
+                        lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+albums.size())
+                                .groupId(Math.abs(Config.GROUP_ID))
+                                .uploadByAdminsOnly(true)
+                                .execute();
+                    }else{
+                        lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+albums.size())
+                                .execute();
+                    }
+                }
+                offset = lastAlbum.getSize();
+            }else{
+                if(isGroup) {
+                    lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_0")
+                            .groupId(Math.abs(Config.GROUP_ID))
+                            .uploadByAdminsOnly(true)
+                            .execute();
+                }else{
+                    lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_0")
+                            .execute();
+                }
+            }
+            int autoAlbumCount = Integer.parseInt(lastAlbum.getTitle().replace("AutoAlbum_", ""));
+            PhotoUpload upload;
+            if(isGroup) {
+                upload = new Photos(Config.VK)
+                        .getUploadServer(Config.ADMIN)
+                        .albumId(lastAlbum.getId())
+                        .groupId(Math.abs(Config.GROUP_ID))
+                        .execute();
+            }else{
+                upload = new Photos(Config.VK)
+                        .getUploadServer(Config.ADMIN)
+                        .albumId(lastAlbum.getId())
+                        .execute();
+            }
+            File img = null;
+            for(String url : urls) {
+                if(captions.contains(url)) return;
+                if(offset >= 10000){
+                    if(isGroup) {
+                        lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount)
+                                .groupId(Math.abs(Config.GROUP_ID))
+                                .uploadByAdminsOnly(true)
+                                .execute();
+                    }else{
+                        lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount)
+                                .execute();
+                    }
+                    offset = 0;
+                }
+                img = new File("temp.jpg");
+                FileUtils.copyURLToFile(new URL(url), img);
+                PhotoUploadResponse uplresponse = new Upload(Config.VK).photo(upload.getUploadUrl().toString(), img).execute();
+                List<Photo> photos = null;
+                if(isGroup) {
+                    photos = new Photos(Config.VK).save(Config.ADMIN)
+                            .groupId(Math.abs(Config.GROUP_ID))
+                            .albumId(uplresponse.getAid())
+                            .hash(uplresponse.getHash())
+                            .photosList(uplresponse.getPhotosList())
+                            .server(uplresponse.getServer())
+                            .caption(url)
+                            .execute();
+                }else{
+                    photos = new Photos(Config.VK).save(Config.ADMIN)
+                            .albumId(uplresponse.getAid())
+                            .hash(uplresponse.getHash())
+                            .photosList(uplresponse.getPhotosList())
+                            .server(uplresponse.getServer())
+                            .caption(url)
+                            .execute();
+                }
+                img.delete();
+                offset++;
+                Thread.sleep(1000);
+            }
+        } catch (ApiException | ClientException | InterruptedException | IOException e) {
             LOG.error(e);
         }
     }

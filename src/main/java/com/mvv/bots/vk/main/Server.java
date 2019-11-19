@@ -1,6 +1,7 @@
 package com.mvv.bots.vk.main;
 
 import com.google.gson.*;
+import com.mvv.bots.vk.commands.AdminPanel;
 import com.mvv.bots.vk.database.tables.Settings;
 import com.mvv.bots.vk.database.tables.Users;
 import com.mvv.bots.vk.utils.Utils;
@@ -244,12 +245,20 @@ public class Server {
                     }
                     script.send(message, step);
                 }
-            }else if(Script.containsByKey(message.getText())){
+            }else if(!message.getText().isEmpty() && Script.containsByKey(message.getText())){
                 Script script = Script.getByKey(message.getText());
                 script.send(message, 0);
                 plusUse(message);
             }else{
-
+                if(message.getFromId() == Config.ADMIN_ID){
+                    Users.User user = Users.find(message.getFromId());
+                    if(user.getParameters().has("savemode")) {
+                        if (Boolean.parseBoolean(user.getParameters().get("savemode"))) {
+                            new AdminPanel().send(message, 63);
+                            return;
+                        }
+                    }
+                }
             }
 
         }catch (PatternSyntaxException | ClientException | ApiException e){
