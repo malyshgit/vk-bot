@@ -592,6 +592,23 @@ public class AdminPanel implements Script{
                         URL url = attachments.get(0).getDoc().getUrl();
                         List<String> lines = IOUtils.readLines(url.openStream(), StandardCharsets.UTF_8);
                         pushPhotos(true, lines);
+                        keyboard.setInline(true);
+                        buttons.add(List.of(
+                                new KeyboardButton()
+                                        .setColor(KeyboardButtonColor.NEGATIVE)
+                                        .setAction(new KeyboardButtonAction().setPayload(
+                                                "{\"script\":\"" + getClass().getName() + "\"," +
+                                                        "\"step\":" + 51111 + "}"
+                                        ).setType(KeyboardButtonActionType.TEXT)
+                                                .setLabel("Остановить"))
+                        ));
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .keyboard(keyboard)
+                                .message("В любой момент можно остановить процесс")
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
                     }else{
                         new Messages(Config.VK)
                                 .send(Config.GROUP)
@@ -627,6 +644,51 @@ public class AdminPanel implements Script{
                             .execute();
                     break;
                 case 5121:
+                    getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
+                    attachments = getByIdResponse.getItems().get(0).getAttachments();
+                    if(attachments.isEmpty()){
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .message("Отправьте файл со ссылками и нажмите \"Начать\"")
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                    }
+                    if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)) {
+                        URL url = attachments.get(0).getDoc().getUrl();
+                        List<String> lines = IOUtils.readLines(url.openStream(), StandardCharsets.UTF_8);
+                        pushPhotos(false, lines);
+                        keyboard.setInline(true);
+                        buttons.add(List.of(
+                                new KeyboardButton()
+                                        .setColor(KeyboardButtonColor.NEGATIVE)
+                                        .setAction(new KeyboardButtonAction().setPayload(
+                                                "{\"script\":\"" + getClass().getName() + "\"," +
+                                                        "\"step\":" + 51111 + "}"
+                                        ).setType(KeyboardButtonActionType.TEXT)
+                                                .setLabel("Остановить"))
+                        ));
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .keyboard(keyboard)
+                                .message("В любой момент можно остановить процесс")
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                    }else{
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .message("Отправьте файл со ссылками и нажмите \"Начать\"")
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                    }
+                    break;
+                case 51111:
+                    threadStarted = false;
+                    break;
+
+                case 56:
                     /*getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
                     attachments = getByIdResponse.getItems().get(0).getAttachments();
                     if(attachments.isEmpty()){
@@ -801,6 +863,7 @@ public class AdminPanel implements Script{
             }
             File img = null;
             for(String url : urls) {
+                if(!threadStarted) break;
                 if(captions.contains(url)) return;
                 if(offset >= 10000){
                     if(isGroup) {
