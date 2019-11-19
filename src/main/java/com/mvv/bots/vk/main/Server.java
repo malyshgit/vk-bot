@@ -250,15 +250,7 @@ public class Server {
                 script.send(message, 0);
                 plusUse(message);
             }else{
-                if(message.getFromId() == Config.ADMIN_ID){
-                    Users.User user = Users.find(message.getFromId());
-                    if(user.getParameters().has("savemode")) {
-                        if (Boolean.parseBoolean(user.getParameters().get("savemode"))) {
-                            new AdminPanel().send(message, 63);
-                            return;
-                        }
-                    }
-                }
+
             }
 
         }catch (PatternSyntaxException | ClientException | ApiException e){
