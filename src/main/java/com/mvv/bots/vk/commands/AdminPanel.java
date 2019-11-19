@@ -789,18 +789,21 @@ public class AdminPanel implements Script{
         try {
             int owner = isGroup ? Config.GROUP_ID : Config.ADMIN_ID;
             GetAlbumsResponse response = new Photos(Config.VK).getAlbums(Config.ADMIN).ownerId(owner).execute();
+            LOG.debug(response);
             int offset = 0;
             List<PhotoAlbumFull> albums = new ArrayList<>();
             response.getItems().forEach(a -> {
-                if(a.getTitle().matches("AutoAlbum_\\d+")){
+                if(a.getTitle().startWith("AutoAlbum_")){
                     albums.add(a);
                 }
             });
+            LOG.debug(albums);
             albums.sort((o1, o2) -> {
                 int s1 = Integer.parseInt(o1.getTitle().replace("AutoAlbum_", ""));
                 int s2 = Integer.parseInt(o2.getTitle().replace("AutoAlbum_", ""));
                 return Integer.compare(s2, s1);
             });
+            LOG.debug(albums);
             PhotoAlbumFull lastAlbum = null;
 
             HashSet<String> captions = new HashSet<>();
@@ -901,7 +904,7 @@ public class AdminPanel implements Script{
                 }
                 img.delete();
                 offset++;
-                Thread.sleep(1000);
+                //Thread.sleep(1000);
             }
         } catch (ApiException | ClientException | InterruptedException | IOException e) {
             LOG.error(e);
