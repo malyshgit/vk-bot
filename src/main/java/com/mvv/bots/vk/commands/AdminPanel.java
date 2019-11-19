@@ -867,7 +867,7 @@ public class AdminPanel implements Script{
             File img = null;
             for(String url : urls) {
                 if(!threadStarted) break;
-                if(captions.contains(url)) return;
+                if(captions.contains(url)){LOG.debug("skip"); return;}
                 if(offset >= 10000){
                     if(isGroup) {
                         lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount)
