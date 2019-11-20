@@ -13,11 +13,13 @@ import com.vk.api.sdk.actions.*;
 import com.vk.api.sdk.client.AbstractQueryBuilder;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
+import com.vk.api.sdk.exceptions.RequiredFieldException;
 import com.vk.api.sdk.objects.base.Image;
 import com.vk.api.sdk.objects.base.UploadServer;
 import com.vk.api.sdk.objects.docs.Doc;
 import com.vk.api.sdk.objects.docs.responses.DocUploadResponse;
 import com.vk.api.sdk.objects.docs.responses.SaveResponse;
+import com.vk.api.sdk.objects.enums.DocsType;
 import com.vk.api.sdk.objects.groups.GroupFull;
 import com.vk.api.sdk.objects.messages.*;
 
@@ -32,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,12 +46,14 @@ import com.google.gson.*;
 import com.vk.api.sdk.objects.messages.responses.GetByIdResponse;
 import com.vk.api.sdk.objects.photos.Photo;
 import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
+import com.vk.api.sdk.objects.photos.PhotoSizes;
 import com.vk.api.sdk.objects.photos.PhotoUpload;
 import com.vk.api.sdk.objects.photos.responses.GetAlbumsResponse;
 import com.vk.api.sdk.objects.photos.responses.GetResponse;
 import com.vk.api.sdk.objects.photos.responses.MessageUploadResponse;
 import com.vk.api.sdk.objects.photos.responses.PhotoUploadResponse;
 import com.vk.api.sdk.objects.responses.OwnerCoverUploadResponse;
+import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
 import com.vk.api.sdk.objects.wall.WallpostFull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -507,7 +512,7 @@ public class AdminPanel implements Script{
                                             "{\"script\":\"" + getClass().getName() + "\"," +
                                                     "\"step\":" + 52 + "}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Загрузка в архивы"))
+                                            .setLabel("Парсинг сообществ"))
                     ));
                     new Messages(Config.VK)
                             .send(Config.GROUP)
@@ -588,6 +593,7 @@ public class AdminPanel implements Script{
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
+                        return;
                     }
                     if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)) {
                         URL url = attachments.get(0).getDoc().getUrl();
@@ -654,6 +660,7 @@ public class AdminPanel implements Script{
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
+                        return;
                     }
                     if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)) {
                         URL url = attachments.get(0).getDoc().getUrl();
@@ -688,7 +695,117 @@ public class AdminPanel implements Script{
                 case 51111:
                     threadStarted = false;
                     break;
+                case 52:
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 5 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Назад"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 521 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Начать"))
+                    ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Отправьте ID сообщества и нажмите \"Начать\"")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 521:
+                    getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
+                    String url = getByIdResponse.getItems().get(0).getText();
+                    if(url == null || url.isEmpty()){
+                        new Messages(Config.VK)
+                                .send(Config.GROUP)
+                                .message("Отправьте ID сообщества и нажмите \"Начать\"")
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                        return;
+                    }
+                    int offset = 0;
+                    int count = 100;
+                    var query = new Wall(Config.VK).get(Config.ADMIN)
+                            .offset(offset)
+                            .count(count);
+                    if(url.matches("-\\d+")){
+                        query.ownerId(Integer.valueOf(url));
+                    }else if(url.startsWith("http") || url.startsWith("vk.com")){
+                        url = url.replace("https://vk.com/", "");
+                        url = url.replace("http://vk.com/", "");
+                        url = url.replace("vk.com/", "");
+                        query.domain(url);
+                    }else{
+                        query.domain(url);
+                    }
+                    var response = query.execute();
+                    if(response == null){
+                        send(message, 52);
+                        return;
+                    }
+                    StringBuffer sb = new StringBuffer();
 
+                    int size = response.getCount();
+
+                    int mid = new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Статус: null")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+
+                    while (offset < size) {
+                        try {
+                            new Messages(Config.VK)
+                                    .edit(Config.GROUP, Config.ADMIN_ID, mid)
+                                    .message("Статус: "+offset+"/"+size)
+                                    .execute();
+                            response.getItems().forEach(post -> {
+                                post.getAttachments().forEach(attachment -> {
+                                    if (attachment.getType().equals(WallpostAttachmentType.PHOTO)) {
+                                        Photo photo = attachment.getPhoto();
+                                        PhotoSizes maxSize = photo.getSizes().stream()
+                                                .max(Comparator.comparingInt(o -> o.getWidth() * o.getHeight()))
+                                                .get();
+                                        String src = maxSize.getUrl().toString();
+                                        sb.append(src).append("\n");
+                                    }
+                                });
+                            });
+                            offset += count;
+                            response = query.offset(offset)
+                                    .count(count)
+                                    .execute();
+                            Thread.sleep(1000);
+                        }catch (NullPointerException | InterruptedException e){
+                            LOG.error(e);
+                        }
+                    }
+                    File urls = new File(url+".txt");
+                    FileUtils.write(urls, sb.toString(), StandardCharsets.UTF_8);
+                    var upload = new Docs(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(Config.ADMIN_ID).type(DocsType.DOC).execute();
+                    var resp = new Upload(Config.VK).doc(upload.getUploadUrl().toString(), urls).execute();
+                    var save = new Docs(Config.VK).save(Config.GROUP, resp.getFile()).title(url+".txt").execute();
+                    urls.delete();
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message(url)
+                            .attachment("doc"+save.getDoc().getOwnerId()+"_"+save.getDoc().getId())
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
                 case 56:
                     /*getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
                     attachments = getByIdResponse.getItems().get(0).getAttachments();
