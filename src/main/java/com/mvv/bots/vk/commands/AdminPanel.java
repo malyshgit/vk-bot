@@ -787,9 +787,9 @@ public class AdminPanel implements Script{
 
     private static void pushPhotosThread(boolean isGroup, List<String> urls) {
         try {
+            StringBuilder sb = new StringBuilder();
             int owner = isGroup ? Config.GROUP_ID : Config.ADMIN_ID;
             GetAlbumsResponse response = new Photos(Config.VK).getAlbums(Config.ADMIN).ownerId(owner).execute();
-            LOG.debug(response);
             int offset = 0;
             List<PhotoAlbumFull> albums = new ArrayList<>();
             response.getItems().forEach(a -> {
@@ -797,13 +797,16 @@ public class AdminPanel implements Script{
                     albums.add(a);
                 }
             });
-            LOG.debug(albums);
             albums.sort((o1, o2) -> {
                 int s1 = Integer.parseInt(o1.getTitle().replace("AutoAlbum_", ""));
                 int s2 = Integer.parseInt(o2.getTitle().replace("AutoAlbum_", ""));
                 return Integer.compare(s2, s1);
             });
-            LOG.debug(albums);
+            if(!albums.isEmpty()) sb.append("Альбомы:\n")
+                    .append(albums.stream().map(a -> a.getTitle()+"("+a.getSize()+")")
+                            .collect(Collectors.joining("\n")))
+                    .append("\n");
+
             PhotoAlbumFull lastAlbum = null;
 
             HashSet<String> captions = new HashSet<>();
@@ -821,6 +824,7 @@ public class AdminPanel implements Script{
                         resp.getItems().forEach(photo -> {
                             captions.add(photo.getText());
                         });
+                        Thread.sleep(1000);
                         i += 1000;
                     }
                     if(a.getSize() >= 10000) continue;
@@ -835,6 +839,7 @@ public class AdminPanel implements Script{
                                 .execute();
                     }else{
                         lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+albums.size())
+                                .uploadByAdminsOnly(true)
                                 .execute();
                     }
                 }
@@ -847,10 +852,26 @@ public class AdminPanel implements Script{
                             .execute();
                 }else{
                     lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_0")
+                            .uploadByAdminsOnly(true)
                             .execute();
                 }
             }
             int autoAlbumCount = Integer.parseInt(lastAlbum.getTitle().replace("AutoAlbum_", ""));
+
+            sb.append("Текущий альбом: ")
+                    .append(lastAlbum.getTitle()).append("\n");
+            sb.append("Ссылок: ")
+                    .append(urls.size()).append("\n");
+            sb.append("Заполненно: ")
+                    .append(captions.size()).append("\n");
+
+            new Messages(Config.VK)
+                    .send(Config.GROUP)
+                    .message(sb.toString())
+                    .peerId(Config.ADMIN_ID)
+                    .randomId(Utils.getRandomInt32())
+                    .execute();
+
             PhotoUpload upload;
             if(isGroup) {
                 upload = new Photos(Config.VK)
@@ -868,6 +889,7 @@ public class AdminPanel implements Script{
             for(String url : urls) {
                 if(!threadStarted) break;
                 if(captions.contains(url)){LOG.debug("skip"); continue;}
+                long startTime = System.currentTimeMillis();
                 if(offset >= 10000){
                     if(isGroup) {
                         lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount)
@@ -876,6 +898,7 @@ public class AdminPanel implements Script{
                                 .execute();
                     }else{
                         lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount)
+                                .uploadByAdminsOnly(true)
                                 .execute();
                     }
                     offset = 0;
@@ -904,7 +927,11 @@ public class AdminPanel implements Script{
                 }
                 img.delete();
                 offset++;
-                Thread.sleep(500);
+                long endTime = System.currentTimeMillis();
+                long deltaTime = endTime - startTime;
+                if(deltaTime > 0 && deltaTime < 1500){
+                    Thread.sleep(deltaTime);
+                }
             }
         } catch (ApiException | ClientException | InterruptedException | IOException e) {
             LOG.error(e);
