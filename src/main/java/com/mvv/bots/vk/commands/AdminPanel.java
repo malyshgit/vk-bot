@@ -788,7 +788,7 @@ public class AdminPanel implements Script{
                                     .count(count)
                                     .execute();
                             Thread.sleep(1000);
-                        }catch (NullPointerException | InterruptedException e){
+                        }catch (NullPointerException | InterruptedException | ClientException e){
                             LOG.error(e);
                         }
                     }
