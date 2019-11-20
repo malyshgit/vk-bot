@@ -904,7 +904,7 @@ public class AdminPanel implements Script{
                 }
                 img.delete();
                 offset++;
-                Thread.sleep(1);
+                Thread.sleep(500);
             }
         } catch (ApiException | ClientException | InterruptedException | IOException e) {
             LOG.error(e);
