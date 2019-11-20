@@ -888,7 +888,17 @@ public class AdminPanel implements Script{
                     if(isGroup) uploadQuery.groupId(Math.abs(Config.GROUP_ID));
             PhotoUpload upload = uploadQuery.execute();
 
+            int savesCount = 0;
             for(String url : urls) {
+                if(savesCount > 1000){
+                    threadStarted = false;
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Заполнение остановленно.")
+                            .peerId(Config.ADMIN_ID)
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                }
                 if(!threadStarted) break;
                 if(captions.contains(url)){LOG.debug("skip"); continue;}
                 long startTime = System.currentTimeMillis();
@@ -915,6 +925,7 @@ public class AdminPanel implements Script{
                 saveQuery.execute();
 
                 img.delete();
+                savesCount++;
                 offset++;
                 long endTime = System.currentTimeMillis();
                 long deltaTime = endTime - startTime;
@@ -923,6 +934,16 @@ public class AdminPanel implements Script{
                 }
             }
         } catch (ApiException | ClientException | InterruptedException | IOException e) {
+            try {
+                new Messages(Config.VK)
+                        .send(Config.GROUP)
+                        .message("Заполнение остановленно с ошибкой.\n"+e.getMessage())
+                        .peerId(Config.ADMIN_ID)
+                        .randomId(Utils.getRandomInt32())
+                        .execute();
+            } catch (ApiException | ClientException ex) {
+                LOG.error(e);
+            }
             LOG.error(e);
         }
     }
