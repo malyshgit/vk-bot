@@ -10,6 +10,7 @@ import com.mvv.bots.vk.database.tables.Settings;
 import com.mvv.bots.vk.database.tables.Users;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.*;
+import com.vk.api.sdk.client.AbstractQueryBuilder;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.base.Image;
@@ -814,47 +815,56 @@ public class AdminPanel implements Script{
             if(!albums.isEmpty()){
                 for(PhotoAlbumFull a : albums){
                     int i = 0;
+                    List<AbstractQueryBuilder> queryList = new ArrayList<>();
                     while(i < a.getSize()) {
-                        GetResponse resp = new Photos(Config.VK).get(Config.ADMIN)
+                        if(queryList.size() >= 20){
+                            var json = new Execute(Config.VK).batch(Config.ADMIN, queryList).execute();
+                            var array = json.getAsJsonArray();
+                            array.forEach(e -> {
+                                var resp = new Gson().fromJson(e, GetResponse.class);
+                                resp.getItems().forEach(photo -> {
+                                    captions.add(photo.getText());
+                                });
+                            });
+                            queryList.clear();
+                        }
+                        var batch = new Photos(Config.VK).get(Config.ADMIN)
                                 .ownerId(a.getOwnerId())
                                 .albumId(String.valueOf(a.getId()))
                                 .offset(i)
-                                .count(1000)
-                                .execute();
-                        resp.getItems().forEach(photo -> {
-                            captions.add(photo.getText());
-                        });
-                        Thread.sleep(1000);
+                                .count(1000);
+                        queryList.add(batch);
+                        Thread.sleep(1500);
                         i += 1000;
+                    }
+                    if(!queryList.isEmpty()){
+                        var json = new Execute(Config.VK).batch(Config.ADMIN, queryList).execute();
+                        var array = json.getAsJsonArray();
+                        array.forEach(e -> {
+                            var resp = new Gson().fromJson(e, GetResponse.class);
+                            resp.getItems().forEach(photo -> {
+                                captions.add(photo.getText());
+                            });
+                        });
+                        queryList.clear();
                     }
                     if(a.getSize() >= 10000) continue;
                     lastAlbum = a;
                     break;
                 }
                 if(lastAlbum == null){
-                    if(isGroup) {
-                        lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+albums.size())
-                                .groupId(Math.abs(Config.GROUP_ID))
-                                .uploadByAdminsOnly(true)
-                                .execute();
-                    }else{
-                        lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+albums.size())
-                                .uploadByAdminsOnly(true)
-                                .execute();
-                    }
+                    var albumQuery = new Photos(Config.VK)
+                            .createAlbum(Config.ADMIN, "AutoAlbum_"+albums.size())
+                            .uploadByAdminsOnly(true);
+                    if(isGroup) albumQuery.groupId(Math.abs(Config.GROUP_ID));
+                    lastAlbum = albumQuery.execute();
                 }
                 offset = lastAlbum.getSize();
             }else{
-                if(isGroup) {
-                    lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_0")
-                            .groupId(Math.abs(Config.GROUP_ID))
-                            .uploadByAdminsOnly(true)
-                            .execute();
-                }else{
-                    lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_0")
-                            .uploadByAdminsOnly(true)
-                            .execute();
-                }
+                var albumQuery = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_0")
+                        .uploadByAdminsOnly(true);
+                        if(isGroup) albumQuery.groupId(Math.abs(Config.GROUP_ID));
+                lastAlbum = albumQuery.execute();
             }
             int autoAlbumCount = Integer.parseInt(lastAlbum.getTitle().replace("AutoAlbum_", ""));
 
@@ -872,59 +882,38 @@ public class AdminPanel implements Script{
                     .randomId(Utils.getRandomInt32())
                     .execute();
 
-            PhotoUpload upload;
-            if(isGroup) {
-                upload = new Photos(Config.VK)
-                        .getUploadServer(Config.ADMIN)
-                        .albumId(lastAlbum.getId())
-                        .groupId(Math.abs(Config.GROUP_ID))
-                        .execute();
-            }else{
-                upload = new Photos(Config.VK)
-                        .getUploadServer(Config.ADMIN)
-                        .albumId(lastAlbum.getId())
-                        .execute();
-            }
-            File img = null;
+            var uploadQuery = new Photos(Config.VK)
+                    .getUploadServer(Config.ADMIN)
+                    .albumId(lastAlbum.getId());
+                    if(isGroup) uploadQuery.groupId(Math.abs(Config.GROUP_ID));
+            PhotoUpload upload = uploadQuery.execute();
+
             for(String url : urls) {
                 if(!threadStarted) break;
                 if(captions.contains(url)){LOG.debug("skip"); continue;}
                 long startTime = System.currentTimeMillis();
                 if(offset >= 10000){
-                    if(isGroup) {
-                        lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount)
-                                .groupId(Math.abs(Config.GROUP_ID))
-                                .uploadByAdminsOnly(true)
-                                .execute();
-                    }else{
-                        lastAlbum = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount)
-                                .uploadByAdminsOnly(true)
-                                .execute();
-                    }
+
+                    var albumQuery = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount)
+                            .uploadByAdminsOnly(true);
+                            if(isGroup) albumQuery.groupId(Math.abs(Config.GROUP_ID));
+                    lastAlbum = albumQuery.execute();
+
                     offset = 0;
                 }
-                img = new File("temp.jpg");
+                File img = new File("temp.jpg");
                 FileUtils.copyURLToFile(new URL(url), img);
                 PhotoUploadResponse uplresponse = new Upload(Config.VK).photo(upload.getUploadUrl().toString(), img).execute();
                 List<Photo> photos = null;
-                if(isGroup) {
-                    photos = new Photos(Config.VK).save(Config.ADMIN)
-                            .groupId(Math.abs(Config.GROUP_ID))
-                            .albumId(uplresponse.getAid())
-                            .hash(uplresponse.getHash())
-                            .photosList(uplresponse.getPhotosList())
-                            .server(uplresponse.getServer())
-                            .caption(url)
-                            .execute();
-                }else{
-                    photos = new Photos(Config.VK).save(Config.ADMIN)
-                            .albumId(uplresponse.getAid())
-                            .hash(uplresponse.getHash())
-                            .photosList(uplresponse.getPhotosList())
-                            .server(uplresponse.getServer())
-                            .caption(url)
-                            .execute();
-                }
+                var saveQuery = new Photos(Config.VK).save(Config.ADMIN)
+                        .albumId(uplresponse.getAid())
+                        .hash(uplresponse.getHash())
+                        .photosList(uplresponse.getPhotosList())
+                        .server(uplresponse.getServer())
+                        .caption(url);
+                        if(isGroup) saveQuery.groupId(Math.abs(Config.GROUP_ID));
+                saveQuery.execute();
+
                 img.delete();
                 offset++;
                 long endTime = System.currentTimeMillis();
