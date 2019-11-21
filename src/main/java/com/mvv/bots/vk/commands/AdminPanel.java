@@ -755,8 +755,8 @@ public class AdminPanel implements Script{
                     int size = response.getCount();
 
                     while (offset < size) {
-                        try {
                             response.getItems().forEach(post -> {
+                                if(post == null || post.getAttachments() == null) return;
                                 post.getAttachments().forEach(attachment -> {
                                     if (attachment.getType().equals(WallpostAttachmentType.PHOTO)) {
                                         Photo photo = attachment.getPhoto();
@@ -774,10 +774,11 @@ public class AdminPanel implements Script{
                             response = query.offset(offset)
                                     .count(count)
                                     .execute();
-                            Thread.sleep(1000);
-                        }catch (NullPointerException | InterruptedException | ClientException e){
-                            LOG.error(e);
-                        }
+                            try{
+                                Thread.sleep(1000);
+                            }catch (InterruptedException e){
+                                LOG.error(e);
+                            }
                     }
                     File urls = new File(url+".txt");
                     FileUtils.write(urls, sb.toString(), StandardCharsets.UTF_8);
