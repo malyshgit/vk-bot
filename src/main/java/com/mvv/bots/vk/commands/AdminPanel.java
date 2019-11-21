@@ -733,63 +733,21 @@ public class AdminPanel implements Script{
                                 .execute();
                         return;
                     }
-                    int offset = 0;
-                    int count = 100;
-                    var query = new Wall(Config.VK).get(Config.ADMIN)
-                            .offset(offset)
-                            .count(count);
-                    if(url.matches("-\\d+")){
-                        query.ownerId(Integer.valueOf(url));
-                    }else if(url.startsWith("http") || url.startsWith("vk.com")){
-                        url = url.replace("https://vk.com/", "");
-                        url = url.replace("http://vk.com/", "");
-                        url = url.replace("vk.com/", "");
-                        query.domain(url);
-                    }else{
-                        query.domain(url);
-                    }
-                    var response = query.execute();
-
-                    StringBuffer sb = new StringBuffer();
-
-                    int size = response.getCount();
-
-                    while (offset < size) {
-                            response.getItems().forEach(post -> {
-                                if(post == null || post.getAttachments() == null) return;
-                                post.getAttachments().forEach(attachment -> {
-                                    if (attachment.getType().equals(WallpostAttachmentType.PHOTO)) {
-                                        Photo photo = attachment.getPhoto();
-                                        var pres = photo.getSizes().stream()
-                                                .max(Comparator.comparingInt(o -> o.getWidth() * o.getHeight()));
-                                        if(pres.isPresent()) {
-                                            var maxSize = pres.get();
-                                            String src = maxSize.getUrl();
-                                            sb.append(src).append("\n");
-                                        }
-                                    }
-                                });
-                            });
-                            offset += count;
-                            response = query.offset(offset)
-                                    .count(count)
-                                    .execute();
-                            try{
-                                Thread.sleep(1000);
-                            }catch (InterruptedException e){
-                                LOG.error(e);
-                            }
-                    }
-                    File urls = new File(url+".txt");
-                    FileUtils.write(urls, sb.toString(), StandardCharsets.UTF_8);
-                    var upload = new Docs(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(Config.ADMIN_ID).type(DocsType.DOC).execute();
-                    var resp = new Upload(Config.VK).doc(upload.getUploadUrl(), urls).execute();
-                    var save = new Docs(Config.VK).save(Config.GROUP, resp.getFile()).title(url+".txt").execute();
-                    urls.delete();
+                    parseWall(url);
+                    keyboard.setInline(true);
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 51111 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Остановить"))
+                    ));
                     new Messages(Config.VK)
                             .send(Config.GROUP)
-                            .message(url)
-                            .attachment("doc"+save.getDoc().getOwnerId()+"_"+save.getDoc().getId())
+                            .keyboard(keyboard)
+                            .message("В любой момент можно остановить процесс")
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
@@ -882,6 +840,14 @@ public class AdminPanel implements Script{
     }
 
     private static boolean threadStarted = false;
+    private static void parseWall(String domain) {
+        if(threadStarted) return;
+        new Thread(() -> {
+            threadStarted = true;
+            parseWallThread(domain);
+            threadStarted = false;
+        }).start();
+    }
     private static void pushPhotos(boolean isGroup, List<String> urls) {
         if(threadStarted) return;
         new Thread(() -> {
@@ -890,7 +856,73 @@ public class AdminPanel implements Script{
             threadStarted = false;
         }).start();
     }
+    private static void parseWallThread(String domain){
+        try {
+            int offset = 0;
+            int count = 100;
+            var query = new Wall(Config.VK).get(Config.ADMIN)
+                    .offset(offset)
+                    .count(count);
+            if (domain.matches("-\\d+")) {
+                query.ownerId(Integer.valueOf(domain));
+            } else if (domain.startsWith("http") || domain.startsWith("vk.com")) {
+                domain = domain.replace("https://vk.com/", "");
+                domain = domain.replace("http://vk.com/", "");
+                domain = domain.replace("vk.com/", "");
+                query.domain(domain);
+            } else {
+                query.domain(domain);
+            }
+            var response = query.execute();
 
+            StringBuffer sb = new StringBuffer();
+
+            int size = response.getCount();
+
+            while (offset < size) {
+                if(!threadStarted) break;
+                response.getItems().forEach(post -> {
+                    if (post == null || post.getAttachments() == null) return;
+                    post.getAttachments().forEach(attachment -> {
+                        if (attachment.getType().equals(WallpostAttachmentType.PHOTO)) {
+                            Photo photo = attachment.getPhoto();
+                            var pres = photo.getSizes().stream()
+                                    .max(Comparator.comparingInt(o -> o.getWidth() * o.getHeight()));
+                            if (pres.isPresent()) {
+                                var maxSize = pres.get();
+                                String src = maxSize.getUrl();
+                                sb.append(src).append("\n");
+                            }
+                        }
+                    });
+                });
+                offset += count;
+                response = query.offset(offset)
+                        .count(count)
+                        .execute();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    LOG.error(e);
+                }
+            }
+            File urls = new File(domain + ".txt");
+            FileUtils.write(urls, sb.toString(), StandardCharsets.UTF_8);
+            var upload = new Docs(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(Config.ADMIN_ID).type(DocsType.DOC).execute();
+            var resp = new Upload(Config.VK).doc(upload.getUploadUrl(), urls).execute();
+            var save = new Docs(Config.VK).save(Config.GROUP, resp.getFile()).title(domain + ".txt").execute();
+            urls.delete();
+            new Messages(Config.VK)
+                    .send(Config.GROUP)
+                    .message(domain)
+                    .attachment("doc" + save.getDoc().getOwnerId() + "_" + save.getDoc().getId())
+                    .peerId(Config.ADMIN_ID)
+                    .randomId(Utils.getRandomInt32())
+                    .execute();
+        } catch (ApiException | ClientException | IOException e) {
+            LOG.error(e);
+        }
+    }
     private static void pushPhotosThread(boolean isGroup, List<String> urls) {
         try {
             StringBuilder sb = new StringBuilder();
