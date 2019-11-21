@@ -46,7 +46,6 @@ import com.google.gson.*;
 import com.vk.api.sdk.objects.messages.responses.GetByIdResponse;
 import com.vk.api.sdk.objects.photos.Photo;
 import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
-import com.vk.api.sdk.objects.photos.PhotoSizes;
 import com.vk.api.sdk.objects.photos.PhotoUpload;
 import com.vk.api.sdk.objects.photos.responses.GetAlbumsResponse;
 import com.vk.api.sdk.objects.photos.responses.GetResponse;
@@ -596,8 +595,8 @@ public class AdminPanel implements Script{
                         return;
                     }
                     if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)) {
-                        URL url = attachments.get(0).getDoc().getUrl();
-                        List<String> lines = IOUtils.readLines(url.openStream(), StandardCharsets.UTF_8);
+                        var url = attachments.get(0).getDoc().getUrl();
+                        List<String> lines = IOUtils.readLines(new URL(url).openStream(), StandardCharsets.UTF_8);
                         pushPhotos(true, lines);
                         keyboard.setInline(true);
                         buttons.add(List.of(
@@ -663,8 +662,8 @@ public class AdminPanel implements Script{
                         return;
                     }
                     if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)) {
-                        URL url = attachments.get(0).getDoc().getUrl();
-                        List<String> lines = IOUtils.readLines(url.openStream(), StandardCharsets.UTF_8);
+                        var url = attachments.get(0).getDoc().getUrl();
+                        List<String> lines = IOUtils.readLines(new URL(url).openStream(), StandardCharsets.UTF_8);
                         pushPhotos(false, lines);
                         keyboard.setInline(true);
                         buttons.add(List.of(
@@ -750,36 +749,24 @@ public class AdminPanel implements Script{
                         query.domain(url);
                     }
                     var response = query.execute();
-                    if(response == null){
-                        send(message, 52);
-                        return;
-                    }
+
                     StringBuffer sb = new StringBuffer();
 
                     int size = response.getCount();
 
-                    int mid = new Messages(Config.VK)
-                            .send(Config.GROUP)
-                            .message("Статус: null")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-
                     while (offset < size) {
                         try {
-                            new Messages(Config.VK)
-                                    .edit(Config.GROUP, Config.ADMIN_ID, mid)
-                                    .message("Статус: "+offset+"/"+size)
-                                    .execute();
                             response.getItems().forEach(post -> {
                                 post.getAttachments().forEach(attachment -> {
                                     if (attachment.getType().equals(WallpostAttachmentType.PHOTO)) {
                                         Photo photo = attachment.getPhoto();
-                                        PhotoSizes maxSize = photo.getSizes().stream()
-                                                .max(Comparator.comparingInt(o -> o.getWidth() * o.getHeight()))
-                                                .get();
-                                        String src = maxSize.getUrl().toString();
-                                        sb.append(src).append("\n");
+                                        var pres = photo.getSizes().stream()
+                                                .max(Comparator.comparingInt(o -> o.getWidth() * o.getHeight()));
+                                        if(pres.isPresent()) {
+                                            var maxSize = pres.get();
+                                            String src = maxSize.getUrl();
+                                            sb.append(src).append("\n");
+                                        }
                                     }
                                 });
                             });
@@ -795,7 +782,7 @@ public class AdminPanel implements Script{
                     File urls = new File(url+".txt");
                     FileUtils.write(urls, sb.toString(), StandardCharsets.UTF_8);
                     var upload = new Docs(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(Config.ADMIN_ID).type(DocsType.DOC).execute();
-                    var resp = new Upload(Config.VK).doc(upload.getUploadUrl().toString(), urls).execute();
+                    var resp = new Upload(Config.VK).doc(upload.getUploadUrl(), urls).execute();
                     var save = new Docs(Config.VK).save(Config.GROUP, resp.getFile()).title(url+".txt").execute();
                     urls.delete();
                     new Messages(Config.VK)
