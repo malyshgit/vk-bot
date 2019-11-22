@@ -879,8 +879,24 @@ public class AdminPanel implements Script{
 
             int size = response.getCount();
 
+            int mid = new Messages(Config.VK)
+                    .send(Config.GROUP)
+                    .peerId(Config.ADMIN_ID)
+                    .message("Прогресс: null")
+                    .randomId(Utils.getRandomInt32())
+                    .execute();
+
+            int i = 0;
             while (offset < size) {
                 if(!threadStarted) break;
+                i++;
+                if(i > 2){
+                    new Messages(Config.VK)
+                            .edit(Config.GROUP, Config.ADMIN_ID, mid)
+                            .message("Прогресс: "+offset+"/"+size)
+                            .execute();
+                    i = 0;
+                }
                 response.getItems().forEach(post -> {
                     if (post == null || post.getAttachments() == null) return;
                     post.getAttachments().forEach(attachment -> {
@@ -1024,8 +1040,14 @@ public class AdminPanel implements Script{
                     .albumId(lastAlbum.getId());
                     if(isGroup) uploadQuery.groupId(Math.abs(Config.GROUP_ID));
             PhotoUpload upload = uploadQuery.execute();
-
+            int mid = new Messages(Config.VK)
+                    .send(Config.GROUP)
+                    .message("Прогресс:")
+                    .peerId(Config.ADMIN_ID)
+                    .randomId(Utils.getRandomInt32())
+                    .execute();
             int savesCount = 0;
+            int i = 0;
             for(String url : urls) {
                 if(savesCount > 1000){
                     threadStarted = false;
@@ -1037,6 +1059,14 @@ public class AdminPanel implements Script{
                             .execute();
                 }
                 if(!threadStarted) break;
+                i++;
+                if(i > 2){
+                    new Messages(Config.VK)
+                            .edit(Config.GROUP, Config.ADMIN_ID, mid)
+                            .message("Прогресс: "+savesCount+"/"+urls.size())
+                            .execute();
+                    i = 0;
+                }
                 if(captions.contains(url)){LOG.debug("skip"); continue;}
                 long startTime = System.currentTimeMillis();
                 if(offset >= 10000){
