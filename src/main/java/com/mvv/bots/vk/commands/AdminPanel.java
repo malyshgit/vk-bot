@@ -922,6 +922,10 @@ public class AdminPanel implements Script{
                     LOG.error(e);
                 }
             }
+            new Messages(Config.VK)
+                    .edit(Config.GROUP, Config.ADMIN_ID, mid)
+                    .message("Прогресс: "+size+"/"+size)
+                    .execute();
             File urls = new File(domain + ".txt");
             FileUtils.write(urls, sb.toString(), StandardCharsets.UTF_8);
             var upload = new Docs(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(Config.ADMIN_ID).type(DocsType.DOC).execute();
@@ -1042,7 +1046,7 @@ public class AdminPanel implements Script{
             PhotoUpload upload = uploadQuery.execute();
             int mid = new Messages(Config.VK)
                     .send(Config.GROUP)
-                    .message("Прогресс:")
+                    .message("Прогресс: null")
                     .peerId(Config.ADMIN_ID)
                     .randomId(Utils.getRandomInt32())
                     .execute();
@@ -1060,7 +1064,7 @@ public class AdminPanel implements Script{
                 }
                 if(!threadStarted) break;
                 i++;
-                if(i > 2){
+                if(i > 400){
                     new Messages(Config.VK)
                             .edit(Config.GROUP, Config.ADMIN_ID, mid)
                             .message("Прогресс: "+savesCount+"/"+urls.size())
@@ -1070,7 +1074,6 @@ public class AdminPanel implements Script{
                 if(captions.contains(url)){LOG.debug("skip"); continue;}
                 long startTime = System.currentTimeMillis();
                 if(offset >= 10000){
-
                     var albumQuery = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount)
                             .uploadByAdminsOnly(true);
                             if(isGroup) albumQuery.groupId(Math.abs(Config.GROUP_ID));
@@ -1100,6 +1103,10 @@ public class AdminPanel implements Script{
                     Thread.sleep(deltaTime);
                 }
             }
+            new Messages(Config.VK)
+                    .edit(Config.GROUP, Config.ADMIN_ID, mid)
+                    .message("Прогресс: "+urls.size()+"/"+urls.size())
+                    .execute();
         } catch (ApiException | ClientException | InterruptedException | IOException e) {
             try {
                 new Messages(Config.VK)
