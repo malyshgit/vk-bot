@@ -11,7 +11,7 @@
 <button id="btn">Auth</button>
 <script src="https://vk.com/js/api/openapi.js?162" type="text/javascript"></script>
 <script type="text/javascript">
-  var scopes = 4+8192+131072+262144;
+  var scope = 4+8192+131072+262144;
   VK.init({
     apiId: %APP_ID%
   });
@@ -27,7 +27,7 @@
       } else {
         console.log("fail");
       }
-    });
+    }, scope);
   };
 </script>
 </body>
