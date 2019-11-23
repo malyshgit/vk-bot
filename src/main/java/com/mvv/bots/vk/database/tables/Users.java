@@ -40,7 +40,22 @@ public class Users {
         }
     }
 
-    public static void update(User user){
+    public static void update(Integer id, String key, Object value){
+        try {
+            Statement statement = PostgreSQL.getConnection().createStatement();
+            String valueString = value instanceof String ? "'"+value+"'" : String.valueOf(value);
+            String sql = String.format(
+                    "UPDATE "+name+" SET %s=%s, WHERE ID=%d;",
+                    key, valueString, id);
+            LOG.debug(sql);
+            statement.executeUpdate(sql);
+            statement.close();
+        } catch ( Exception e ) {
+            LOG.error(e);
+        }
+    }
+
+    /*public static void update(User user){
         try {
             Statement statement = PostgreSQL.getConnection().createStatement();
             String sql = String.format(
@@ -52,7 +67,7 @@ public class Users {
         } catch ( Exception e ) {
             LOG.error(e);
         }
-    }
+    }*/
 
     public static void add(User user){
         try {
@@ -81,10 +96,12 @@ public class Users {
                 int id = resultSet.getInt("id");
                 int job = resultSet.getInt("job");
                 int use = resultSet.getInt("use");
+                String token = resultSet.getString("token");
                 String parameters = resultSet.getString("parameters");
                 user = new User(id);
                 user.setJob(job);
                 user.setUse(use);
+                user.setToken(token);
                 user.setParameters(new User.Parameters(parameters));
                 users.add(user);
             }
@@ -98,7 +115,7 @@ public class Users {
         return null;
     }
 
-    public static User find(int id){
+    public static User find(Integer id){
         try {
             User user;
             Statement statement = PostgreSQL.getConnection().createStatement();
@@ -108,10 +125,12 @@ public class Users {
             if(resultSet.next()){
                 int job = resultSet.getInt("job");
                 int use = resultSet.getInt("use");
+                String token = resultSet.getString("token");
                 String parameters = resultSet.getString("parameters");
                 user = new User(id);
                 user.setJob(job);
                 user.setUse(use);
+                user.setToken(token);
                 user.setParameters(new User.Parameters(parameters));
                 LOG.debug(user);
                 return user;
@@ -129,15 +148,18 @@ public class Users {
     }
 
     public static class User{
+
         private int id;
         private int job;
         private int use;
+        private String token;
         private Parameters parameters;
 
         public User(int id){
             this.id = id;
             this.job = 0;
             this.use = 0;
+            this.token = "";
             this.parameters = new Parameters();
         }
 
@@ -147,6 +169,10 @@ public class Users {
 
         public void setUse(int use) {
             this.use = use;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
         }
 
         public void setParameters(Parameters parameters) {
@@ -161,6 +187,10 @@ public class Users {
             return use;
         }
 
+        public String getToken() {
+            return token;
+        }
+
         public Parameters getParameters() {
             return parameters;
         }
@@ -171,7 +201,7 @@ public class Users {
 
         @Override
         public String toString() {
-            return "User{id="+id+", job="+job+", use="+use+", parameters="+parameters+"}";
+            return "User{id="+id+", job="+job+", use="+use+", token="+token+", parameters="+parameters+"}";
         }
 
         public static class Parameters{

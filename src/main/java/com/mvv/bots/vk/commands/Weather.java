@@ -141,7 +141,7 @@ public class Weather implements Script{
                             }
                         }else{
                             user.getParameters().put("weatherupdate", false);
-                            Users.update(user);
+                            Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                             send(message, 0);
                             return;
                         }
@@ -174,7 +174,7 @@ public class Weather implements Script{
                     String geo = message.getGeo().toString();
                     user = Users.find(message.getFromId());
                     user.getParameters().put("geo", geo);
-                    Users.update(user);
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Местоположение сохранено.")
@@ -186,7 +186,7 @@ public class Weather implements Script{
                 case 21:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("weatherupdate", "true");
-                    Users.update(user);
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Подписка активирована.")
@@ -198,7 +198,7 @@ public class Weather implements Script{
                 case 22:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("weatherupdate", "false");
-                    Users.update(user);
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Подписка деактивирована.")

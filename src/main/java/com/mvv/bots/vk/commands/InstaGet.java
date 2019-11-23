@@ -171,7 +171,7 @@ public class InstaGet implements Script{
                             }
                         }else{
                             user.getParameters().put("instagetupdate", false);
-                            Users.update(user);
+                            Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                             send(message, 0);
                             return;
                         }
@@ -243,7 +243,7 @@ public class InstaGet implements Script{
                     JsonArray array = new JsonArray();
                     List.of(tags.split(",")).forEach(array::add);
                     user.getParameters().put("instagettags", array.toString());
-                    Users.update(user);
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Тэги сохранены.")
@@ -256,7 +256,7 @@ public class InstaGet implements Script{
                 case 21:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("instagetupdate", "true");
-                    Users.update(user);
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Подписка активирована.")
@@ -269,7 +269,7 @@ public class InstaGet implements Script{
                 case 22:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("instagetupdate", "false");
-                    Users.update(user);
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Подписка деактивирована.")

@@ -7,9 +7,11 @@ import com.mvv.bots.vk.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import com.vk.api.sdk.actions.Account;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.actions.OAuth;
 import com.vk.api.sdk.callback.CallbackApi;
+import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.messages.Message;
@@ -180,7 +182,17 @@ public class Server {
                             .orElse(null);
                     if(code != null){
                         var response = new OAuth(Config.VK).userAuthorizationCodeFlow(Config.APP_ID, Config.APP_SECRET, Config.REDIRECT_URL, code).execute();
-                        LOG.debug(response);
+                        if(response != null){
+                            Users.User user = new Users.User(response.getUserId());
+                            user.setToken(response.getAccessToken());
+                            Users.add(user);
+                            new Messages(Config.VK)
+                                    .send(Config.GROUP)
+                                    .message("Авторизация прошла успешна.")
+                                    .peerId(user.getId())
+                                    .randomId(Utils.getRandomInt32())
+                                    .execute();
+                        }
                         path = "authSuccess.html";
                     }
                 }
@@ -293,8 +305,7 @@ public class Server {
     private static void plusUse(Message message){
         Users.User user = Users.find(message.getFromId());
         if(user != null){
-            user.setUse(user.getUse()+1);
-            Users.update(user);
+            Users.update(user.getId(), "USE", user.getUse()+1);
         }else{
             user = new Users.User(message.getFromId());
             user.setUse(1);

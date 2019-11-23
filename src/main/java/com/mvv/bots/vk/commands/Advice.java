@@ -97,7 +97,7 @@ public class Advice implements Script{
                         }
                     }else{
                         user.getParameters().put("adviceupdate", false);
-                        Users.update(user);
+                        Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                         send(message, 0);
                         return;
                     }
@@ -142,7 +142,7 @@ public class Advice implements Script{
                 case 2:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("adviceupdate", "true");
-                    Users.update(user);
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Подписка активирована.")
@@ -154,7 +154,7 @@ public class Advice implements Script{
                 case 3:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("adviceupdate", "false");
-                    Users.update(user);
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Подписка деактивирована.")
@@ -166,7 +166,7 @@ public class Advice implements Script{
                 case 4:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("advicecensored", "true");
-                    Users.update(user);
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Цензура включена.")
@@ -178,7 +178,7 @@ public class Advice implements Script{
                 case 5:
                     user = Users.find(message.getFromId());
                     user.getParameters().put("advicecensored", "false");
-                    Users.update(user);
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Цензура выключена.")
