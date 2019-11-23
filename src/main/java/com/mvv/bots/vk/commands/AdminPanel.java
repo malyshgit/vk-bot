@@ -1006,8 +1006,7 @@ public class AdminPanel implements Script{
                         queryList.clear();
                     }
                     if(a.getSize() >= 10000) continue;
-                    lastAlbum = a;
-                    break;
+                    if(lastAlbum == null) lastAlbum = a;
                 }
                 if(lastAlbum == null){
                     var albumQuery = new Photos(Config.VK)
