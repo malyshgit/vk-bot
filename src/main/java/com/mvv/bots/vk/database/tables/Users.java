@@ -45,7 +45,7 @@ public class Users {
             Statement statement = PostgreSQL.getConnection().createStatement();
             String valueString = value instanceof String ? "'"+value+"'" : String.valueOf(value);
             String sql = String.format(
-                    "UPDATE "+name+" SET %s=%s, WHERE ID=%d;",
+                    "UPDATE "+name+" SET %s=%s WHERE ID=%d;",
                     key, valueString, id);
             LOG.debug(sql);
             statement.executeUpdate(sql);
