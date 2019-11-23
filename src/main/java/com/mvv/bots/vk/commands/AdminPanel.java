@@ -1023,7 +1023,7 @@ public class AdminPanel implements Script{
                         if(isGroup) albumQuery.groupId(Math.abs(Config.GROUP_ID));
                 lastAlbum = albumQuery.execute();
             }
-            int autoAlbumCount = Integer.parseInt(lastAlbum.getTitle().replace("AutoAlbum_", ""));
+            int autoAlbumCount = Integer.parseInt(lastAlbum.getTitle().replace("AutoAlbum_", ""))+1;
 
             sb.append("Текущий альбом: ")
                     .append(lastAlbum.getTitle()).append("\n");
@@ -1078,12 +1078,16 @@ public class AdminPanel implements Script{
                             .uploadByAdminsOnly(true);
                             if(isGroup) albumQuery.groupId(Math.abs(Config.GROUP_ID));
                     lastAlbum = albumQuery.execute();
-
+                    uploadQuery = new Photos(Config.VK)
+                            .getUploadServer(Config.ADMIN)
+                            .albumId(lastAlbum.getId());
+                    if(isGroup) uploadQuery.groupId(Math.abs(Config.GROUP_ID));
+                    upload = uploadQuery.execute();
                     offset = 0;
                 }
                 File img = new File("temp.jpg");
                 FileUtils.copyURLToFile(new URL(url), img);
-                PhotoUploadResponse uplresponse = new Upload(Config.VK).photo(upload.getUploadUrl().toString(), img).execute();
+                PhotoUploadResponse uplresponse = new Upload(Config.VK).photo(upload.getUploadUrl(), img).execute();
                 List<Photo> photos = null;
                 var saveQuery = new Photos(Config.VK).save(Config.ADMIN)
                         .albumId(uplresponse.getAid())
