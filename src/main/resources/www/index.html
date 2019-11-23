@@ -8,16 +8,27 @@
     <title>VK Bot auth</title>
 </head>
 <body>
-<div id="root">
-
-</div>
+<button id="btn">Auth</button>
 <script src="https://vk.com/js/api/openapi.js?162" type="text/javascript"></script>
 <script type="text/javascript">
   var scopes = 4+8192+131072+262144;
   VK.init({
     apiId: %APP_ID%
   });
-  VK.UI.button("root");
+  var btn = document.getElementById("btn");
+  btn.onclick = function(){
+    VK.Auth.login(function(response) {
+      if (response.session) {
+        console.log("success");
+        /* Пользователь успешно авторизовался */
+        if (response.settings) {
+          console.log("response.settings");
+        }
+      } else {
+        console.log("fail");
+      }
+    });
+  };
 </script>
 </body>
 </html>
