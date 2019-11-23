@@ -1,7 +1,6 @@
 package com.mvv.bots.vk.main;
 
 import com.google.gson.*;
-import com.mvv.bots.vk.commands.AdminPanel;
 import com.mvv.bots.vk.database.tables.Settings;
 import com.mvv.bots.vk.database.tables.Users;
 import com.mvv.bots.vk.utils.Utils;
@@ -9,6 +8,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import com.vk.api.sdk.actions.Messages;
+import com.vk.api.sdk.actions.OAuth;
 import com.vk.api.sdk.callback.CallbackApi;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
@@ -16,8 +16,9 @@ import com.vk.api.sdk.objects.messages.Message;
 import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.commands.Script;
 import com.mvv.bots.vk.commands.ScriptList;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -153,7 +154,7 @@ public class Server {
         private static String indexHtmlString;
         static{
             try {
-                var is = Server.class.getResourceAsStream("/www/index.html");
+                var is = Server.class.getResourceAsStream("/www/auth.html");
                 indexHtmlString = IOUtils.toString(is, StandardCharsets.UTF_8);
                 indexHtmlString = indexHtmlString.replace("%APP_ID%", String.valueOf(Config.APP_ID));
                 indexHtmlString = indexHtmlString.replace("%REDIRECT_URL%", Config.REDIRECT_URL);
@@ -166,17 +167,32 @@ public class Server {
         @Override
         public void handle(HttpExchange exchange) {
             try {
-                LOG.debug(exchange.getRequestURI().getQuery());
                 String path = exchange.getRequestURI().getPath().substring(1).replaceAll("//", "/");
 
-                if (path.length() == 0) path = "index.html";
+                String query = exchange.getRequestURI().getQuery();
+
+                if(query != null){
+                    var params = new URIBuilder(exchange.getRequestURI()).getQueryParams();
+                    var code = params.stream()
+                            .filter(p -> p.getName().equalsIgnoreCase("code"))
+                            .map(NameValuePair::getValue)
+                            .findFirst()
+                            .orElse(null);
+                    if(code != null){
+                        var response = new OAuth(Config.VK).userAuthorizationCodeFlow(Config.APP_ID, Config.APP_SECRET, Config.REDIRECT_URL, code).execute();
+                        LOG.debug(response);
+                        path = "authSuccess.html";
+                    }
+                }
+
+                if (path.length() == 0) path = "auth.html";
 
                 String www = "/www/";
                 ByteArrayOutputStream bytes = new ByteArrayOutputStream();
                 if (Server.class.getResource(www + path) == null) {
                     bytes.write("404".getBytes());
                 }else{
-                    if(path.equals("index.html")) {
+                    if(path.equals("auth.html")) {
                         bytes.write(indexHtmlString.getBytes(StandardCharsets.UTF_8));
                     }else bytes.write(IOUtils.toByteArray(Server.class.getResourceAsStream(www + path)));
                 }
@@ -201,7 +217,7 @@ public class Server {
                 exchange.getResponseBody().write(bytes.toByteArray());
                 exchange.getResponseBody().close();
                 bytes.close();
-            }catch (IOException e){
+            }catch (IOException | ClientException | ApiException e){
                 LOG.error(e);
             }
         }

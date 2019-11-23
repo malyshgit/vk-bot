@@ -24,6 +24,7 @@ public class Users {
             "(ID INT PRIMARY KEY     NOT NULL," +
             " JOB            INT     DEFAULT 0," +
             " USE            INT     DEFAULT 0," +
+            " TOKEN          TEXT," +
             " PARAMETERS     TEXT);";
 
     public static void create(){

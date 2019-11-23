@@ -23,6 +23,7 @@ public interface Config {
     String JDBC_DATABASE_URL = System.getenv("JDBC_DATABASE_URL");
     String DARKSKY_API_KEY = System.getenv("DARKSKY_API_KEY");
     int APP_ID = Integer.parseInt(System.getenv("APP_ID"));
+    String APP_SECRET = System.getenv("APP_SECRET");
     String REDIRECT_URL = System.getenv("REDIRECT_URL");
 
     VkApiClient VK = new VkApiClient(HttpTransportClient.getInstance());
