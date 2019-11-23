@@ -156,6 +156,7 @@ public class Server {
                 var is = Server.class.getResourceAsStream("/www/index.html");
                 indexHtmlString = IOUtils.toString(is, StandardCharsets.UTF_8);
                 indexHtmlString = indexHtmlString.replace("%APP_ID%", String.valueOf(Config.APP_ID));
+                indexHtmlString = indexHtmlString.replace("%REDIRECT_URL%", Config.HEROKU_APP_URL);
             } catch (IOException e) {
                 LOG.error(e);
             }
