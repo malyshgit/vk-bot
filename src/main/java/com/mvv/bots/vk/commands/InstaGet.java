@@ -204,7 +204,7 @@ public class InstaGet implements Script{
                                     .execute();
                         }
                     }else {
-                        send(message, 4);
+                        send(message, 1);
                     }
                     break;
                 case 1:
