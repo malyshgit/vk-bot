@@ -13,7 +13,7 @@
 <body>
 <button id="btn">Auth</button>
 <script type="text/javascript">
-  var url = 'https://oauth.vk.com/authorize?client_id=%APP_ID%&display=page&redirect_uri=%REDIRECT_URL%&scope=groups,docs,offline,messages,photos,wall&response_type=code&v=5.103';
+  var url = 'https://oauth.vk.com/authorize?client_id=%APP_ID%&display=page&redirect_uri=%REDIRECT_URL%&scope=groups,docs,offline,photos,wall&response_type=code&v=5.103';
   var btn = document.getElementById("btn");
   btn.onclick = function(){
     window.location = url;
