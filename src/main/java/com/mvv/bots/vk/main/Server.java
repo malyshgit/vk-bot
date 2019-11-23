@@ -183,13 +183,11 @@ public class Server {
                     if(code != null){
                         var response = new OAuth(Config.VK).userAuthorizationCodeFlow(Config.APP_ID, Config.APP_SECRET, Config.REDIRECT_URL, code).execute();
                         if(response != null){
-                            Users.User user = new Users.User(response.getUserId());
-                            user.setToken(response.getAccessToken());
-                            Users.add(user);
+                            Users.update(response.getUserId(), "TOKEN", response.getAccessToken());
                             new Messages(Config.VK)
                                     .send(Config.GROUP)
                                     .message("Авторизация прошла успешна.")
-                                    .peerId(user.getId())
+                                    .peerId(response.getUserId())
                                     .randomId(Utils.getRandomInt32())
                                     .execute();
                         }
