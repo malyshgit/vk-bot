@@ -16,6 +16,7 @@ import com.vk.api.sdk.objects.messages.Message;
 import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.commands.Script;
 import com.mvv.bots.vk.commands.ScriptList;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -149,10 +150,23 @@ public class Server {
     }
     private static class MainHandler implements HttpHandler {
         private static final Logger LOG = LogManager.getLogger(MainHandler.class);
+        private static String indexHtmlString;
+        static{
+            try {
+                var is = Server.class.getResourceAsStream("/www/index.html");
+                indexHtmlString = IOUtils.toString(is, StandardCharsets.UTF_8);
+                indexHtmlString = indexHtmlString.replace("%APP_ID%", String.valueOf(Config.APP_ID));
+            } catch (IOException e) {
+                LOG.error(e);
+            }
+        }
+
 
         @Override
         public void handle(HttpExchange exchange) {
             try {
+                String request = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8)).readLine();
+                LOG.debug("Запрос: "+request);
                 String path = exchange.getRequestURI().getPath().substring(1).replaceAll("//", "/");
 
                 if (path.length() == 0) path = "index.html";
@@ -162,7 +176,9 @@ public class Server {
                 if (Server.class.getResource(www + path) == null) {
                     bytes.write("404".getBytes());
                 }else{
-                    bytes.write(IOUtils.toByteArray(Server.class.getResourceAsStream(www+path)));
+                    if(path.equals("index.html")) {
+                        bytes.write(indexHtmlString.getBytes(StandardCharsets.UTF_8));
+                    }else bytes.write(IOUtils.toByteArray(Server.class.getResourceAsStream(www + path)));
                 }
 
                 if (path.endsWith(".js")) {
