@@ -166,8 +166,7 @@ public class Server {
         @Override
         public void handle(HttpExchange exchange) {
             try {
-                String request = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8)).readLine();
-                LOG.debug("Запрос: "+request);
+                LOG.debug(exchange.getRequestURI().getQuery());
                 String path = exchange.getRequestURI().getPath().substring(1).replaceAll("//", "/");
 
                 if (path.length() == 0) path = "index.html";
