@@ -974,7 +974,7 @@ public class AdminPanel implements Script{
                     int i = 0;
                     List<AbstractQueryBuilder> queryList = new ArrayList<>();
                     while(i < a.getSize()) {
-                        if(queryList.size() >= 10){
+                        if(queryList.size() >= 5){
                             var json = new Execute(Config.VK).batch(Config.ADMIN, queryList).execute();
                             var array = json.getAsJsonArray();
                             array.forEach(e -> {
