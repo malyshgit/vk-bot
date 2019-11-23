@@ -5,26 +5,18 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no,user-scalable=no,viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script src="https://vk.com/js/api/openapi.js?162" type="text/javascript"></script>
     <title>VK Bot auth</title>
+
 </head>
 <body>
 <button id="btn">Auth</button>
-<script src="https://vk.com/js/api/openapi.js?162" type="text/javascript"></script>
 <script type="text/javascript">
-  var scope = 4+8192+131072+262144;
-  VK.init({
-    apiId: %APP_ID%
-  });
+  var url = 'https://oauth.vk.com/authorize?client_id=%APP_ID%&display=page&redirect_uri=%REDIRECT_URL%&scope=groups,docs,offline,messages,photos,wall&response_type=code&v=5.103';
   var btn = document.getElementById("btn");
   btn.onclick = function(){
-    VK.Auth.login(function(response) {
-      if (response.session) {
-        console.log("success");
-        console.log(response);
-      } else {
-        console.log("fail");
-      }
-    }, scope);
+    window.location = url;
   };
 </script>
 </body>

@@ -23,6 +23,7 @@ public interface Config {
     String JDBC_DATABASE_URL = System.getenv("JDBC_DATABASE_URL");
     String DARKSKY_API_KEY = System.getenv("DARKSKY_API_KEY");
     int APP_ID = Integer.parseInt(System.getenv("APP_ID"));
+    String HEROKU_APP_URL = "https://"+System.getenv("HEROKU_APP_NAME")+".herokuapp.com/";
 
     VkApiClient VK = new VkApiClient(HttpTransportClient.getInstance());
     UserActor ADMIN = new UserActor(ADMIN_ID, ADMIN_TOKEN);
