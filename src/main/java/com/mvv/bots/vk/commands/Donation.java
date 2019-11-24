@@ -82,7 +82,6 @@ public class Donation implements Script{
                     keyboard.setInline(true);
                     buttons.add(List.of(
                             new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setType(KeyboardButtonActionType.VKPAY))
                     ));
                     new Messages(Config.VK)
