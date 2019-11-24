@@ -14,8 +14,8 @@ import com.vk.api.sdk.client.AbstractQueryBuilder;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.exceptions.RequiredFieldException;
+import com.vk.api.sdk.objects.base.*;
 import com.vk.api.sdk.objects.base.Image;
-import com.vk.api.sdk.objects.base.UploadServer;
 import com.vk.api.sdk.objects.docs.Doc;
 import com.vk.api.sdk.objects.docs.responses.DocUploadResponse;
 import com.vk.api.sdk.objects.docs.responses.SaveResponse;
@@ -148,7 +148,7 @@ public class AdminPanel implements Script{
                                             "{\"script\":\""+getClass().getName()+"\"," +
                                                     "\"step\":"+2+"}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Отладка"))
+                                            .setLabel("Переключатели"))
                     ));
                     buttons.add(List.of(
                             new KeyboardButton()
@@ -157,7 +157,7 @@ public class AdminPanel implements Script{
                                             "{\"script\":\""+getClass().getName()+"\"," +
                                                     "\"step\":"+3+"}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Обложка")),
+                                            .setLabel("Авторизация")),
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
@@ -352,15 +352,52 @@ public class AdminPanel implements Script{
                     break;
                 case 2:
                     Settings.Option debbug = Settings.find("debbug");
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                            .setColor(KeyboardButtonColor.NEGATIVE)
+                            .setAction(new KeyboardButtonAction().setPayload(
+                                    "{\"script\":\""+getClass().getName()+"\"," +
+                                            "\"step\":"+0+"}"
+                            ).setType(KeyboardButtonActionType.TEXT)
+                                    .setLabel("Назад"))
+                    ));
                     if(debbug != null){
-                        keyboard.setInline(true);
                         if(Boolean.parseBoolean(debbug.getValue())){
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.POSITIVE)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    "{\"script\":\"" + getClass().getName() + "\"," +
+                                                            "\"step\":" + 212 + "}"
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Отладка"))
+                            ));
+                        }else{
                             buttons.add(List.of(
                                     new KeyboardButton()
                                             .setColor(KeyboardButtonColor.NEGATIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
                                                     "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 22 + "}"
+                                                            "\"step\":" + 211 + "}"
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Отладка"))
+                            ));
+                        }
+                    }else{
+                        debbug = new Settings.Option("debbug", "false");
+                        Settings.add(debbug);
+                        send(message, 2);
+                        return;
+                    }
+                    Settings.Option update = Settings.find("update");
+                    if(update != null){
+                        if(Boolean.parseBoolean(update.getValue())){
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.NEGATIVE)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    "{\"script\":\"" + getClass().getName() + "\"," +
+                                                            "\"step\":" + 222 + "}"
                                             ).setType(KeyboardButtonActionType.TEXT)
                                                     .setLabel("Отключить"))
                             ));
@@ -370,26 +407,26 @@ public class AdminPanel implements Script{
                                             .setColor(KeyboardButtonColor.POSITIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
                                                     "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 21 + "}"
+                                                            "\"step\":" + 221 + "}"
                                             ).setType(KeyboardButtonActionType.TEXT)
                                                     .setLabel("Включить"))
                             ));
                         }
                     }else{
-                        debbug = new Settings.Option("debbug", "false");
-                        Settings.add(debbug);
+                        update = new Settings.Option("update", "false");
+                        Settings.add(update);
                         send(message, 2);
                         return;
                     }
                     new Messages(Config.VK)
                             .send(Config.GROUP)
-                            .message("Отладка")
+                            .message("Переключатели")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     break;
-                case 21:
+                case 211:
                     debbug = Settings.find("debbug");
                     debbug.setValue("true");
                     Settings.update(debbug);
@@ -399,9 +436,9 @@ public class AdminPanel implements Script{
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    send(message, 0);
+                    send(message, 2);
                     break;
-                case 22:
+                case 212:
                     debbug = Settings.find("debbug");
                     debbug.setValue("false");
                     Settings.update(debbug);
@@ -411,57 +448,9 @@ public class AdminPanel implements Script{
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    send(message, 0);
+                    send(message, 2);
                     break;
-                case 3:
-                    drawCover();
-                    new Messages(Config.VK)
-                            .send(Config.GROUP)
-                            .message("Обложка перерисована.")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    break;
-                case 4:
-                    Settings.Option update = Settings.find("update");
-                    if(update != null){
-                        keyboard.setInline(true);
-                        if(Boolean.parseBoolean(update.getValue())){
-                            buttons.add(List.of(
-                                    new KeyboardButton()
-                                            .setColor(KeyboardButtonColor.NEGATIVE)
-                                            .setAction(new KeyboardButtonAction().setPayload(
-                                                    "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 42 + "}"
-                                            ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Отключить"))
-                            ));
-                        }else{
-                            buttons.add(List.of(
-                                    new KeyboardButton()
-                                            .setColor(KeyboardButtonColor.POSITIVE)
-                                            .setAction(new KeyboardButtonAction().setPayload(
-                                                    "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 41 + "}"
-                                            ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Включить"))
-                            ));
-                        }
-                    }else{
-                        update = new Settings.Option("update", "false");
-                        Settings.add(update);
-                        send(message, 4);
-                        return;
-                    }
-                    new Messages(Config.VK)
-                            .send(Config.GROUP)
-                            .message("Обновление")
-                            .keyboard(keyboard)
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    break;
-                case 41:
+                case 221:
                     update = Settings.find("update");
                     update.setValue("true");
                     Settings.update(update);
@@ -471,9 +460,9 @@ public class AdminPanel implements Script{
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    send(message, 0);
+                    send(message, 2);
                     break;
-                case 42:
+                case 222:
                     update = Settings.find("update");
                     update.setValue("false");
                     Settings.update(update);
@@ -483,7 +472,27 @@ public class AdminPanel implements Script{
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    send(message, 0);
+                    send(message, 2);
+                    break;
+                case 3:
+                    var url = String.format("https://oauth.vk.com/authorize?client_id=%d&display=page&redirect_uri=%s&scope=groups,docs,offline,photos,wall&response_type=code&v=5.103",
+                    Config.APP_ID, Config.REDIRECT_URL);
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Перейдите по ссылке:\n"+url)
+                            .peerId(message.getPeerId())
+                            .dontParseLinks(false)
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 4:
+                    drawCover();
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Обложка перерисована.")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
                     break;
                 case 5:
                     buttons.add(List.of(
@@ -595,7 +604,7 @@ public class AdminPanel implements Script{
                         return;
                     }
                     if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)) {
-                        var url = attachments.get(0).getDoc().getUrl();
+                        url = attachments.get(0).getDoc().getUrl();
                         List<String> lines = IOUtils.readLines(new URL(url).openStream(), StandardCharsets.UTF_8);
                         pushPhotos(true, lines);
                         keyboard.setInline(true);
@@ -662,7 +671,7 @@ public class AdminPanel implements Script{
                         return;
                     }
                     if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)) {
-                        var url = attachments.get(0).getDoc().getUrl();
+                        url = attachments.get(0).getDoc().getUrl();
                         List<String> lines = IOUtils.readLines(new URL(url).openStream(), StandardCharsets.UTF_8);
                         pushPhotos(false, lines);
                         keyboard.setInline(true);
@@ -723,7 +732,7 @@ public class AdminPanel implements Script{
                     break;
                 case 521:
                     getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
-                    String url = getByIdResponse.getItems().get(0).getText();
+                    url = getByIdResponse.getItems().get(0).getText();
                     if(url == null || url.isEmpty()){
                         new Messages(Config.VK)
                                 .send(Config.GROUP)
