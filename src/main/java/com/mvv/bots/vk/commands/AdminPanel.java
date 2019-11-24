@@ -394,22 +394,22 @@ public class AdminPanel implements Script{
                         if(Boolean.parseBoolean(update.getValue())){
                             buttons.add(List.of(
                                     new KeyboardButton()
-                                            .setColor(KeyboardButtonColor.NEGATIVE)
+                                            .setColor(KeyboardButtonColor.POSITIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
                                                     "{\"script\":\"" + getClass().getName() + "\"," +
                                                             "\"step\":" + 222 + "}"
                                             ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Отключить"))
+                                                    .setLabel("Обновление"))
                             ));
                         }else{
                             buttons.add(List.of(
                                     new KeyboardButton()
-                                            .setColor(KeyboardButtonColor.POSITIVE)
+                                            .setColor(KeyboardButtonColor.NEGATIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
                                                     "{\"script\":\"" + getClass().getName() + "\"," +
                                                             "\"step\":" + 221 + "}"
                                             ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Включить"))
+                                                    .setLabel("Обновление"))
                             ));
                         }
                     }else{
