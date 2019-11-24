@@ -45,6 +45,7 @@ public interface Config {
     List<Script> SCRIPTS = Script.getSortedList(List.of(new Script[]{
             new AdminPanel(),
             new Advice(),
+            new Donation(),
             new Duty(),
             new Killer(),
             new InstaGet(),
