@@ -44,7 +44,9 @@ import java.util.zip.ZipOutputStream;
 
 import com.google.gson.*;
 import com.vk.api.sdk.objects.messages.responses.GetByIdResponse;
+import com.vk.api.sdk.objects.pages.PrivacySettings;
 import com.vk.api.sdk.objects.photos.Photo;
+import com.vk.api.sdk.objects.photos.PhotoAlbum;
 import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
 import com.vk.api.sdk.objects.photos.PhotoUpload;
 import com.vk.api.sdk.objects.photos.responses.GetAlbumsResponse;
@@ -1019,16 +1021,24 @@ public class AdminPanel implements Script{
                 }
                 if(lastAlbum == null){
                     var albumQuery = new Photos(Config.VK)
-                            .createAlbum(Config.ADMIN, "AutoAlbum_"+albums.size())
-                            .uploadByAdminsOnly(true);
-                    if(isGroup) albumQuery.groupId(Math.abs(Config.GROUP_ID));
+                            .createAlbum(Config.ADMIN, "AutoAlbum_"+albums.size());
+                    if(isGroup){
+                        albumQuery.uploadByAdminsOnly(true)
+                            .groupId(Math.abs(Config.GROUP_ID));
+                    }else{
+                        albumQuery.privacyView("only_me");
+                    }
                     lastAlbum = albumQuery.execute();
                 }
                 offset = lastAlbum.getSize();
             }else{
-                var albumQuery = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_0")
-                        .uploadByAdminsOnly(true);
-                        if(isGroup) albumQuery.groupId(Math.abs(Config.GROUP_ID));
+                var albumQuery = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_0");
+                if(isGroup){
+                    albumQuery.uploadByAdminsOnly(true)
+                            .groupId(Math.abs(Config.GROUP_ID));
+                }else{
+                    albumQuery.privacyView("only_me");
+                }
                 lastAlbum = albumQuery.execute();
             }
             int autoAlbumCount = Integer.parseInt(lastAlbum.getTitle().replace("AutoAlbum_", ""))+1;
@@ -1082,9 +1092,13 @@ public class AdminPanel implements Script{
                 if(captions.contains(url)){LOG.debug("skip"); continue;}
                 long startTime = System.currentTimeMillis();
                 if(offset >= 10000){
-                    var albumQuery = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount)
-                            .uploadByAdminsOnly(true);
-                            if(isGroup) albumQuery.groupId(Math.abs(Config.GROUP_ID));
+                    var albumQuery = new Photos(Config.VK).createAlbum(Config.ADMIN, "AutoAlbum_"+autoAlbumCount);
+                    if(isGroup){
+                        albumQuery.uploadByAdminsOnly(true)
+                                .groupId(Math.abs(Config.GROUP_ID));
+                    }else{
+                        albumQuery.privacyView("only_me");
+                    }
                     lastAlbum = albumQuery.execute();
                     uploadQuery = new Photos(Config.VK)
                             .getUploadServer(Config.ADMIN)
