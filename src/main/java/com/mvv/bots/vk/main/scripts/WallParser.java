@@ -270,11 +270,17 @@ public class WallParser implements Script {
             int mid = new Messages(Config.VK)
                     .send(Config.GROUP)
                     .peerId(message.getPeerId())
-                    .keyboard(keyboard)
                     .message("Постов обработанно: 0")
                     .randomId(Utils.getRandomInt32())
                     .execute();
 
+            new Messages(Config.VK)
+                    .send(Config.GROUP)
+                    .peerId(message.getPeerId())
+                    .keyboard(keyboard)
+                    .message("В любой момент можно остановить.")
+                    .randomId(Utils.getRandomInt32())
+                    .execute();
             int dt = size/10;
             int nextEdit = dt;
             while (offset < size) {
@@ -282,7 +288,6 @@ public class WallParser implements Script {
                 if(offset > nextEdit){
                     new Messages(Config.VK)
                             .edit(Config.GROUP, message.getPeerId(), mid)
-                            .keyboard(keyboard)
                             .message("Постов обработанно: "+offset+"/"+size)
                             .execute();
                     nextEdit += dt;
@@ -473,9 +478,15 @@ public class WallParser implements Script {
             ));
             int mid = new Messages(Config.VK)
                     .send(Config.GROUP)
-                    .keyboard(keyboard)
                     .message("Прогресс: null")
                     .peerId(message.getFromId())
+                    .randomId(Utils.getRandomInt32())
+                    .execute();
+            new Messages(Config.VK)
+                    .send(Config.GROUP)
+                    .peerId(message.getPeerId())
+                    .keyboard(keyboard)
+                    .message("В любой момент можно остановить.")
                     .randomId(Utils.getRandomInt32())
                     .execute();
             int savesCount = 0;
@@ -498,7 +509,6 @@ public class WallParser implements Script {
                 if(i > 100){
                     new Messages(Config.VK)
                             .edit(Config.GROUP, message.getFromId(), mid)
-                            .keyboard(keyboard)
                             .message("Прогресс: "+savesCount+"/"+1000)
                             .execute();
                     i = 0;
