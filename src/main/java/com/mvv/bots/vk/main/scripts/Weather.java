@@ -61,7 +61,6 @@ public class Weather implements Script {
                 }
             }
         });
-        return;
     }
 
     @Override

@@ -139,7 +139,7 @@ public class Users {
         } catch ( Exception e ) {
             LOG.error(e);
         }
-        return new User(id);
+        return null;
     }
 
 }

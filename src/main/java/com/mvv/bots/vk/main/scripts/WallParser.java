@@ -31,11 +31,13 @@ import com.vk.api.sdk.objects.photos.responses.PhotoUploadResponse;
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.time.DateUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.sql.Time;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,6 +65,23 @@ public class WallParser implements Script {
 
     @Override
     public void update() {
+        Users.findAll().forEach(user -> {
+            if(user.getParameters().has("wallparsernextpush")){
+                var options = new JsonParser().parse(user.getParameters().get("wallparsernextpush")).getAsJsonObject();
+                var doc = options.get("doc").getAsString();
+                var date = options.get("date").getAsLong();
+                var dt = System.currentTimeMillis() - date;
+                if(dt >= DateUtils.MILLIS_PER_HOUR*2){
+                    Message message = new Message();
+                    message.setFromId(user.getId());
+                    message.setPeerId(user.getId());
+                    message.setPayload("{\"script\":\"" + WallParser.class.getName() + "\"," +
+                            "\"step\":" + 2 + "," +
+                            "\"doc\":\"" + doc + "\"}");
+                    send(message, 2);
+                }
+            }
+        });
 
     }
 
@@ -116,33 +135,6 @@ public class WallParser implements Script {
                                             "{\"script\":\"" + getClass().getName() + "\"," +
                                                     "\"step\":" + 1 + "}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Далее"))
-                    ));
-                    new Messages(Config.VK)
-                            .send(Config.GROUP)
-                            .message("Парсинг")
-                            .keyboard(keyboard)
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    break;
-                case 1:
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.NEGATIVE)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 0 + "}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Назад"))
-                    ));
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 2 + "}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Начать"))
                     ));
                     new Messages(Config.VK)
@@ -153,7 +145,7 @@ public class WallParser implements Script {
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     break;
-                case 2:
+                case 1:
                     var getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
                     var url = getByIdResponse.getItems().get(0).getText();
                     if(url == null || url.isEmpty()){
@@ -172,7 +164,7 @@ public class WallParser implements Script {
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 4 + "}"
+                                                    "\"step\":" + 3 + "}"
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Остановить"))
                     ));
@@ -185,10 +177,10 @@ public class WallParser implements Script {
                             .execute();
                     send(message, 0);
                     break;
-                case 3:
+                case 2:
                     pushPhotos(message);
                     break;
-                case 4:
+                case 3:
                     if(threadHashMap.containsKey(message.getFromId())) threadHashMap.get(message.getFromId()).stop();
                     break;
                 default:
@@ -332,13 +324,6 @@ public class WallParser implements Script {
             var resp = new Upload(Config.VK).doc(upload.getUploadUrl(), urls).execute();
             var save = new Docs(Config.VK).save(Config.GROUP, resp.getFile()).title(domain + ".txt").execute();
             urls.delete();
-            mid = new Messages(Config.VK)
-                    .send(Config.GROUP)
-                    .message(domain)
-                    .attachment("doc" + save.getDoc().getOwnerId() + "_" + save.getDoc().getId())
-                    .peerId(message.getPeerId())
-                    .randomId(Utils.getRandomInt32())
-                    .execute();
             Keyboard keyboard = new Keyboard();
 
             List<List<KeyboardButton>> buttons = new ArrayList<>();
@@ -350,14 +335,15 @@ public class WallParser implements Script {
                             .setColor(KeyboardButtonColor.DEFAULT)
                             .setAction(new KeyboardButtonAction().setPayload(
                                     "{\"script\":\"" + WallParser.class.getName() + "\"," +
-                                            "\"step\":" + 3 + "}"
+                                            "\"step\":" + 2 + "," +
+                                            "\"doc\":\"" + save.getDoc().getUrl() + "\"}"
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Заполнить свой альбом"))
             ));
             new Messages(Config.VK)
                     .send(Config.GROUP)
+                    .attachment("doc" + save.getDoc().getOwnerId() + "_" + save.getDoc().getId())
                     .keyboard(keyboard)
-                    .forwardMessages(mid)
                     .peerId(message.getPeerId())
                     .randomId(Utils.getRandomInt32())
                     .execute();
@@ -367,11 +353,12 @@ public class WallParser implements Script {
     }
     private static void pushPhotosThread(Message message) {
         try {
-            var doc = message.getFwdMessages().get(0).getAttachments().get(0).getDoc();
-            List<String> lines = IOUtils.readLines(new URL(doc.getUrl()).openStream(), StandardCharsets.UTF_8);
+            var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+            String doc = payload.get("doc").getAsString();
+            List<String> lines = IOUtils.readLines(new URL(doc).openStream(), StandardCharsets.UTF_8);
             StringBuilder sb = new StringBuilder();
             User user = Users.find(message.getFromId());
-            UserActor userActor = new UserActor(message.getPeerId(), user.getToken());
+            UserActor userActor = new UserActor(message.getFromId(), user.getToken());
             GetAlbumsResponse response = new Photos(Config.VK).getAlbums(userActor).ownerId(message.getFromId()).execute();
             int offset = 0;
             List<PhotoAlbumFull> albums = new ArrayList<>();
@@ -476,19 +463,21 @@ public class WallParser implements Script {
             for(String line : lines) {
                 if(savesCount > 1000){
                     threadHashMap.get(message.getFromId()).stop();
+                    user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
-                            .message("Заполнение остановленно.")
+                            .message("Заполнение завершенно. Следующая часть заполнится через 2 часа.")
                             .peerId(message.getFromId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
                 }
                 if(!threadHashMap.get(message.getFromId()).isStarted()) break;
                 i++;
-                if(i > 400){
+                if(i > 100){
                     new Messages(Config.VK)
                             .edit(Config.GROUP, message.getFromId(), mid)
-                            .message("Прогресс: "+savesCount+"/"+lines.size())
+                            .message("Прогресс: "+savesCount+"/"+1000)
                             .execute();
                     i = 0;
                 }
@@ -500,7 +489,7 @@ public class WallParser implements Script {
 
                 String caption = owner+"_"+album+"_"+id;
 
-                if(captions.contains(caption))continue;
+                if(captions.contains(caption)) continue;
                 long startTime = System.currentTimeMillis();
                 if(offset >= 10000){
                     var albumQuery = new Photos(Config.VK).createAlbum(userActor, "AutoAlbum_"+autoAlbumCount)
@@ -513,7 +502,9 @@ public class WallParser implements Script {
                     offset = 0;
                 }
                 File img = new File("temp.jpg");
-                FileUtils.copyURLToFile(new URL(src), img);
+                var url = new URL(src);
+                if(url.openConnection() == null) continue;
+                FileUtils.copyURLToFile(url, img);
                 PhotoUploadResponse uplresponse = new Upload(Config.VK).photo(upload.getUploadUrl(), img).execute();
                 List<Photo> photos = null;
                 var saveQuery = new Photos(Config.VK).save(userActor)
@@ -535,7 +526,7 @@ public class WallParser implements Script {
             }
             new Messages(Config.VK)
                     .edit(Config.GROUP, message.getFromId(), mid)
-                    .message("Прогресс: "+lines.size()+"/"+lines.size())
+                    .message("Прогресс: "+savesCount+"/"+1000)
                     .execute();
         } catch (ApiException | ClientException | InterruptedException | IOException e) {
             try {
