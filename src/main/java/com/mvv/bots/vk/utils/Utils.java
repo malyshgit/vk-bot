@@ -19,6 +19,10 @@ public class Utils {
         return ThreadLocalRandom.current().nextInt();
     }
 
+    public static long getRandomInt64(){
+        return ThreadLocalRandom.current().nextLong();
+    }
+
     public static void applyQualityRenderingHints(Graphics2D g2d) {
 
         g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);

@@ -3,14 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.commands;
+package com.mvv.bots.vk.main.scripts;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.tables.Users;
+import com.mvv.bots.vk.database.tables.users.User;
+import com.mvv.bots.vk.database.tables.users.Users;
+import com.mvv.bots.vk.main.AccessMode;
+import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.actions.Photos;
@@ -34,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class InstaGet implements Script{
+public class InstaGet implements Script {
 
     @Override
     public String smile(){
@@ -101,7 +104,7 @@ public class InstaGet implements Script{
                             .execute();
                     break;
                 case 0:
-                    Users.User user = Users.find(message.getFromId());
+                    User user = Users.find(message.getFromId());
                     List<Photo> attach = new ArrayList<>();
                     if(user.getParameters().has("instagettags")){
                         String instagettags = (String)user.getParameters().get("instagettags");

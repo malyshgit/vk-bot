@@ -1,16 +1,13 @@
 package com.mvv.bots.vk;
 
-import com.mvv.bots.vk.commands.*;
+import com.mvv.bots.vk.main.Script;
+import com.mvv.bots.vk.main.scripts.*;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.GroupActor;
 import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public interface Config {
 
@@ -42,14 +39,16 @@ public interface Config {
         }
     }*/
 
-    List<Script> SCRIPTS = Script.getSortedList(List.of(new Script[]{
+    List<Script> SCRIPTS = Script.getSortedList(List.of(
             new AdminPanel(),
+            new Authorization(),
             new Advice(),
             new Donation(),
             new Duty(),
             new Killer(),
             new InstaGet(),
+            new WallParser(),
             new Weather(),
             new ScriptList()
-    }));
+    ));
 }

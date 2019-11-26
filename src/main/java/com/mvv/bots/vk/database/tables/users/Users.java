@@ -1,8 +1,5 @@
-package com.mvv.bots.vk.database.tables;
+package com.mvv.bots.vk.database.tables.users;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.mvv.bots.vk.database.PostgreSQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,10 +7,7 @@ import org.apache.logging.log4j.Logger;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 public class Users {
@@ -43,7 +37,12 @@ public class Users {
     public static void update(Integer id, String key, Object value){
         try {
             Statement statement = PostgreSQL.getConnection().createStatement();
-            String valueString = value instanceof String ? "'"+value+"'" : String.valueOf(value);
+            String valueString;
+            if(value == null){
+                valueString = "NULL";
+            }else{
+                valueString = value instanceof String ? "'"+value+"'" : String.valueOf(value);
+            }
             String sql = String.format(
                     "UPDATE "+name+" SET %s=%s WHERE ID=%d;",
                     key, valueString, id);
@@ -85,8 +84,8 @@ public class Users {
     }
 
     public static List<User> findAll(){
+        List<User> users = new ArrayList<>();
         try {
-            List<User> users = new ArrayList<>();
             Statement statement = PostgreSQL.getConnection().createStatement();
             String sql = "SELECT * FROM "+name+";";
             LOG.debug(sql);
@@ -102,7 +101,7 @@ public class Users {
                 user.setJob(job);
                 user.setUse(use);
                 user.setToken(token);
-                user.setParameters(new User.Parameters(parameters));
+                user.setParameters(new Parameters(parameters));
                 users.add(user);
             }
             resultSet.close();
@@ -112,7 +111,7 @@ public class Users {
         } catch ( Exception e ) {
             LOG.error(e);
         }
-        return null;
+        return users;
     }
 
     public static User find(Integer id){
@@ -131,7 +130,7 @@ public class Users {
                 user.setJob(job);
                 user.setUse(use);
                 user.setToken(token);
-                user.setParameters(new User.Parameters(parameters));
+                user.setParameters(new Parameters(parameters));
                 LOG.debug(user);
                 return user;
             }
@@ -140,104 +139,7 @@ public class Users {
         } catch ( Exception e ) {
             LOG.error(e);
         }
-        return null;
-    }
-
-    public static boolean contains(int id){
-        return find(id) != null;
-    }
-
-    public static class User{
-
-        private int id;
-        private int job;
-        private int use;
-        private String token;
-        private Parameters parameters;
-
-        public User(int id){
-            this.id = id;
-            this.job = 0;
-            this.use = 0;
-            this.token = "";
-            this.parameters = new Parameters();
-        }
-
-        public void setJob(int job) {
-            this.job = job;
-        }
-
-        public void setUse(int use) {
-            this.use = use;
-        }
-
-        public void setToken(String token) {
-            this.token = token;
-        }
-
-        public void setParameters(Parameters parameters) {
-            this.parameters = parameters;
-        }
-
-        public int getJob() {
-            return job;
-        }
-
-        public int getUse() {
-            return use;
-        }
-
-        public String getToken() {
-            return token;
-        }
-
-        public Parameters getParameters() {
-            return parameters;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        @Override
-        public String toString() {
-            return "User{id="+id+", job="+job+", use="+use+", token="+token+", parameters="+parameters+"}";
-        }
-
-        public static class Parameters{
-            private JsonElement parameters;
-
-            public Parameters(){
-                this.parameters = new JsonParser().parse("{}");
-            }
-
-            public Parameters(String parameters){
-                if(parameters == null) parameters = "{}";
-                this.parameters = new JsonParser().parse(parameters);
-            }
-
-            public void put(String key, Object value){
-                String stringValue = String.valueOf(value);
-                parameters.getAsJsonObject().addProperty(key, stringValue);
-            }
-
-            public boolean has(String key){
-                return parameters.getAsJsonObject().has(key);
-            }
-
-            public String get(String key){
-                return parameters.getAsJsonObject().get(key).getAsString();
-            }
-
-            public void set(JsonElement parameters){
-                this.parameters = parameters;
-            }
-
-            @Override
-            public String toString() {
-                return parameters.toString();
-            }
-        }
+        return new User(id);
     }
 
 }

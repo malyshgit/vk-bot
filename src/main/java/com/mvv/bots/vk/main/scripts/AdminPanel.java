@@ -3,22 +3,22 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.commands;
+package com.mvv.bots.vk.main.scripts;
 
 import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.tables.Settings;
-import com.mvv.bots.vk.database.tables.Users;
+import com.mvv.bots.vk.database.tables.settings.Option;
+import com.mvv.bots.vk.database.tables.settings.Settings;
+import com.mvv.bots.vk.database.tables.users.User;
+import com.mvv.bots.vk.database.tables.users.Users;
+import com.mvv.bots.vk.main.AccessMode;
+import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.*;
 import com.vk.api.sdk.client.AbstractQueryBuilder;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
-import com.vk.api.sdk.exceptions.RequiredFieldException;
 import com.vk.api.sdk.objects.base.*;
 import com.vk.api.sdk.objects.base.Image;
-import com.vk.api.sdk.objects.docs.Doc;
-import com.vk.api.sdk.objects.docs.responses.DocUploadResponse;
-import com.vk.api.sdk.objects.docs.responses.SaveResponse;
 import com.vk.api.sdk.objects.enums.DocsType;
 import com.vk.api.sdk.objects.groups.GroupFull;
 import com.vk.api.sdk.objects.messages.*;
@@ -27,7 +27,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -39,30 +38,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import com.google.gson.*;
 import com.vk.api.sdk.objects.messages.responses.GetByIdResponse;
-import com.vk.api.sdk.objects.pages.PrivacySettings;
 import com.vk.api.sdk.objects.photos.Photo;
-import com.vk.api.sdk.objects.photos.PhotoAlbum;
 import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
 import com.vk.api.sdk.objects.photos.PhotoUpload;
 import com.vk.api.sdk.objects.photos.responses.GetAlbumsResponse;
 import com.vk.api.sdk.objects.photos.responses.GetResponse;
-import com.vk.api.sdk.objects.photos.responses.MessageUploadResponse;
 import com.vk.api.sdk.objects.photos.responses.PhotoUploadResponse;
 import com.vk.api.sdk.objects.responses.OwnerCoverUploadResponse;
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
-import com.vk.api.sdk.objects.wall.WallpostFull;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import javax.imageio.ImageIO;
 
-public class AdminPanel implements Script{
+public class AdminPanel implements Script {
 
     @Override
     public String smile(){
@@ -153,13 +146,13 @@ public class AdminPanel implements Script{
                                             .setLabel("Переключатели"))
                     ));
                     buttons.add(List.of(
-                            new KeyboardButton()
+                            /*new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             "{\"script\":\""+getClass().getName()+"\"," +
                                                     "\"step\":"+3+"}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Авторизация")),
+                                            .setLabel("Авторизация")),*/
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
@@ -272,9 +265,9 @@ public class AdminPanel implements Script{
                             .execute();
                     break;
                 case 1011:
-                    List<Settings.Option> options = Settings.findAll();
+                    List<Option> options = Settings.findAll();
                     if(!options.isEmpty()){
-                        String info = options.stream().map(Settings.Option::toString).collect(Collectors.joining("\n"));
+                        String info = options.stream().map(Option::toString).collect(Collectors.joining("\n"));
                         new Messages(Config.VK)
                                 .send(Config.GROUP)
                                 .message(info)
@@ -321,9 +314,9 @@ public class AdminPanel implements Script{
                             .execute();
                     break;
                 case 1021:
-                    List<Users.User> users = Users.findAll();
+                    List<User> users = Users.findAll();
                     if(!users.isEmpty()){
-                        String info = users.stream().map(Users.User::toString).collect(Collectors.joining("\n"));
+                        String info = users.stream().map(User::toString).collect(Collectors.joining("\n"));
                         new Messages(Config.VK)
                                 .send(Config.GROUP)
                                 .message(info)
@@ -353,7 +346,7 @@ public class AdminPanel implements Script{
                     send(message, 0);
                     break;
                 case 2:
-                    Settings.Option debbug = Settings.find("debbug");
+                    Option debbug = Settings.find("debbug");
                     buttons.add(List.of(
                             new KeyboardButton()
                             .setColor(KeyboardButtonColor.NEGATIVE)
@@ -386,12 +379,12 @@ public class AdminPanel implements Script{
                             ));
                         }
                     }else{
-                        debbug = new Settings.Option("debbug", "false");
+                        debbug = new Option("debbug", "false");
                         Settings.add(debbug);
                         send(message, 2);
                         return;
                     }
-                    Settings.Option update = Settings.find("update");
+                    Option update = Settings.find("update");
                     if(update != null){
                         if(Boolean.parseBoolean(update.getValue())){
                             buttons.add(List.of(
@@ -415,7 +408,7 @@ public class AdminPanel implements Script{
                             ));
                         }
                     }else{
-                        update = new Settings.Option("update", "false");
+                        update = new Option("update", "false");
                         Settings.add(update);
                         send(message, 2);
                         return;
@@ -477,7 +470,7 @@ public class AdminPanel implements Script{
                     send(message, 2);
                     break;
                 case 3:
-                    var url = String.format("https://oauth.vk.com/authorize?client_id=%d&display=page&redirect_uri=%s&scope=groups,docs,offline,photos,wall&response_type=code&v=5.103",
+                    /*var url = String.format("https://oauth.vk.com/authorize?client_id=%d&display=page&redirect_uri=%s&scope=groups,docs,offline,photos,wall&response_type=code&v=5.103",
                     Config.APP_ID, Config.REDIRECT_URL);
                     new Messages(Config.VK)
                             .send(Config.GROUP)
@@ -485,7 +478,7 @@ public class AdminPanel implements Script{
                             .peerId(message.getPeerId())
                             .dontParseLinks(false)
                             .randomId(Utils.getRandomInt32())
-                            .execute();
+                            .execute();*/
                     break;
                 case 4:
                     drawCover();
@@ -606,7 +599,7 @@ public class AdminPanel implements Script{
                         return;
                     }
                     if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)) {
-                        url = attachments.get(0).getDoc().getUrl();
+                        var url = attachments.get(0).getDoc().getUrl();
                         List<String> lines = IOUtils.readLines(new URL(url).openStream(), StandardCharsets.UTF_8);
                         pushPhotos(true, lines);
                         keyboard.setInline(true);
@@ -673,7 +666,7 @@ public class AdminPanel implements Script{
                         return;
                     }
                     if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)) {
-                        url = attachments.get(0).getDoc().getUrl();
+                        var url = attachments.get(0).getDoc().getUrl();
                         List<String> lines = IOUtils.readLines(new URL(url).openStream(), StandardCharsets.UTF_8);
                         pushPhotos(false, lines);
                         keyboard.setInline(true);
@@ -734,7 +727,7 @@ public class AdminPanel implements Script{
                     break;
                 case 521:
                     getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
-                    url = getByIdResponse.getItems().get(0).getText();
+                    var url = getByIdResponse.getItems().get(0).getText();
                     if(url == null || url.isEmpty()){
                         new Messages(Config.VK)
                                 .send(Config.GROUP)

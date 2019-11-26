@@ -1,26 +1,23 @@
 package com.mvv.bots.vk.main;
 
 import com.google.gson.*;
-import com.mvv.bots.vk.database.tables.Settings;
-import com.mvv.bots.vk.database.tables.Users;
+import com.mvv.bots.vk.database.tables.settings.Option;
+import com.mvv.bots.vk.database.tables.settings.Settings;
+import com.mvv.bots.vk.database.tables.users.User;
+import com.mvv.bots.vk.database.tables.users.Users;
+import com.mvv.bots.vk.main.scripts.Authorization;
 import com.mvv.bots.vk.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import com.vk.api.sdk.actions.Account;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.actions.OAuth;
 import com.vk.api.sdk.callback.CallbackApi;
-import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
-import com.vk.api.sdk.objects.base.Link;
-import com.vk.api.sdk.objects.base.LinkButton;
 import com.vk.api.sdk.objects.messages.Message;
 import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.commands.Script;
-import com.mvv.bots.vk.commands.ScriptList;
-import com.vk.api.sdk.objects.messages.MessageAttachment;
+import com.mvv.bots.vk.main.scripts.ScriptList;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
@@ -65,7 +62,7 @@ public class Server {
     public static void main(String[] args) {
         if(args.length > 0){
             LOG.debug(List.of(args));
-            Settings.Option update = Settings.find("update");
+            Option update = Settings.find("update");
             if(update != null){
                 if(Boolean.parseBoolean(update.getValue())) {
                     for (String arg : args) {
@@ -184,17 +181,11 @@ public class Server {
                             .findFirst()
                             .orElse(null);
                     if(code != null){
-                        var response = new OAuth(Config.VK).userAuthorizationCodeFlow(Config.APP_ID, Config.APP_SECRET, Config.REDIRECT_URL, code).execute();
-                        if(response != null){
-                            Users.update(response.getUserId(), "TOKEN", response.getAccessToken());
-                            new Messages(Config.VK)
-                                    .send(Config.GROUP)
-                                    .message("Авторизация прошла успешна.")
-                                    .peerId(response.getUserId())
-                                    .randomId(Utils.getRandomInt32())
-                                    .execute();
+                        if(Authorization.getToken(code)) {
+                            path = "authSuccess.html";
+                        }else{
+                            path = "auth.html";
                         }
-                        path = "authSuccess.html";
                     }
                 }
 
@@ -230,7 +221,7 @@ public class Server {
                 exchange.getResponseBody().write(bytes.toByteArray());
                 exchange.getResponseBody().close();
                 bytes.close();
-            }catch (IOException | ClientException | ApiException e){
+            }catch (IOException e){
                 LOG.error(e);
             }
         }
@@ -238,11 +229,11 @@ public class Server {
 
     private static void update() {
         try {
-            Settings.Option update = Settings.find("update");
+            Option update = Settings.find("update");
             if(update != null) {
                 if (Boolean.parseBoolean(update.getValue())) {
                     Config.SCRIPTS.forEach(Script::update);
-                    Settings.Option debbug = Settings.find("debbug");
+                    Option debbug = Settings.find("debbug");
                     if (debbug != null) {
                         if (Boolean.parseBoolean(debbug.getValue())) {
                             new Messages(Config.VK)
@@ -304,11 +295,11 @@ public class Server {
     }
 
     private static void plusUse(Message message){
-        Users.User user = Users.find(message.getFromId());
+        User user = Users.find(message.getFromId());
         if(user != null){
             Users.update(user.getId(), "USE", user.getUse()+1);
         }else{
-            user = new Users.User(message.getFromId());
+            user = new User(message.getFromId());
             user.setUse(1);
             Users.add(user);
         }

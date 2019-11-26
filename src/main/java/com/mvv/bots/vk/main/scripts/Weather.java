@@ -3,13 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.commands;
+package com.mvv.bots.vk.main.scripts;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.tables.Users;
+import com.mvv.bots.vk.database.tables.users.User;
+import com.mvv.bots.vk.database.tables.users.Users;
+import com.mvv.bots.vk.main.AccessMode;
+import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -18,13 +21,12 @@ import com.vk.api.sdk.objects.messages.*;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Weather implements Script{
+public class Weather implements Script {
 
     @Override
     public String smile(){
@@ -91,7 +93,7 @@ public class Weather implements Script{
                             .execute();
                     break;
                 case 0:
-                    Users.User user = Users.find(message.getFromId());
+                    User user = Users.find(message.getFromId());
                     if(user.getParameters().has("geo")){
                         String geo = (String)user.getParameters().get("geo");
                         JsonElement jelement = new JsonParser().parse(geo);

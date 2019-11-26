@@ -3,11 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.commands;
+package com.mvv.bots.vk.main.scripts;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mvv.bots.vk.main.AccessMode;
+import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -18,7 +19,7 @@ import com.mvv.bots.vk.Config;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScriptList implements Script{
+public class ScriptList implements Script {
 
     @Override
     public String smile(){

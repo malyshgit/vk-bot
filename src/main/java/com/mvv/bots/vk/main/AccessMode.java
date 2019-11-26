@@ -1,4 +1,4 @@
-package com.mvv.bots.vk.commands;
+package com.mvv.bots.vk.main;
 
 public enum AccessMode {
 

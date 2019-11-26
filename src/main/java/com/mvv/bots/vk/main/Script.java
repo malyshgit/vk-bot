@@ -3,9 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.commands;
+package com.mvv.bots.vk.main;
 
-import com.mvv.bots.vk.main.Server;
 import com.vk.api.sdk.objects.messages.Message;
 import com.mvv.bots.vk.Config;
 import org.apache.logging.log4j.LogManager;

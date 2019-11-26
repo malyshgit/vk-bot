@@ -3,11 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.commands;
+package com.mvv.bots.vk.main.scripts;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mvv.bots.vk.database.tables.Users;
+import com.mvv.bots.vk.database.tables.users.User;
+import com.mvv.bots.vk.database.tables.users.Users;
+import com.mvv.bots.vk.main.AccessMode;
+import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -17,12 +20,11 @@ import com.mvv.bots.vk.Config;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Advice implements Script{
+public class Advice implements Script {
 
     @Override
     public String smile(){
@@ -71,7 +73,7 @@ public class Advice implements Script{
 
             switch (step) {
                 case 0:
-                    Users.User user = Users.find(message.getFromId());
+                    User user = Users.find(message.getFromId());
                     keyboard.setInline(true);
                     if(user.getParameters().has("adviceupdate")){
                         if(Boolean.parseBoolean(user.getParameters().get("adviceupdate"))){
