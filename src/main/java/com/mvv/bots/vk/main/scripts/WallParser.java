@@ -118,6 +118,13 @@ public class WallParser implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Далее"))
                     ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .message("Парсинг")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
                     break;
                 case 1:
                     buttons.add(List.of(
