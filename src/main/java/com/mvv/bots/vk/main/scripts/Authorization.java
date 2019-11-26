@@ -126,7 +126,7 @@ public class Authorization implements Script {
                 case 1:
                     var url = String.format("https://oauth.vk.com/authorize?client_id=%d&display=page&redirect_uri=%s&scope=groups,docs,offline,photos,wall&response_type=code&v=5.103",
                             Config.APP_ID, Config.REDIRECT_URL);
-                    var vkcc = new com.vk.api.sdk.actions.Utils(Config.VK).getShortLink(Config.GROUP, url).privateParam(true).execute();
+                    var vkcc = new com.vk.api.sdk.actions.Utils(Config.VK).getShortLink(Config.GROUP, url).execute();
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Перейдите по ссылке Вы предоставляете доступ к Вашим группам, документам, фотографиям и записям на стене." +
