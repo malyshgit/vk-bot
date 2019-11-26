@@ -281,8 +281,8 @@ public class WallParser implements Script {
                 if(!threadHashMap.get(message.getFromId()).isStarted()) break;
                 if(offset > nextEdit){
                     new Messages(Config.VK)
-                            .keyboard(keyboard)
                             .edit(Config.GROUP, message.getPeerId(), mid)
+                            .keyboard(keyboard)
                             .message("Постов обработанно: "+offset+"/"+size)
                             .execute();
                     nextEdit += dt;
@@ -497,8 +497,8 @@ public class WallParser implements Script {
                 i++;
                 if(i > 100){
                     new Messages(Config.VK)
-                            .keyboard(keyboard)
                             .edit(Config.GROUP, message.getFromId(), mid)
+                            .keyboard(keyboard)
                             .message("Прогресс: "+savesCount+"/"+1000)
                             .execute();
                     i = 0;
