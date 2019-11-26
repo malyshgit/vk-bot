@@ -82,7 +82,11 @@ public class Donation implements Script{
                     keyboard.setInline(true);
                     buttons.add(List.of(
                             new KeyboardButton()
-                                    .setAction(new KeyboardButtonAction().setType(KeyboardButtonActionType.VKPAY))
+                                    .setAction(new KeyboardButtonAction()
+                                            .setType(KeyboardButtonActionType.VKPAY)
+                                            .setHash(String.format("action=transfer-to-group&group_id=%d&aid=%d",
+                                                    Math.abs(Config.GROUP_ID), Config.APP_ID))
+                                    )
                     ));
                     new Messages(Config.VK)
                             .send(Config.GROUP)
