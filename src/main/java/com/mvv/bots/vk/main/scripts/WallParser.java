@@ -35,6 +35,7 @@ import org.apache.commons.lang3.time.DateUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Time;
@@ -175,10 +176,28 @@ public class WallParser implements Script {
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    send(message, 0);
+                    ScriptList.open(message);
                     break;
                 case 2:
                     pushPhotos(message);
+                    keyboard.setInline(true);
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\"" + getClass().getName() + "\"," +
+                                                    "\"step\":" + 3 + "}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Остановить"))
+                    ));
+                    new Messages(Config.VK)
+                            .send(Config.GROUP)
+                            .keyboard(keyboard)
+                            .message("В любой момент можно остановить процесс")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    ScriptList.open(message);
                     break;
                 case 3:
                     if(threadHashMap.containsKey(message.getFromId())) threadHashMap.get(message.getFromId()).stop();
@@ -220,6 +239,7 @@ public class WallParser implements Script {
     }
 
     private static void parseWall(Message message, String domain) {
+        if(threadHashMap.containsKey(message.getFromId())) return;
         WallParserThread thread = new WallParserThread() {
             @Override
             void run() {
@@ -230,6 +250,7 @@ public class WallParser implements Script {
         thread.start();
     }
     private static void pushPhotos(Message message) {
+        if(threadHashMap.containsKey(message.getFromId())) return;
         WallParserThread thread = new WallParserThread() {
             @Override
             void run() {
@@ -503,7 +524,9 @@ public class WallParser implements Script {
                 }
                 File img = new File("temp.jpg");
                 var url = new URL(src);
-                if(url.openConnection() == null) continue;
+                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+                var code = connection.getResponseCode();
+                if(code != 200) continue;
                 FileUtils.copyURLToFile(url, img);
                 PhotoUploadResponse uplresponse = new Upload(Config.VK).photo(upload.getUploadUrl(), img).execute();
                 List<Photo> photos = null;
