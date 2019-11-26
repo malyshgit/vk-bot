@@ -28,6 +28,10 @@ public class Parameters {
         return parameters.getAsJsonObject().get(key).getAsString();
     }
 
+    public void remove(String key){
+        parameters.getAsJsonObject().remove(key);
+    }
+
     public void set(JsonElement parameters){
         this.parameters = parameters;
     }
