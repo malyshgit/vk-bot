@@ -185,7 +185,10 @@ public class WallParser implements Script {
 
         WallParserThread(){
             started = false;
-            thread = new Thread(this::run);
+            thread = new Thread(()->{
+                run();
+                thread.interrupt();
+            });
         }
 
         abstract void run();
@@ -201,7 +204,6 @@ public class WallParser implements Script {
 
         public void stop(){
             started = false;
-            thread.interrupt();
         }
     }
 
@@ -211,6 +213,7 @@ public class WallParser implements Script {
             @Override
             void run() {
                 parseWallThread(message, domain);
+                threadHashMap.remove(message.getFromId());
             }
         };
         threadHashMap.put(message.getFromId(), thread);
@@ -222,6 +225,7 @@ public class WallParser implements Script {
             @Override
             void run() {
                 pushPhotosThread(message);
+                threadHashMap.remove(message.getFromId());
             }
         };
         threadHashMap.put(message.getFromId(), thread);
