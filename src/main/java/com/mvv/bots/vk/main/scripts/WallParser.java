@@ -160,44 +160,10 @@ public class WallParser implements Script {
                         return;
                     }
                     parseWall(message, url);
-                    keyboard.setInline(true);
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.NEGATIVE)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 3 + "}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Остановить"))
-                    ));
-                    new Messages(Config.VK)
-                            .send(Config.GROUP)
-                            .keyboard(keyboard)
-                            .message("В любой момент можно остановить процесс")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
                     ScriptList.open(message);
                     break;
                 case 2:
                     pushPhotos(message);
-                    keyboard.setInline(true);
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.NEGATIVE)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 3 + "}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Остановить"))
-                    ));
-                    new Messages(Config.VK)
-                            .send(Config.GROUP)
-                            .keyboard(keyboard)
-                            .message("В любой момент можно остановить процесс")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
                     ScriptList.open(message);
                     break;
                 case 3:
@@ -286,9 +252,25 @@ public class WallParser implements Script {
 
             int size = response.getCount();
 
+            Keyboard keyboard = new Keyboard();
+            List<List<KeyboardButton>> buttons = new ArrayList<>();
+            keyboard.setOneTime(false);
+            keyboard.setButtons(buttons);
+            keyboard.setInline(true);
+            buttons.add(List.of(
+                    new KeyboardButton()
+                            .setColor(KeyboardButtonColor.NEGATIVE)
+                            .setAction(new KeyboardButtonAction().setPayload(
+                                    "{\"script\":\"" + WallParser.class.getName() + "\"," +
+                                            "\"step\":" + 3 + "}"
+                            ).setType(KeyboardButtonActionType.TEXT)
+                                    .setLabel("Остановить"))
+            ));
+
             int mid = new Messages(Config.VK)
                     .send(Config.GROUP)
                     .peerId(message.getPeerId())
+                    .keyboard(keyboard)
                     .message("Постов обработанно: 0")
                     .randomId(Utils.getRandomInt32())
                     .execute();
@@ -346,9 +328,9 @@ public class WallParser implements Script {
             var resp = new Upload(Config.VK).doc(upload.getUploadUrl(), urls).execute();
             var save = new Docs(Config.VK).save(Config.GROUP, resp.getFile()).title(domain + ".txt").execute();
             urls.delete();
-            Keyboard keyboard = new Keyboard();
+            keyboard = new Keyboard();
 
-            List<List<KeyboardButton>> buttons = new ArrayList<>();
+            buttons = new ArrayList<>();
             keyboard.setOneTime(false);
             keyboard.setButtons(buttons);
             keyboard.setInline(true);
@@ -474,8 +456,23 @@ public class WallParser implements Script {
                     .getUploadServer(userActor)
                     .albumId(lastAlbum.getId());
             PhotoUpload upload = uploadQuery.execute();
+            Keyboard keyboard = new Keyboard();
+            List<List<KeyboardButton>> buttons = new ArrayList<>();
+            keyboard.setOneTime(false);
+            keyboard.setButtons(buttons);
+            keyboard.setInline(true);
+            buttons.add(List.of(
+                    new KeyboardButton()
+                            .setColor(KeyboardButtonColor.NEGATIVE)
+                            .setAction(new KeyboardButtonAction().setPayload(
+                                    "{\"script\":\"" + WallParser.class.getName() + "\"," +
+                                            "\"step\":" + 3 + "}"
+                            ).setType(KeyboardButtonActionType.TEXT)
+                                    .setLabel("Остановить"))
+            ));
             int mid = new Messages(Config.VK)
                     .send(Config.GROUP)
+                    .keyboard(keyboard)
                     .message("Прогресс: null")
                     .peerId(message.getFromId())
                     .randomId(Utils.getRandomInt32())
@@ -493,6 +490,7 @@ public class WallParser implements Script {
                             .peerId(message.getFromId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
+                    break;
                 }
                 if(!threadHashMap.get(message.getFromId()).isStarted()) break;
                 i++;
