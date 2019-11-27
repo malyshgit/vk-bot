@@ -533,7 +533,7 @@ public class WallParser implements Script {
                 if(i > 50){
                     new Messages(Config.VK)
                             .edit(Config.GROUP, message.getFromId(), mid)
-                            .message("Прогресс: "+savesCount+"/"+1000)
+                            .message("Прогресс: "+savesCount+"/"+500)
                             .execute();
                     i = 0;
                 }
