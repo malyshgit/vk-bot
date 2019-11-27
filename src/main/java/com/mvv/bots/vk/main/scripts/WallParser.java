@@ -516,7 +516,7 @@ public class WallParser implements Script {
             int savesCount = 0;
             int i = 0;
             for(String line : lines) {
-                if(savesCount > 1000){
+                if(savesCount >= 1000){
                     threadHashMap.get(message.getFromId()).stop();
                     user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
