@@ -74,6 +74,7 @@ public class WallParser implements Script {
                 var dt = System.currentTimeMillis() - date;
                 if(dt >= DateUtils.MILLIS_PER_HOUR*2){
                     user.getParameters().remove("wallparsernextpush");
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     Message message = new Message();
                     message.setFromId(user.getId());
                     message.setPeerId(user.getId());
