@@ -16,10 +16,6 @@ import com.vk.api.sdk.objects.messages.responses.GetConversationMembersResponse;
 import com.vk.api.sdk.objects.users.User;
 import com.mvv.bots.vk.Config;
 
-/**
- *
- * @author I1PABIJJA
- */
 public class Killer implements Script {
 
     @Override

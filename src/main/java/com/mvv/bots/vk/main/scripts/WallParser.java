@@ -79,9 +79,9 @@ public class WallParser implements Script {
                     message.setFromId(user.getId());
                     message.setPeerId(user.getId());
                     message.setPayload("{\"script\":\"" + WallParser.class.getName() + "\"," +
-                            "\"step\":" + 2 + "," +
+                            "\"step\":" + 21 + "," +
                             "\"doc\":\"" + doc + "\"}");
-                    send(message, 2);
+                    send(message, 21);
                 }
             }
         });
