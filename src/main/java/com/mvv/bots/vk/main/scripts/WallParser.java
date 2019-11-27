@@ -162,8 +162,17 @@ public class WallParser implements Script {
                     parseWall(message, url);
                     ScriptList.open(message);
                     break;
-                case 2:
+                case 21:
                     pushPhotos(message);
+                    ScriptList.open(message);
+                    break;
+                case 22:
+                    var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+                    String doc = payload.get("doc").getAsString();
+                    user = Users.find(message.getFromId());
+                    user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\"," +
+                            " \"date\":"+(System.currentTimeMillis()-(DateUtils.MILLIS_PER_HOUR*2))+"}");
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     ScriptList.open(message);
                     break;
                 case 3:
@@ -349,10 +358,20 @@ public class WallParser implements Script {
                             .setColor(KeyboardButtonColor.DEFAULT)
                             .setAction(new KeyboardButtonAction().setPayload(
                                     "{\"script\":\"" + WallParser.class.getName() + "\"," +
-                                            "\"step\":" + 2 + "," +
+                                            "\"step\":" + 21 + "," +
                                             "\"doc\":\"" + save.getDoc().getUrl() + "\"}"
                             ).setType(KeyboardButtonActionType.TEXT)
-                                    .setLabel("Заполнить свой альбом"))
+                                    .setLabel("Заполнить альбом сейчас"))
+            ));
+            buttons.add(List.of(
+                    new KeyboardButton()
+                            .setColor(KeyboardButtonColor.DEFAULT)
+                            .setAction(new KeyboardButtonAction().setPayload(
+                                    "{\"script\":\"" + WallParser.class.getName() + "\"," +
+                                            "\"step\":" + 22 + "," +
+                                            "\"doc\":\"" + save.getDoc().getUrl() + "\"}"
+                            ).setType(KeyboardButtonActionType.TEXT)
+                                    .setLabel("Автозаполнение альбома"))
             ));
             new Messages(Config.VK)
                     .send(Config.GROUP)
@@ -558,7 +577,7 @@ public class WallParser implements Script {
                 offset++;
                 long endTime = System.currentTimeMillis();
                 long deltaTime = endTime - startTime;
-                if(deltaTime > 0 && deltaTime < 1500){
+                if(deltaTime > 0 && deltaTime < 1000){
                     Thread.sleep(deltaTime);
                 }
             }
