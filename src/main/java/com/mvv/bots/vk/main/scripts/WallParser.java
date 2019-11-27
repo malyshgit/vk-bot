@@ -488,7 +488,7 @@ public class WallParser implements Script {
                     .execute();
             new Messages(Config.VK)
                     .send(Config.GROUP)
-                    .peerId(message.getPeerId())
+                    .peerId(message.getFromId())
                     .keyboard(keyboard)
                     .message("В любой момент можно остановить.")
                     .randomId(Utils.getRandomInt32())
@@ -499,7 +499,7 @@ public class WallParser implements Script {
                 if(savesCount > 1000){
                     threadHashMap.get(message.getFromId()).stop();
                     user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters());
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK)
                             .send(Config.GROUP)
                             .message("Заполнение завершенно. Следующая часть заполнится через 2 часа.")
