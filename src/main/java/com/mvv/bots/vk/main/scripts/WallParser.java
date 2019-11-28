@@ -342,7 +342,7 @@ public class WallParser implements Script {
                     .edit(Config.GROUP, message.getPeerId(), mid)
                     .message("Постов обработанно: "+Math.min(offset, size)+"/"+size)
                     .execute();
-            File urls = new File(domain + ".txt");
+            File urls = new File(message.getPeerId() + ".txt");
             FileUtils.write(urls, sb.toString(), StandardCharsets.UTF_8);
             var upload = new Docs(Config.VK()).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).type(DocsType.DOC).execute();
             var resp = new Upload(Config.VK()).doc(upload.getUploadUrl(), urls).execute();
@@ -557,7 +557,7 @@ public class WallParser implements Script {
                     upload = uploadQuery.execute();
                     offset = 0;
                 }
-                File img = new File("temp.jpg");
+                File img = new File(message.getPeerId()+".jpg");
                 var url = new URL(src);
                 HttpURLConnection connection = (HttpURLConnection)url.openConnection();
                 var code = connection.getResponseCode();
@@ -582,9 +582,11 @@ public class WallParser implements Script {
                     Thread.sleep(deltaTime);
                 }
             }
+            user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
+            Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
             new Messages(Config.VK())
                     .edit(Config.GROUP, message.getFromId(), mid)
-                    .message("Прогресс: "+savesCount+"/"+1000)
+                    .message("Прогресс: "+savesCount+"/"+500)
                     .execute();
         } catch (ApiException | ClientException | InterruptedException | IOException e) {
             try {
