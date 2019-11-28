@@ -63,7 +63,7 @@ public class ScriptList implements Script {
                         sb.append(script.description() + "\n");
                     }
                 }
-                new Messages(Config.VK)
+                new Messages(Config.VK())
                         .send(Config.GROUP)
                         .message(sb.toString())
                         .peerId(peerId)
@@ -162,7 +162,7 @@ public class ScriptList implements Script {
                         return;
                     }
                 }
-                new Messages(Config.VK)
+                new Messages(Config.VK())
                         .send(Config.GROUP)
                         .message("Список")
                         .keyboard(keyboard)

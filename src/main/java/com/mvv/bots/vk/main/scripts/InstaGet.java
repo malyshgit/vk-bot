@@ -95,7 +95,7 @@ public class InstaGet implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Инстагет - описание")
                             .keyboard(keyboard)
@@ -110,7 +110,7 @@ public class InstaGet implements Script {
                         String instagettags = (String)user.getParameters().get("instagettags");
                         JsonElement jelement = new JsonParser().parse(instagettags);
                         JsonArray  tags = jelement.getAsJsonArray();
-                        PhotoUpload photoUpload = new Photos(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
+                        PhotoUpload photoUpload = new Photos(Config.VK()).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
                         tags.forEach(e -> {
                             String url = String
                                     .format("https://www.instagram.com/explore/tags/%s/?__a=1", e.getAsString());
@@ -127,10 +127,10 @@ public class InstaGet implements Script {
                                 String phurl = el7.get("display_url").getAsString();
                                 File photo = new File("temp.jpg");
                                 FileUtils.copyURLToFile(new URL(phurl), photo);
-                                MessageUploadResponse messageUploadResponse = new Upload(Config.VK)
+                                MessageUploadResponse messageUploadResponse = new Upload(Config.VK())
                                         .photoMessage(photoUpload.getUploadUrl().toString(), photo).execute();
                                 Files.deleteIfExists(photo.toPath());
-                                List<Photo> photos = new Photos(Config.VK)
+                                List<Photo> photos = new Photos(Config.VK())
                                         .saveMessagesPhoto(Config.GROUP, messageUploadResponse.getPhoto())
                                         .server(messageUploadResponse.getServer())
                                         .hash(messageUploadResponse.getHash()).execute();
@@ -179,7 +179,7 @@ public class InstaGet implements Script {
                             return;
                         }
                         if(!attach.isEmpty()){
-                            new Messages(Config.VK)
+                            new Messages(Config.VK())
                                     .send(Config.GROUP)
                                     .attachment(attach.stream().map(photo -> {
                                         return "photo"+photo.getOwnerId()+"_"+photo.getId();
@@ -194,7 +194,7 @@ public class InstaGet implements Script {
                                     .randomId(Utils.getRandomInt32())
                                     .execute();
                         }else{
-                            new Messages(Config.VK)
+                            new Messages(Config.VK())
                                     .send(Config.GROUP)
                                     .message(tags.toString()
                                             .replace("[", "")
@@ -230,7 +230,7 @@ public class InstaGet implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Отмена"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Отправьте теги через запятую и нажмите \"Сохранить\".")
                             .keyboard(keyboard)
@@ -239,7 +239,7 @@ public class InstaGet implements Script {
                             .execute();
                     break;
                 case 11:
-                    GetByIdResponse getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
+                    GetByIdResponse getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
                     String tags = getByIdResponse.getItems().get(0).getText().replaceAll("\\s+", "");
                     LOG.debug(tags);
                     user = Users.find(message.getFromId());
@@ -247,7 +247,7 @@ public class InstaGet implements Script {
                     List.of(tags.split(",")).forEach(array::add);
                     user.getParameters().put("instagettags", array.toString());
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Тэги сохранены.")
                             .peerId(message.getPeerId())
@@ -260,7 +260,7 @@ public class InstaGet implements Script {
                     user = Users.find(message.getFromId());
                     user.getParameters().put("instagetupdate", "true");
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка активирована.")
                             .peerId(message.getPeerId())
@@ -273,7 +273,7 @@ public class InstaGet implements Script {
                     user = Users.find(message.getFromId());
                     user.getParameters().put("instagetupdate", "false");
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка деактивирована.")
                             .peerId(message.getPeerId())

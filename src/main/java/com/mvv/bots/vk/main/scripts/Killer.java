@@ -50,14 +50,14 @@ public class Killer implements Script {
                 return;
             }
 
-            GetConversationMembersResponse members = new Messages(Config.VK)
+            GetConversationMembersResponse members = new Messages(Config.VK())
                     .getConversationMembers(Config.GROUP, message.getPeerId()).execute();
 
             int aim = Utils.getRandom(0, members.getProfiles().size()-1);
 
             User user = members.getProfiles().get(aim);
 
-            new Messages(Config.VK)
+            new Messages(Config.VK())
                     .send(Config.GROUP)
                     .message("Отслеживаю цель: [id"+user.getId()+"|"+user.getFirstName()+"]")
                     .peerId(message.getPeerId())
@@ -66,7 +66,7 @@ public class Killer implements Script {
 
             Thread.sleep(2000);
 
-            new Messages(Config.VK)
+            new Messages(Config.VK())
                     .send(Config.GROUP).message("Прицеливаюсь...")
                     .peerId(message.getPeerId())
                     .randomId(Utils.getRandomInt32())
@@ -75,14 +75,14 @@ public class Killer implements Script {
             Thread.sleep(2000);
 
             if(Utils.getRandom(0,1) == 0) {
-                new Messages(Config.VK)
+                new Messages(Config.VK())
                         .send(Config.GROUP)
                         .message("Цель ликвидирована.")
                         .peerId(message.getPeerId())
                         .randomId(Utils.getRandomInt32())
                         .execute();
             }else{
-                new Messages(Config.VK)
+                new Messages(Config.VK())
                         .send(Config.GROUP)
                         .message("Промах.")
                         .peerId(message.getPeerId())

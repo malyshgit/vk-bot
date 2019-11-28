@@ -236,7 +236,7 @@ public class Server {
                     Option debbug = Settings.find("debbug");
                     if (debbug != null) {
                         if (Boolean.parseBoolean(debbug.getValue())) {
-                            new Messages(Config.VK)
+                            new Messages(Config.VK())
                                     .send(Config.GROUP)
                                     .message("Обновление.")
                                     .peerId(Config.ADMIN_ID)
@@ -254,11 +254,11 @@ public class Server {
     private static void parseMessage(Message message) {
         try {
             if(message.getPeerId() >= 2000000000){
-                new Messages(Config.VK)
+                new Messages(Config.VK())
                         .markAsAnsweredConversation(Config.GROUP, message.getPeerId())
                         .execute();
             }else{
-                new Messages(Config.VK)
+                new Messages(Config.VK())
                         .markAsRead(Config.GROUP)
                         .peerId(message.getPeerId())
                         .execute();

@@ -83,7 +83,7 @@ public class Weather implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Описание")
                             .keyboard(keyboard)
@@ -146,7 +146,7 @@ public class Weather implements Script {
                             send(message, 0);
                             return;
                         }
-						new Messages(Config.VK)
+						new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message(info)
                                 .keyboard(keyboard)
@@ -162,7 +162,7 @@ public class Weather implements Script {
                                                         "\"step\":" + 1 + "}"
                                         ).setType(KeyboardButtonActionType.LOCATION))
                         ));
-                        new Messages(Config.VK)
+                        new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Местоположение")
                                 .keyboard(keyboard)
@@ -176,7 +176,7 @@ public class Weather implements Script {
                     user = Users.find(message.getFromId());
                     user.getParameters().put("geo", geo);
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Местоположение сохранено.")
                             .peerId(message.getPeerId())
@@ -188,7 +188,7 @@ public class Weather implements Script {
                     user = Users.find(message.getFromId());
                     user.getParameters().put("weatherupdate", "true");
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка активирована.")
                             .peerId(message.getPeerId())
@@ -200,7 +200,7 @@ public class Weather implements Script {
                     user = Users.find(message.getFromId());
                     user.getParameters().put("weatherupdate", "false");
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка деактивирована.")
                             .peerId(message.getPeerId())

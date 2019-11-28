@@ -113,7 +113,7 @@ public class AdminPanel implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Опции"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Меню")
                             .keyboard(keyboard)
@@ -161,7 +161,7 @@ public class AdminPanel implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Обновление"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Меню")
                             .keyboard(keyboard)
@@ -193,7 +193,7 @@ public class AdminPanel implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Пересоздать"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Меню")
                             .keyboard(keyboard)
@@ -221,7 +221,7 @@ public class AdminPanel implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Пользователи"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Список")
                             .keyboard(keyboard)
@@ -249,7 +249,7 @@ public class AdminPanel implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Пересоздать"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("База данных \"Настройки\"")
                             .keyboard(keyboard)
@@ -261,7 +261,7 @@ public class AdminPanel implements Script {
                     List<Option> options = Settings.findAll();
                     if(!options.isEmpty()){
                         String info = options.stream().map(Option::toString).collect(Collectors.joining("\n"));
-                        new Messages(Config.VK)
+                        new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message(info)
                                 .peerId(message.getPeerId())
@@ -271,7 +271,7 @@ public class AdminPanel implements Script {
                     break;
                 case 1012:
                     Settings.create();
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("База данных пересоздана.")
                             .peerId(message.getPeerId())
@@ -298,7 +298,7 @@ public class AdminPanel implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Пересоздать"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("База данных \"Пользователи\"")
                             .keyboard(keyboard)
@@ -310,7 +310,7 @@ public class AdminPanel implements Script {
                     List<User> users = Users.findAll();
                     if(!users.isEmpty()){
                         String info = users.stream().map(User::toString).collect(Collectors.joining("\n"));
-                        new Messages(Config.VK)
+                        new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message(info)
                                 .peerId(message.getPeerId())
@@ -320,7 +320,7 @@ public class AdminPanel implements Script {
                     break;
                 case 1022:
                     Users.create();
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("База данных пересоздана.")
                             .peerId(message.getPeerId())
@@ -330,7 +330,7 @@ public class AdminPanel implements Script {
                 case 11:
                     Users.create();
                     Settings.create();
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Базы данных пересозданы.")
                             .peerId(message.getPeerId())
@@ -406,7 +406,7 @@ public class AdminPanel implements Script {
                         send(message, 2);
                         return;
                     }
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Переключатели")
                             .keyboard(keyboard)
@@ -418,7 +418,7 @@ public class AdminPanel implements Script {
                     debbug = Settings.find("debbug");
                     debbug.setValue("true");
                     Settings.update(debbug);
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Отладка включена.")
                             .peerId(message.getPeerId())
@@ -430,7 +430,7 @@ public class AdminPanel implements Script {
                     debbug = Settings.find("debbug");
                     debbug.setValue("false");
                     Settings.update(debbug);
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Отладка отключена.")
                             .peerId(message.getPeerId())
@@ -442,7 +442,7 @@ public class AdminPanel implements Script {
                     update = Settings.find("update");
                     update.setValue("true");
                     Settings.update(update);
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Обновление включено.")
                             .peerId(message.getPeerId())
@@ -454,7 +454,7 @@ public class AdminPanel implements Script {
                     update = Settings.find("update");
                     update.setValue("false");
                     Settings.update(update);
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Обновление отключено.")
                             .peerId(message.getPeerId())
@@ -465,7 +465,7 @@ public class AdminPanel implements Script {
                 case 3:
                     /*var url = String.format("https://oauth.vk.com/authorize?client_id=%d&display=page&redirect_uri=%s&scope=groups,docs,offline,photos,wall&response_type=code&v=5.103",
                     Config.APP_ID, Config.REDIRECT_URL);
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Перейдите по ссылке:\n"+url)
                             .peerId(message.getPeerId())
@@ -475,7 +475,7 @@ public class AdminPanel implements Script {
                     break;
                 case 4:
                     drawCover();
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Обложка перерисована.")
                             .peerId(message.getPeerId())
@@ -483,10 +483,10 @@ public class AdminPanel implements Script {
                             .execute();
                     break;
                 case 56:
-                    /*getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
+                    /*getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
                     attachments = getByIdResponse.getItems().get(0).getAttachments();
                     if(attachments.isEmpty()){
-                        new Messages(Config.VK)
+                        new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Отправьте файл со ссылками и нажмите \"Начать\"")
                                 .peerId(message.getPeerId())
@@ -507,16 +507,16 @@ public class AdminPanel implements Script {
                                 if(size > 48*1024*1024){
                                     File file = new File(System.currentTimeMillis()+".zip");
                                     pack(dir.getPath(), file.getPath());
-                                    UploadServer uploadServer = new Docs(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
-                                    DocUploadResponse messageUploadResponse = new Upload(Config.VK)
+                                    UploadServer uploadServer = new Docs(Config.VK()).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
+                                    DocUploadResponse messageUploadResponse = new Upload(Config.VK())
                                             .doc(uploadServer.getUploadUrl().toString(), file).execute();
-                                    SaveResponse doc = new Docs(Config.VK)
+                                    SaveResponse doc = new Docs(Config.VK())
                                             .save(Config.GROUP, messageUploadResponse.getFile())
                                             .title(FilenameUtils.getName(file.getPath())).execute();
                                     Files.deleteIfExists(file.toPath());
                                     FileUtils.deleteDirectory(dir);
                                     dir.mkdirs();
-                                    new Messages(Config.VK)
+                                    new Messages(Config.VK())
                                             .send(Config.GROUP)
                                             .attachment("doc"+doc.getDoc().getOwnerId()+"_"+doc.getDoc().getId())
                                             .peerId(message.getPeerId())
@@ -537,23 +537,23 @@ public class AdminPanel implements Script {
                         if(dir.listFiles().length < 1) break;
                         File file = new File(System.currentTimeMillis()+".zip");
                         pack(dir.getPath(), file.getPath());
-                        UploadServer uploadServer = new Docs(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
-                        DocUploadResponse messageUploadResponse = new Upload(Config.VK)
+                        UploadServer uploadServer = new Docs(Config.VK()).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
+                        DocUploadResponse messageUploadResponse = new Upload(Config.VK())
                                 .doc(uploadServer.getUploadUrl().toString(), file).execute();
-                        SaveResponse doc = new Docs(Config.VK)
+                        SaveResponse doc = new Docs(Config.VK())
                                 .save(Config.GROUP, messageUploadResponse.getFile())
                                 .title(FilenameUtils.getName(file.getPath())).execute();
                         Files.deleteIfExists(file.toPath());
                         FileUtils.deleteDirectory(dir);
                         dir.mkdirs();
-                        new Messages(Config.VK)
+                        new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .attachment("doc"+doc.getDoc().getOwnerId()+"_"+doc.getDoc().getId())
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
                     }else{
-                        new Messages(Config.VK)
+                        new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Отправьте файл со ссылками и нажмите \"Начать\"")
                                 .peerId(message.getPeerId())
@@ -571,7 +571,7 @@ public class AdminPanel implements Script {
 
     private static void drawCover(){
         try {
-            UploadServer uploadServer = new Photos(Config.VK)
+            UploadServer uploadServer = new Photos(Config.VK())
                     .getOwnerCoverPhotoUploadServer(Config.GROUP, Config.GROUP_ID)
                     .cropX(0).cropX2(1590)
                     .cropY(0).cropY2(400)
@@ -581,13 +581,13 @@ public class AdminPanel implements Script {
             Utils.applyQualityRenderingHints(g2d);
             g2d.setColor(Color.BLACK);
             g2d.fillRect(0,0,1590,400);
-            GroupFull groupFull = new Groups(Config.VK).getById(Config.GROUP).groupId(String.valueOf(Config.GROUP_ID)).execute().get(0);
+            GroupFull groupFull = new Groups(Config.VK()).getById(Config.GROUP).groupId(String.valueOf(Config.GROUP_ID)).execute().get(0);
             g2d.setColor(Color.WHITE);
             Utils.drawIntoRect(groupFull.getName(), new Rectangle(0,0,1590,400), Utils.Align.CENTER, g2d);
             File coverFile = new File("cover.png");
             ImageIO.write(coverImage, "png", coverFile);
-            OwnerCoverUploadResponse coverUploadResponse = new Upload(Config.VK).photoOwnerCover(uploadServer.getUploadUrl().toString(), coverFile).execute();
-            List<Image> images = new Photos(Config.VK).saveOwnerCoverPhoto(Config.GROUP, coverUploadResponse.getHash(), coverUploadResponse.getPhoto()).execute();
+            OwnerCoverUploadResponse coverUploadResponse = new Upload(Config.VK()).photoOwnerCover(uploadServer.getUploadUrl().toString(), coverFile).execute();
+            List<Image> images = new Photos(Config.VK()).saveOwnerCoverPhoto(Config.GROUP, coverUploadResponse.getHash(), coverUploadResponse.getPhoto()).execute();
         } catch (ApiException | ClientException | IOException e) {
             LOG.error(e);
         }

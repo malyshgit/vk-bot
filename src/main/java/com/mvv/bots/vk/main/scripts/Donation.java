@@ -64,7 +64,7 @@ public class Donation implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Описание")
                             .keyboard(keyboard)
@@ -82,7 +82,7 @@ public class Donation implements Script {
                                                     Math.abs(Config.GROUP_ID), Config.APP_ID))
                                     )
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Донат")
                             .keyboard(keyboard)

@@ -74,7 +74,7 @@ public class Authorization implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Описание")
                             .keyboard(keyboard)
@@ -112,7 +112,7 @@ public class Authorization implements Script {
                                         ).setType(KeyboardButtonActionType.TEXT)
                                                 .setLabel("Запретить доступ"))
                         ));
-                        new Messages(Config.VK)
+                        new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Авторизация")
                                 .keyboard(keyboard)
@@ -126,8 +126,8 @@ public class Authorization implements Script {
                 case 1:
                     var url = String.format("https://oauth.vk.com/authorize?client_id=%d&display=page&redirect_uri=%s&scope=groups,docs,offline,photos,wall&response_type=code&v=5.103",
                             Config.APP_ID, Config.REDIRECT_URL);
-                    var vkcc = new com.vk.api.sdk.actions.Utils(Config.VK).getShortLink(Config.GROUP, url).execute();
-                    new Messages(Config.VK)
+                    var vkcc = new com.vk.api.sdk.actions.Utils(Config.VK()).getShortLink(Config.GROUP, url).execute();
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Перейдя по ссылке Вы предоставляете доступ к Вашим группам, документам, фотографиям и записям на стене." +
                                     "\n"+vkcc.getShortUrl())
@@ -138,7 +138,7 @@ public class Authorization implements Script {
                     break;
                 case 2:
                     Users.update(message.getFromId(), "TOKEN", null);
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Доступ запрещен.")
                             .peerId(message.getPeerId())
@@ -156,7 +156,7 @@ public class Authorization implements Script {
 
     public static boolean getToken(String code){
         try {
-            var response = new OAuth(Config.VK).userAuthorizationCodeFlow(Config.APP_ID, Config.APP_SECRET, Config.REDIRECT_URL, code).execute();
+            var response = new OAuth(Config.VK()).userAuthorizationCodeFlow(Config.APP_ID, Config.APP_SECRET, Config.REDIRECT_URL, code).execute();
             if (response != null) {
                 Users.update(response.getUserId(), "TOKEN", response.getAccessToken());
                 return true;

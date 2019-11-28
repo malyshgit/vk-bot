@@ -133,7 +133,7 @@ public class Advice implements Script {
                         send(message, 0);
                         return;
                     }*/
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message(advice(false))
                             .keyboard(keyboard)
@@ -145,7 +145,7 @@ public class Advice implements Script {
                     user = Users.find(message.getFromId());
                     user.getParameters().put("adviceupdate", "true");
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка активирована.")
                             .peerId(message.getPeerId())
@@ -157,7 +157,7 @@ public class Advice implements Script {
                     user = Users.find(message.getFromId());
                     user.getParameters().put("adviceupdate", "false");
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка деактивирована.")
                             .peerId(message.getPeerId())
@@ -169,7 +169,7 @@ public class Advice implements Script {
                     user = Users.find(message.getFromId());
                     user.getParameters().put("advicecensored", "true");
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Цензура включена.")
                             .peerId(message.getPeerId())
@@ -181,7 +181,7 @@ public class Advice implements Script {
                     user = Users.find(message.getFromId());
                     user.getParameters().put("advicecensored", "false");
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Цензура выключена.")
                             .peerId(message.getPeerId())

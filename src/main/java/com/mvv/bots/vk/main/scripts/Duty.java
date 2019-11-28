@@ -55,7 +55,7 @@ public class Duty implements Script {
                 return;
             }
 
-            GetConversationMembersResponse members = new Messages(Config.VK)
+            GetConversationMembersResponse members = new Messages(Config.VK())
                     .getConversationMembers(Config.GROUP, message.getPeerId()).execute();
 
             String adds = Script.cuteKey(message.getText(), key()).trim();
@@ -64,7 +64,7 @@ public class Duty implements Script {
                 int count = Integer.valueOf(adds);
                 if(count > 1) {
                     if (members.getCount() <= count) {
-                        new Messages(Config.VK)
+                        new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Дежурят все!")
                                 .peerId(message.getPeerId())
@@ -91,7 +91,7 @@ public class Duty implements Script {
                             .append(user.getLastName())
                             .append("]\n"));
 
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message(sb.toString())
                             .peerId(message.getPeerId())
@@ -105,7 +105,7 @@ public class Duty implements Script {
 
             User user = members.getProfiles().get(aim);
 
-            new Messages(Config.VK)
+            new Messages(Config.VK())
                     .send(Config.GROUP)
                     .message("Дежурный: [id"+user.getId()+"|"+user.getFirstName()+" "+user.getLastName()+"]")
                     .peerId(message.getPeerId())

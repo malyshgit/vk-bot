@@ -108,7 +108,7 @@ public class WallParser implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Описание")
                             .keyboard(keyboard)
@@ -140,7 +140,7 @@ public class WallParser implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Начать"))
                     ));
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Отправьте ссылку на сообщество и нажмите \"Начать\"")
                             .keyboard(keyboard)
@@ -149,10 +149,10 @@ public class WallParser implements Script {
                             .execute();
                     break;
                 case 1:
-                    var getByIdResponse = new Messages(Config.VK).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
+                    var getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
                     var url = getByIdResponse.getItems().get(0).getText();
                     if(url == null || url.isEmpty()){
-                        new Messages(Config.VK)
+                        new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Отправьте ссылку на сообщество и нажмите \"Начать\"")
                                 .peerId(message.getPeerId())
@@ -160,11 +160,11 @@ public class WallParser implements Script {
                                 .execute();
                         return;
                     }
-                    parseWall(message, url);
+                    parseWallThread(message, url);
                     ScriptList.open(message);
                     break;
                 case 21:
-                    pushPhotos(message);
+                    pushPhotosThread(message);
                     ScriptList.open(message);
                     break;
                 case 22:
@@ -177,7 +177,7 @@ public class WallParser implements Script {
                     ScriptList.open(message);
                     break;
                 case 3:
-                    if(threadHashMap.containsKey(message.getFromId())) threadHashMap.get(message.getFromId()).stop();
+
                     break;
                 default:
                     break;
@@ -187,67 +187,13 @@ public class WallParser implements Script {
         }
     }
 
-    private static HashMap<Integer, WallParserThread> threadHashMap = new HashMap<>();
-
-    private static abstract class WallParserThread{
-        private Thread thread;
-        private boolean started;
-
-        WallParserThread(){
-            started = false;
-            thread = new Thread(()->{
-                run();
-                thread.interrupt();
-            });
-        }
-
-        abstract void run();
-
-        public boolean isStarted() {
-            return started;
-        }
-
-        public void start(){
-            started = true;
-            thread.start();
-        }
-
-        public void stop(){
-            started = false;
-        }
-    }
-
-    private static void parseWall(Message message, String domain) {
-        if(threadHashMap.containsKey(message.getFromId())) return;
-        WallParserThread thread = new WallParserThread() {
-            @Override
-            void run() {
-                parseWallThread(message, domain);
-                threadHashMap.remove(message.getFromId());
-            }
-        };
-        threadHashMap.put(message.getFromId(), thread);
-        thread.start();
-    }
-    private static void pushPhotos(Message message) {
-        if(threadHashMap.containsKey(message.getFromId())) return;
-        WallParserThread thread = new WallParserThread() {
-            @Override
-            void run() {
-                pushPhotosThread(message);
-                threadHashMap.remove(message.getFromId());
-            }
-        };
-        threadHashMap.put(message.getFromId(), thread);
-        thread.start();
-    }
-    private static void parseWallThread(Message message, String domain){
+    private void parseWallThread(Message message, String domain){
         try {
             int offset = 0;
             int count = 100;
             User user = Users.find(message.getFromId());
             UserActor userActor = new UserActor(message.getPeerId(), user.getToken());
-            var query = new Wall(Config.VK).get(userActor)
+            var query = new Wall(Config.VK()).get(userActor)
                     .offset(offset)
                     .count(count);
             if (domain.matches("-\\d+")) {
@@ -281,14 +227,14 @@ public class WallParser implements Script {
                                     .setLabel("Остановить"))
             ));
 
-            int mid = new Messages(Config.VK)
+            int mid = new Messages(Config.VK())
                     .send(Config.GROUP)
                     .peerId(message.getPeerId())
                     .message("Постов обработанно: 0")
                     .randomId(Utils.getRandomInt32())
                     .execute();
 
-            new Messages(Config.VK)
+            new Messages(Config.VK())
                     .send(Config.GROUP)
                     .peerId(message.getPeerId())
                     .keyboard(keyboard)
@@ -298,9 +244,8 @@ public class WallParser implements Script {
             int dt = size/10;
             int nextEdit = dt;
             while (offset < size) {
-                if(!threadHashMap.get(message.getFromId()).isStarted()) break;
                 if(offset > nextEdit){
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .edit(Config.GROUP, message.getPeerId(), mid)
                             .message("Постов обработанно: "+offset+"/"+size)
                             .execute();
@@ -338,15 +283,15 @@ public class WallParser implements Script {
                     LOG.error(e);
                 }
             }
-            new Messages(Config.VK)
+            new Messages(Config.VK())
                     .edit(Config.GROUP, message.getPeerId(), mid)
                     .message("Постов обработанно: "+Math.min(offset, size)+"/"+size)
                     .execute();
             File urls = new File(domain + ".txt");
             FileUtils.write(urls, sb.toString(), StandardCharsets.UTF_8);
-            var upload = new Docs(Config.VK).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).type(DocsType.DOC).execute();
-            var resp = new Upload(Config.VK).doc(upload.getUploadUrl(), urls).execute();
-            var save = new Docs(Config.VK).save(Config.GROUP, resp.getFile()).title(domain + ".txt").execute();
+            var upload = new Docs(Config.VK()).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).type(DocsType.DOC).execute();
+            var resp = new Upload(Config.VK()).doc(upload.getUploadUrl(), urls).execute();
+            var save = new Docs(Config.VK()).save(Config.GROUP, resp.getFile()).title(domain + ".txt").execute();
             urls.delete();
             keyboard = new Keyboard();
 
@@ -374,7 +319,7 @@ public class WallParser implements Script {
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Автозаполнение альбома"))
             ));
-            new Messages(Config.VK)
+            new Messages(Config.VK())
                     .send(Config.GROUP)
                     .attachment("doc" + save.getDoc().getOwnerId() + "_" + save.getDoc().getId())
                     .keyboard(keyboard)
@@ -385,7 +330,7 @@ public class WallParser implements Script {
             LOG.error(e);
         }
     }
-    private static void pushPhotosThread(Message message) {
+    private void pushPhotosThread(Message message) {
         try {
             var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
             String doc = payload.get("doc").getAsString();
@@ -393,7 +338,7 @@ public class WallParser implements Script {
             StringBuilder sb = new StringBuilder();
             User user = Users.find(message.getFromId());
             UserActor userActor = new UserActor(message.getFromId(), user.getToken());
-            GetAlbumsResponse response = new Photos(Config.VK).getAlbums(userActor).ownerId(message.getFromId()).execute();
+            GetAlbumsResponse response = new Photos(Config.VK()).getAlbums(userActor).ownerId(message.getFromId()).execute();
             int offset = 0;
             List<PhotoAlbumFull> albums = new ArrayList<>();
             response.getItems().forEach(a -> {
@@ -421,7 +366,7 @@ public class WallParser implements Script {
                     List<AbstractQueryBuilder> queryList = new ArrayList<>();
                     while(i < a.getSize()) {
                         if(queryList.size() >= 5){
-                            var json = new Execute(Config.VK).batch(userActor, queryList).execute();
+                            var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
                             var array = json.getAsJsonArray();
                             array.forEach(e -> {
                                 var resp = new Gson().fromJson(e, GetResponse.class);
@@ -431,7 +376,7 @@ public class WallParser implements Script {
                             });
                             queryList.clear();
                         }
-                        var batch = new Photos(Config.VK).get(userActor)
+                        var batch = new Photos(Config.VK()).get(userActor)
                                 .ownerId(a.getOwnerId())
                                 .albumId(String.valueOf(a.getId()))
                                 .offset(i)
@@ -441,7 +386,7 @@ public class WallParser implements Script {
                         i += 1000;
                     }
                     if(!queryList.isEmpty()){
-                        var json = new Execute(Config.VK).batch(userActor, queryList).execute();
+                        var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
                         var array = json.getAsJsonArray();
                         array.forEach(e -> {
                             var resp = new Gson().fromJson(e, GetResponse.class);
@@ -455,14 +400,14 @@ public class WallParser implements Script {
                     if(lastAlbum == null) lastAlbum = a;
                 }
                 if(lastAlbum == null){
-                    var albumQuery = new Photos(Config.VK)
+                    var albumQuery = new Photos(Config.VK())
                             .createAlbum(userActor, "AutoAlbum_"+albums.size())
                             .privacyView("only_me");
                     lastAlbum = albumQuery.execute();
                 }
                 offset = lastAlbum.getSize();
             }else{
-                var albumQuery = new Photos(Config.VK).createAlbum(userActor, "AutoAlbum_0")
+                var albumQuery = new Photos(Config.VK()).createAlbum(userActor, "AutoAlbum_0")
                         .privacyView("only_me");
                 lastAlbum = albumQuery.execute();
             }
@@ -475,14 +420,14 @@ public class WallParser implements Script {
             sb.append("Заполненно: ")
                     .append(captions.size()).append("\n");
 
-            new Messages(Config.VK)
+            new Messages(Config.VK())
                     .send(Config.GROUP)
                     .message(sb.toString())
                     .peerId(message.getFromId())
                     .randomId(Utils.getRandomInt32())
                     .execute();
 
-            var uploadQuery = new Photos(Config.VK)
+            var uploadQuery = new Photos(Config.VK())
                     .getUploadServer(userActor)
                     .albumId(lastAlbum.getId());
             PhotoUpload upload = uploadQuery.execute();
@@ -500,13 +445,13 @@ public class WallParser implements Script {
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Остановить"))
             ));
-            int mid = new Messages(Config.VK)
+            int mid = new Messages(Config.VK())
                     .send(Config.GROUP)
                     .message("Прогресс: null")
                     .peerId(message.getFromId())
                     .randomId(Utils.getRandomInt32())
                     .execute();
-            new Messages(Config.VK)
+            new Messages(Config.VK())
                     .send(Config.GROUP)
                     .peerId(message.getFromId())
                     .keyboard(keyboard)
@@ -517,10 +462,9 @@ public class WallParser implements Script {
             int i = 0;
             for(String line : lines) {
                 if(savesCount >= 500){
-                    threadHashMap.get(message.getFromId()).stop();
                     user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Заполнение завершенно. Следующая часть заполнится через 2 часа.")
                             .peerId(message.getFromId())
@@ -528,10 +472,9 @@ public class WallParser implements Script {
                             .execute();
                     break;
                 }
-                if(!threadHashMap.get(message.getFromId()).isStarted()) break;
                 i++;
                 if(i > 50){
-                    new Messages(Config.VK)
+                    new Messages(Config.VK())
                             .edit(Config.GROUP, message.getFromId(), mid)
                             .message("Прогресс: "+savesCount+"/"+500)
                             .execute();
@@ -548,10 +491,10 @@ public class WallParser implements Script {
                 if(captions.contains(caption)) continue;
                 long startTime = System.currentTimeMillis();
                 if(offset >= 10000){
-                    var albumQuery = new Photos(Config.VK).createAlbum(userActor, "AutoAlbum_"+autoAlbumCount)
+                    var albumQuery = new Photos(Config.VK()).createAlbum(userActor, "AutoAlbum_"+autoAlbumCount)
                             .privacyView("only_me");
                     lastAlbum = albumQuery.execute();
-                    uploadQuery = new Photos(Config.VK)
+                    uploadQuery = new Photos(Config.VK())
                             .getUploadServer(userActor)
                             .albumId(lastAlbum.getId());
                     upload = uploadQuery.execute();
@@ -563,9 +506,9 @@ public class WallParser implements Script {
                 var code = connection.getResponseCode();
                 if(code != 200) continue;
                 FileUtils.copyURLToFile(url, img);
-                PhotoUploadResponse uplresponse = new Upload(Config.VK).photo(upload.getUploadUrl(), img).execute();
+                PhotoUploadResponse uplresponse = new Upload(Config.VK()).photo(upload.getUploadUrl(), img).execute();
                 List<Photo> photos = null;
-                var saveQuery = new Photos(Config.VK).save(userActor)
+                var saveQuery = new Photos(Config.VK()).save(userActor)
                         .albumId(uplresponse.getAid())
                         .hash(uplresponse.getHash())
                         .photosList(uplresponse.getPhotosList())
@@ -582,13 +525,13 @@ public class WallParser implements Script {
                     Thread.sleep(deltaTime);
                 }
             }
-            new Messages(Config.VK)
+            new Messages(Config.VK())
                     .edit(Config.GROUP, message.getFromId(), mid)
                     .message("Прогресс: "+savesCount+"/"+1000)
                     .execute();
         } catch (ApiException | ClientException | InterruptedException | IOException e) {
             try {
-                new Messages(Config.VK)
+                new Messages(Config.VK())
                         .send(Config.GROUP)
                         .message("Заполнение остановленно с ошибкой.\n"+e.getMessage())
                         .peerId(message.getFromId())
