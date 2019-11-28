@@ -177,7 +177,7 @@ public class WallParser implements Script {
                     ScriptList.open(message);
                     break;
                 case 3:
-
+                    if(threadHashMap.containsKey(message.getFromId())) threadHashMap.get(message.getFromId()).stop();
                     break;
                 default:
                     break;
@@ -187,7 +187,61 @@ public class WallParser implements Script {
         }
     }
 
-    private void parseWallThread(Message message, String domain){
+    private static HashMap<Integer, WallParserThread> threadHashMap = new HashMap<>();
+
+    private static abstract class WallParserThread{
+        private Thread thread;
+        private boolean started;
+
+        WallParserThread(){
+            started = false;
+            thread = new Thread(()->{
+                run();
+                thread.interrupt();
+            });
+        }
+
+        abstract void run();
+
+        public boolean isStarted() {
+            return started;
+        }
+
+        public void start(){
+            started = true;
+            thread.start();
+        }
+
+        public void stop(){
+            started = false;
+        }
+    }
+
+    private static void parseWall(Message message, String domain) {
+        if(threadHashMap.containsKey(message.getFromId())) return;
+        WallParserThread thread = new WallParserThread() {
+            @Override
+            void run() {
+                parseWallThread(message, domain);
+                threadHashMap.remove(message.getFromId());
+            }
+        };
+        threadHashMap.put(message.getFromId(), thread);
+        thread.start();
+    }
+    private static void pushPhotos(Message message) {
+        if(threadHashMap.containsKey(message.getFromId())) return;
+        WallParserThread thread = new WallParserThread() {
+            @Override
+            void run() {
+                pushPhotosThread(message);
+                threadHashMap.remove(message.getFromId());
+            }
+        };
+        threadHashMap.put(message.getFromId(), thread);
+        thread.start();
+    }
+    private static void parseWallThread(Message message, String domain){
         try {
             int offset = 0;
             int count = 100;
@@ -244,6 +298,7 @@ public class WallParser implements Script {
             int dt = size/10;
             int nextEdit = dt;
             while (offset < size) {
+                if(!threadHashMap.get(message.getFromId()).isStarted()) break;
                 if(offset > nextEdit){
                     new Messages(Config.VK())
                             .edit(Config.GROUP, message.getPeerId(), mid)
@@ -330,7 +385,7 @@ public class WallParser implements Script {
             LOG.error(e);
         }
     }
-    private void pushPhotosThread(Message message) {
+    private static void pushPhotosThread(Message message) {
         try {
             var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
             String doc = payload.get("doc").getAsString();
@@ -462,6 +517,7 @@ public class WallParser implements Script {
             int i = 0;
             for(String line : lines) {
                 if(savesCount >= 500){
+                    threadHashMap.get(message.getFromId()).stop();
                     user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
                     Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
@@ -472,6 +528,7 @@ public class WallParser implements Script {
                             .execute();
                     break;
                 }
+                if(!threadHashMap.get(message.getFromId()).isStarted()) break;
                 i++;
                 if(i > 50){
                     new Messages(Config.VK())
