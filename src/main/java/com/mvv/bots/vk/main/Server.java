@@ -123,7 +123,6 @@ public class Server {
 
                     @Override
                     public void messageNew(Integer groupId, MessageWithClientInfo messageWithClientInfo) {
-                        LOG.debug(messageWithClientInfo.getClientInfo());
                         Message message = messageWithClientInfo.getMessage();
                         if(groupId != Config.GROUP_ID){
                             LOG.warn("Не совпадает группа: "+groupId);
