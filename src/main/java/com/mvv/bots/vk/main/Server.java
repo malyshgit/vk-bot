@@ -15,6 +15,7 @@ import com.vk.api.sdk.actions.OAuth;
 import com.vk.api.sdk.callback.CallbackApi;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
+import com.vk.api.sdk.objects.callback.messages.MessageWithClientInfo;
 import com.vk.api.sdk.objects.messages.Message;
 import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.main.scripts.ScriptList;
@@ -121,7 +122,9 @@ public class Server {
                     }
 
                     @Override
-                    public void messageNew(Integer groupId, Message message) {
+                    public void messageNew(Integer groupId, MessageWithClientInfo messageWithClientInfo) {
+                        LOG.debug(messageWithClientInfo.getClientInfo());
+                        Message message = messageWithClientInfo.getMessage();
                         if(groupId != Config.GROUP_ID){
                             LOG.warn("Не совпадает группа: "+groupId);
                             return;
