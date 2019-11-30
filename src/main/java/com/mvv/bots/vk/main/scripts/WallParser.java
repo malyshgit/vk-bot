@@ -73,15 +73,13 @@ public class WallParser implements Script {
                 var date = options.get("date").getAsLong();
                 var dt = System.currentTimeMillis() - date;
                 if(dt >= DateUtils.MILLIS_PER_HOUR*2){
-                    user.getParameters().remove("wallparsernextpush");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     Message message = new Message();
                     message.setFromId(user.getId());
                     message.setPeerId(user.getId());
                     message.setPayload("{\"script\":\"" + WallParser.class.getName() + "\"," +
-                            "\"step\":" + 21 + "," +
+                            "\"step\":" + 2 + "," +
                             "\"doc\":\"" + doc + "\"}");
-                    send(message, 21);
+                    send(message, 2);
                 }
             }
         });
@@ -163,17 +161,8 @@ public class WallParser implements Script {
                     parseWall(message, url);
                     ScriptList.open(message);
                     break;
-                case 21:
+                case 2:
                     pushPhotos(message);
-                    ScriptList.open(message);
-                    break;
-                case 22:
-                    var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
-                    String doc = payload.get("doc").getAsString();
-                    user = Users.find(message.getFromId());
-                    user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\"," +
-                            " \"date\":"+(System.currentTimeMillis()-(DateUtils.MILLIS_PER_HOUR*2))+"}");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     ScriptList.open(message);
                     break;
                 case 3:
@@ -359,20 +348,10 @@ public class WallParser implements Script {
                             .setColor(KeyboardButtonColor.DEFAULT)
                             .setAction(new KeyboardButtonAction().setPayload(
                                     "{\"script\":\"" + WallParser.class.getName() + "\"," +
-                                            "\"step\":" + 21 + "," +
+                                            "\"step\":" + 2 + "," +
                                             "\"doc\":\"" + save.getDoc().getUrl() + "\"}"
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Заполнить альбом сейчас"))
-            ));
-            buttons.add(List.of(
-                    new KeyboardButton()
-                            .setColor(KeyboardButtonColor.DEFAULT)
-                            .setAction(new KeyboardButtonAction().setPayload(
-                                    "{\"script\":\"" + WallParser.class.getName() + "\"," +
-                                            "\"step\":" + 22 + "," +
-                                            "\"doc\":\"" + save.getDoc().getUrl() + "\"}"
-                            ).setType(KeyboardButtonActionType.TEXT)
-                                    .setLabel("Автозаполнение альбома"))
             ));
             new Messages(Config.VK())
                     .send(Config.GROUP)
@@ -393,6 +372,10 @@ public class WallParser implements Script {
             StringBuilder sb = new StringBuilder();
             User user = Users.find(message.getFromId());
             UserActor userActor = new UserActor(message.getFromId(), user.getToken());
+
+            user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
+            Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+
             GetAlbumsResponse response = new Photos(Config.VK()).getAlbums(userActor).ownerId(message.getFromId()).execute();
             int offset = 0;
             List<PhotoAlbumFull> albums = new ArrayList<>();
@@ -518,8 +501,6 @@ public class WallParser implements Script {
             for(String line : lines) {
                 if(savesCount >= 500){
                     threadHashMap.get(message.getFromId()).stop();
-                    user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Заполнение завершенно. Следующая часть заполнится через 2 часа.")
