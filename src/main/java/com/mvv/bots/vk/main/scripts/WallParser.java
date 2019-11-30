@@ -514,7 +514,7 @@ public class WallParser implements Script {
                     .randomId(Utils.getRandomInt32())
                     .execute();
             int savesCount = 0;
-            int i = 0;
+            int nextProgress = 50;
             for(String line : lines) {
                 if(savesCount >= 500){
                     threadHashMap.get(message.getFromId()).stop();
@@ -529,13 +529,12 @@ public class WallParser implements Script {
                     break;
                 }
                 if(!threadHashMap.get(message.getFromId()).isStarted()) break;
-                i++;
-                if(i > 50){
+                if(savesCount >= nextProgress){
                     new Messages(Config.VK())
                             .edit(Config.GROUP, message.getFromId(), mid)
                             .message("Прогресс: "+savesCount+"/"+500)
                             .execute();
-                    i = 0;
+                    nextProgress += 50;
                 }
                 String[] lineParts = line.split("_");
                 String owner = lineParts[0];
@@ -588,6 +587,14 @@ public class WallParser implements Script {
                     .edit(Config.GROUP, message.getFromId(), mid)
                     .message("Прогресс: "+savesCount+"/"+500)
                     .execute();
+            if(lines.size() == (captions.size()+savesCount)){
+                user.getParameters().remove("wallparsernextpush");
+                Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                new Messages(Config.VK())
+                        .edit(Config.GROUP, message.getFromId(), mid)
+                        .message("Заполненно.")
+                        .execute();
+            }
         } catch (ApiException | ClientException | InterruptedException | IOException e) {
             try {
                 new Messages(Config.VK())
