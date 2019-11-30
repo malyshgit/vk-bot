@@ -217,7 +217,7 @@ public class WallParser implements Script {
         }
     }
 
-    private void parseWall(Message message, String domain) {
+    private static void parseWall(Message message, String domain) {
         if(threadHashMap.containsKey(message.getFromId())) return;
         WallParserThread thread = new WallParserThread() {
             @Override
@@ -229,7 +229,7 @@ public class WallParser implements Script {
         threadHashMap.put(message.getFromId(), thread);
         thread.start();
     }
-    private void pushPhotos(Message message) {
+    private static void pushPhotos(Message message) {
         if(threadHashMap.containsKey(message.getFromId())) return;
         WallParserThread thread = new WallParserThread() {
             @Override
@@ -241,7 +241,7 @@ public class WallParser implements Script {
         threadHashMap.put(message.getFromId(), thread);
         thread.start();
     }
-    private void parseWallThread(Message message, String domain){
+    private static void parseWallThread(Message message, String domain){
         try {
             int offset = 0;
             int count = 100;
@@ -385,7 +385,7 @@ public class WallParser implements Script {
             LOG.error(e);
         }
     }
-    private void pushPhotosThread(Message message) {
+    private static void pushPhotosThread(Message message) {
         try {
             var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
             String doc = payload.get("doc").getAsString();
