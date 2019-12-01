@@ -312,8 +312,6 @@ public class WallParser implements Script {
                                         .append("_")
                                         .append(photo.getId())
                                         .append("_")
-                                        .append(photo.getId())
-                                        .append("_")
                                         .append(src)
                                         .append("\n");
                             }
