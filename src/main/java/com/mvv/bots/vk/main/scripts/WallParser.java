@@ -41,6 +41,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Time;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class WallParser implements Script {
 
@@ -498,6 +499,7 @@ public class WallParser implements Script {
                     .execute();
             int savesCount = 0;
             int nextProgress = 50;
+            int skipCount = 0;
             for(String line : lines) {
                 if(savesCount >= 500){
                     threadHashMap.get(message.getFromId()).stop();
@@ -525,7 +527,11 @@ public class WallParser implements Script {
 
                 String caption = owner+"_"+album+"_"+id;
 
-                if(captions.contains(caption)) continue;
+                if(captions.contains(caption)){
+                    skipCount++;
+                    LOG.debug("Skip photo: "+line);
+                    continue;
+                }
                 long startTime = System.currentTimeMillis();
                 if(offset >= 10000){
                     var albumQuery = new Photos(Config.VK()).createAlbum(userActor, "AutoAlbum_"+autoAlbumCount)
@@ -537,14 +543,19 @@ public class WallParser implements Script {
                     upload = uploadQuery.execute();
                     offset = 0;
                 }
-                File img = new File(message.getPeerId()+".jpg");
                 var url = new URL(src);
                 HttpURLConnection connection = (HttpURLConnection)url.openConnection();
                 var code = connection.getResponseCode();
-                if(code != 200) continue;
-                FileUtils.copyURLToFile(url, img);
+                if(code != 200){
+                    skipCount++;
+                    LOG.debug("Response code: "+code+", photo: "+line);
+                    connection.disconnect();
+                    continue;
+                }
+                File img = new File(message.getPeerId()+".jpg");
+                FileUtils.copyURLToFile(connection.getURL(), img);
+                connection.disconnect();
                 PhotoUploadResponse uplresponse = new Upload(Config.VK()).photo(upload.getUploadUrl(), img).execute();
-                List<Photo> photos = null;
                 var saveQuery = new Photos(Config.VK()).save(userActor)
                         .albumId(uplresponse.getAid())
                         .hash(uplresponse.getHash())
@@ -576,6 +587,7 @@ public class WallParser implements Script {
                         .message("Заполненно.")
                         .execute();
             }
+            LOG.debug("Skip count: "+skipCount);
         } catch (ApiException | ClientException | InterruptedException | IOException e) {
             try {
                 new Messages(Config.VK())
