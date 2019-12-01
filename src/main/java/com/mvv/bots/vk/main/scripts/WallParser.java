@@ -308,7 +308,9 @@ public class WallParser implements Script {
                                 String src = maxSize.getUrl();
                                 sb.append(photo.getOwnerId())
                                         .append("_")
-                                        .append(photo.getAlbumId())
+                                        .append(photo.getPostId())
+                                        .append("_")
+                                        .append(photo.getId())
                                         .append("_")
                                         .append(photo.getId())
                                         .append("_")
@@ -521,11 +523,11 @@ public class WallParser implements Script {
                 }
                 String[] lineParts = line.split("_");
                 String owner = lineParts[0];
-                String album = lineParts[1];
+                String post = lineParts[1];
                 String id = lineParts[2];
                 String src = lineParts[3];
 
-                String caption = owner+"_"+album+"_"+id;
+                String caption = owner+"_"+post+"_"+id;
 
                 if(captions.contains(caption)){
                     skipCount++;
@@ -545,6 +547,9 @@ public class WallParser implements Script {
                 }
                 var url = new URL(src);
                 HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(15000);
+                connection.setRequestProperty("User-Agent","User-Agent: Mozilla/5.0 (Windows NT 6.1; rv:7.0.1) Gecko/20100101 Firefox/7.0.1");
                 var code = connection.getResponseCode();
                 if(code != 200){
                     skipCount++;
