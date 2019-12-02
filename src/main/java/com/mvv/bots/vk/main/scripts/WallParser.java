@@ -73,7 +73,7 @@ public class WallParser implements Script {
                 var doc = options.get("doc").getAsString();
                 var date = options.get("date").getAsLong();
                 var dt = System.currentTimeMillis() - date;
-                if(dt >= DateUtils.MILLIS_PER_HOUR*2){
+                if(dt >= DateUtils.MILLIS_PER_HOUR){
                     Message message = new Message();
                     message.setFromId(user.getId());
                     message.setPeerId(user.getId());
