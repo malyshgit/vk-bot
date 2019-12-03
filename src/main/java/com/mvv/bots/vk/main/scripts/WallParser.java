@@ -312,11 +312,11 @@ public class WallParser implements Script {
                                     )
                                     .map(Image::getUrl).collect(Collectors.joining(","));
                             sb.append(photo.getOwnerId())
-                                    .append("_")
+                                    .append(" ")
                                     .append(post.getId())
-                                    .append("_")
+                                    .append(" ")
                                     .append(photo.getId())
-                                    .append("_")
+                                    .append(" ")
                                     .append(sizes)
                                     .append("\n");
                         }
@@ -523,7 +523,7 @@ public class WallParser implements Script {
                             .execute();
                     nextProgress += 50;
                 }
-                String[] lineParts = line.split("_");
+                String[] lineParts = line.split(" ");
                 String owner = lineParts[0];
                 String post = lineParts[1];
                 String id = lineParts[2];
