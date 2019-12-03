@@ -557,6 +557,7 @@ public class WallParser implements Script {
                         connection.disconnect();
                         continue;
                     }
+                    LOG.debug(line);
                     LOG.debug(src);
                     break;
                 }
