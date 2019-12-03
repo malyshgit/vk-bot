@@ -22,6 +22,7 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.enums.DocsType;
 import com.vk.api.sdk.objects.messages.*;
+import com.vk.api.sdk.objects.photos.Image;
 import com.vk.api.sdk.objects.photos.Photo;
 import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
 import com.vk.api.sdk.objects.photos.PhotoUpload;
@@ -73,7 +74,7 @@ public class WallParser implements Script {
                 var doc = options.get("doc").getAsString();
                 var date = options.get("date").getAsLong();
                 var dt = System.currentTimeMillis() - date;
-                if(dt >= DateUtils.MILLIS_PER_HOUR){
+                if(dt >= DateUtils.MILLIS_PER_HOUR*2){
                     Message message = new Message();
                     message.setFromId(user.getId());
                     message.setPeerId(user.getId());
@@ -301,20 +302,23 @@ public class WallParser implements Script {
                     post.getAttachments().forEach(attachment -> {
                         if (attachment.getType().equals(WallpostAttachmentType.PHOTO)) {
                             Photo photo = attachment.getPhoto();
-                            var pres = photo.getSizes().stream()
-                                    .max(Comparator.comparingInt(o -> o.getWidth() * o.getHeight()));
-                            if (pres.isPresent()) {
-                                var maxSize = pres.get();
-                                String src = maxSize.getUrl();
-                                sb.append(photo.getOwnerId())
-                                        .append("_")
-                                        .append(photo.getPostId())
-                                        .append("_")
-                                        .append(photo.getId())
-                                        .append("_")
-                                        .append(src)
-                                        .append("\n");
-                            }
+                            String sizes = photo.getSizes()
+                                    .stream()
+                                    .sorted((o1, o2) ->
+                                            Integer.compare(
+                                                    o2.getWidth()*o2.getHeight(),
+                                                    o1.getWidth()*o1.getHeight()
+                                            )
+                                    )
+                                    .map(Image::getUrl).collect(Collectors.joining(","));
+                            sb.append(photo.getOwnerId())
+                                    .append("_")
+                                    .append(post.getId())
+                                    .append("_")
+                                    .append(photo.getId())
+                                    .append("_")
+                                    .append(sizes)
+                                    .append("\n");
                         }
                     });
                 });
@@ -486,7 +490,7 @@ public class WallParser implements Script {
             ));
             int mid = new Messages(Config.VK())
                     .send(Config.GROUP)
-                    .message("Прогресс: null")
+                    .message("Прогресс: 0")
                     .peerId(message.getFromId())
                     .randomId(Utils.getRandomInt32())
                     .execute();
@@ -505,7 +509,7 @@ public class WallParser implements Script {
                     threadHashMap.get(message.getFromId()).stop();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message("Заполнение завершенно. Следующая часть заполнится через 2 часа.")
+                            .message("Заполнение завершенно. Следующая часть заполнится через час.")
                             .peerId(message.getFromId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
@@ -523,12 +527,12 @@ public class WallParser implements Script {
                 String owner = lineParts[0];
                 String post = lineParts[1];
                 String id = lineParts[2];
-                String src = lineParts[3];
+                String sizesString = lineParts[3];
+                String[] sizesArray = sizesString.split(",");
 
                 String caption = owner+"_"+post+"_"+id;
 
                 if(captions.contains(caption)){
-                    skipCount++;
                     LOG.debug("Skip photo: "+line);
                     continue;
                 }
@@ -543,16 +547,20 @@ public class WallParser implements Script {
                     upload = uploadQuery.execute();
                     offset = 0;
                 }
-                var url = new URL(src);
-                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-                connection.setConnectTimeout(15000);
-                connection.setReadTimeout(15000);
-                connection.setRequestProperty("User-Agent","User-Agent: Mozilla/5.0 (Windows NT 6.1; rv:7.0.1) Gecko/20100101 Firefox/7.0.1");
-                var code = connection.getResponseCode();
-                if(code != 200){
+                HttpURLConnection connection = null;
+                for(String src : sizesArray) {
+                    var url = new URL(src);
+                    connection = (HttpURLConnection) url.openConnection();
+                    var code = connection.getResponseCode();
+                    if (code != 200) {
+                        LOG.debug("Response code: " + code + ", photo: " + line);
+                        connection.disconnect();
+                        continue;
+                    }
+                    break;
+                }
+                if(connection == null){
                     skipCount++;
-                    LOG.debug("Response code: "+code+", photo: "+line);
-                    connection.disconnect();
                     continue;
                 }
                 File img = new File(message.getPeerId()+".jpg");
@@ -576,18 +584,19 @@ public class WallParser implements Script {
                     Thread.sleep(deltaTime);
                 }
             }
-            user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
-            Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-            new Messages(Config.VK())
-                    .edit(Config.GROUP, message.getFromId(), mid)
-                    .message("Прогресс: "+savesCount+"/"+500)
-                    .execute();
-            if(lines.size() == (captions.size()+savesCount)){
+            if(lines.size() <= (captions.size()+savesCount+skipCount)){
                 user.getParameters().remove("wallparsernextpush");
                 Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                 new Messages(Config.VK())
                         .edit(Config.GROUP, message.getFromId(), mid)
                         .message("Заполненно.")
+                        .execute();
+            }else{
+                user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
+                Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                new Messages(Config.VK())
+                        .edit(Config.GROUP, message.getFromId(), mid)
+                        .message("Заполненно: "+savesCount)
                         .execute();
             }
             LOG.debug("Skip count: "+skipCount);
