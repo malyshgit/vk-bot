@@ -31,6 +31,7 @@ import com.vk.api.sdk.objects.photos.responses.GetResponse;
 import com.vk.api.sdk.objects.photos.responses.PhotoUploadResponse;
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
@@ -71,16 +72,19 @@ public class WallParser implements Script {
         Users.findAll().forEach(user -> {
             if(user.getParameters().has("wallparsernextpush")){
                 var options = new JsonParser().parse(user.getParameters().get("wallparsernextpush")).getAsJsonObject();
-                var doc = options.get("doc").getAsString();
+                var docUrl = options.get("docUrl").getAsString();
+                var publicName = options.get("publicName").getAsString();
                 var date = options.get("date").getAsLong();
                 var dt = System.currentTimeMillis() - date;
                 if(dt >= DateUtils.MILLIS_PER_HOUR){
                     Message message = new Message();
                     message.setFromId(user.getId());
                     message.setPeerId(user.getId());
-                    message.setPayload("{\"script\":\"" + WallParser.class.getName() + "\"," +
-                            "\"step\":" + 2 + "," +
-                            "\"doc\":\"" + doc + "\"}");
+                    message.setPayload(
+                            "{\"docUrl\":\"" + docUrl + "\"," +
+                                    " \"publicName\":\"" + publicName + "\"," +
+                                    " \"date\":"+System.currentTimeMillis()+"}"
+                    );
                     send(message, 2);
                 }
             }
@@ -354,7 +358,8 @@ public class WallParser implements Script {
                             .setAction(new KeyboardButtonAction().setPayload(
                                     "{\"script\":\"" + WallParser.class.getName() + "\"," +
                                             "\"step\":" + 2 + "," +
-                                            "\"doc\":\"" + save.getDoc().getUrl() + "\"}"
+                                            "\"publicName\":\"" + domain + "\"," +
+                                            "\"docUrl\":\"" + save.getDoc().getUrl() + "\"}"
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Заполнить альбом сейчас"))
             ));
@@ -372,28 +377,28 @@ public class WallParser implements Script {
     private static void pushPhotosThread(Message message) {
         try {
             var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
-            String doc = payload.get("doc").getAsString();
-            List<String> lines = IOUtils.readLines(new URL(doc).openStream(), StandardCharsets.UTF_8);
+            String docUrl = payload.get("docUrl").getAsString();
+            String publicName = payload.get("publicName").getAsString();
+            List<String> lines = IOUtils.readLines(new URL(docUrl).openStream(), StandardCharsets.UTF_8);
             StringBuilder sb = new StringBuilder();
             User user = Users.find(message.getFromId());
             UserActor userActor = new UserActor(message.getFromId(), user.getToken());
 
-            user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
+            user.getParameters().put("wallparsernextpush",
+                    "{\"docUrl\":\"" + docUrl + "\"," +
+                            " \"publicName\":\"" + publicName + "\"," +
+                            " \"date\":"+System.currentTimeMillis()+"}");
             Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
 
             GetAlbumsResponse response = new Photos(Config.VK()).getAlbums(userActor).ownerId(message.getFromId()).execute();
             int offset = 0;
             List<PhotoAlbumFull> albums = new ArrayList<>();
             response.getItems().forEach(a -> {
-                if(a.getTitle().startsWith("AutoAlbum_")){
+                if(a.getTitle().startsWith(publicName)){
                     albums.add(a);
                 }
             });
-            albums.sort((o1, o2) -> {
-                int s1 = Integer.parseInt(o1.getTitle().replace("AutoAlbum_", ""));
-                int s2 = Integer.parseInt(o2.getTitle().replace("AutoAlbum_", ""));
-                return Integer.compare(s1, s2);
-            });
+            albums.sort(Comparator.comparingInt(PhotoAlbumFull::getSize));
             if(!albums.isEmpty()) sb.append("Альбомы:\n")
                     .append(albums.stream().map(a -> a.getTitle()+"("+a.getSize()+")")
                             .collect(Collectors.joining("\n")))
@@ -444,18 +449,16 @@ public class WallParser implements Script {
                 }
                 if(lastAlbum == null){
                     var albumQuery = new Photos(Config.VK())
-                            .createAlbum(userActor, "AutoAlbum_"+albums.size())
+                            .createAlbum(userActor, publicName)
                             .privacyView("only_me");
                     lastAlbum = albumQuery.execute();
                 }
                 offset = lastAlbum.getSize();
             }else{
-                var albumQuery = new Photos(Config.VK()).createAlbum(userActor, "AutoAlbum_0")
+                var albumQuery = new Photos(Config.VK()).createAlbum(userActor, publicName)
                         .privacyView("only_me");
                 lastAlbum = albumQuery.execute();
             }
-            int autoAlbumCount = Integer.parseInt(lastAlbum.getTitle().replace("AutoAlbum_", ""))+1;
-
             sb.append("Текущий альбом: ")
                     .append(lastAlbum.getTitle()).append("\n");
             sb.append("Ссылок: ")
@@ -538,7 +541,7 @@ public class WallParser implements Script {
                 }
                 long startTime = System.currentTimeMillis();
                 if(offset >= 10000){
-                    var albumQuery = new Photos(Config.VK()).createAlbum(userActor, "AutoAlbum_"+autoAlbumCount)
+                    var albumQuery = new Photos(Config.VK()).createAlbum(userActor, publicName)
                             .privacyView("only_me");
                     lastAlbum = albumQuery.execute();
                     uploadQuery = new Photos(Config.VK())
@@ -592,7 +595,10 @@ public class WallParser implements Script {
                         .message("Заполненно.")
                         .execute();
             }else{
-                user.getParameters().put("wallparsernextpush", "{\"doc\":\"" + doc + "\", \"date\":"+System.currentTimeMillis()+"}");
+                user.getParameters().put("wallparsernextpush",
+                        "{\"docUrl\":\"" + docUrl + "\"," +
+                                " \"publicName\":\"" + publicName + "\"," +
+                                " \"date\":"+System.currentTimeMillis()+"}");
                 Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                 new Messages(Config.VK())
                         .edit(Config.GROUP, message.getFromId(), mid)
