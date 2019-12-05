@@ -40,7 +40,7 @@ public class Duty implements Script {
 
     @Override
     public AccessMode accessMode() {
-        return AccessMode.CONVERSATION;
+        return AccessMode.USER;
     }
 
     @Override

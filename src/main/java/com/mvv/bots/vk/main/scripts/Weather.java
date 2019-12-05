@@ -45,7 +45,7 @@ public class Weather implements Script {
 
     @Override
     public AccessMode accessMode() {
-        return AccessMode.FORALL;
+        return AccessMode.USER;
     }
 
     @Override

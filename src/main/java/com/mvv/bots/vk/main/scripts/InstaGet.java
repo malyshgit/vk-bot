@@ -56,7 +56,7 @@ public class InstaGet implements Script {
 
     @Override
     public AccessMode accessMode() {
-        return AccessMode.FORALL;
+        return AccessMode.USER;
     }
 
     @Override

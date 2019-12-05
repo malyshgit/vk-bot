@@ -3,9 +3,7 @@ package com.mvv.bots.vk.main;
 public enum AccessMode {
 
     ADMIN,
-    USER,
-    CONVERSATION,
-    FORALL;
+    USER
 /*
     private final Integer value;
 

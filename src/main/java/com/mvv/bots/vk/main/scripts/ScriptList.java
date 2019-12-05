@@ -38,7 +38,7 @@ public class ScriptList implements Script {
 
     @Override
     public AccessMode accessMode() {
-        return AccessMode.FORALL;
+        return AccessMode.USER;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class ScriptList implements Script {
 
             int peerId = message.getPeerId();
             if(message.getPeerId() >= 2000000000){
-                StringBuffer sb = new StringBuffer();
+                /*StringBuffer sb = new StringBuffer();
                 for (Script script : Config.SCRIPTS) {
                     if (script.accessMode().equals(AccessMode.CONVERSATION) || script.accessMode().equals(AccessMode.FORALL)) {
                         sb.append(script.description() + "\n");
@@ -68,12 +68,12 @@ public class ScriptList implements Script {
                         .message(sb.toString())
                         .peerId(peerId)
                         .randomId(Utils.getRandomInt32())
-                        .execute();
+                        .execute();*/
             }else{
                 List<KeyboardButton> row = new ArrayList<>();
                 if(Config.SCRIPTS.size() <= 20){
                     for (Script script : Config.SCRIPTS) {
-                        if (script.accessMode().equals(AccessMode.USER) || script.accessMode().equals(AccessMode.FORALL) || (message.getPeerId().equals(Config.ADMIN_ID) && script.accessMode().equals(AccessMode.ADMIN))) {
+                        if (script.accessMode().equals(AccessMode.USER) || (message.getPeerId().equals(Config.ADMIN_ID) && script.accessMode().equals(AccessMode.ADMIN))) {
                             row.add(new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
@@ -103,7 +103,7 @@ public class ScriptList implements Script {
                         list = Config.SCRIPTS.subList(firstIndex, lastIndex);
 
                         for (Script script : list) {
-                            if (script.accessMode().equals(AccessMode.USER) || script.accessMode().equals(AccessMode.FORALL) || (message.getPeerId().equals(Config.ADMIN_ID) && script.accessMode().equals(AccessMode.ADMIN))) {
+                            if (script.accessMode().equals(AccessMode.USER) || (message.getPeerId().equals(Config.ADMIN_ID) && script.accessMode().equals(AccessMode.ADMIN))) {
                                 row.add(new KeyboardButton()
                                         .setColor(KeyboardButtonColor.PRIMARY)
                                         .setAction(new KeyboardButtonAction().setPayload(
