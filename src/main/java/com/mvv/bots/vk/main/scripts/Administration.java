@@ -458,7 +458,7 @@ public class Administration implements Script {
                     autopostingTasks = Settings.find("autopostingtasks");
                     tasks = new JsonParser().parse(autopostingTasks.getValue()).getAsJsonArray();
                     tasks.add(task);
-                    Settings.update(autopostingTasks);
+                    Settings.update(new Option("autopostingtasks", tasks.toString()));
                     break;
                 default:
                     break;
