@@ -5,6 +5,9 @@
  */
 package com.mvv.bots.vk.main.scripts;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.database.tables.settings.Option;
 import com.mvv.bots.vk.database.tables.settings.Settings;
@@ -13,10 +16,8 @@ import com.mvv.bots.vk.database.tables.users.Users;
 import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
-import com.vk.api.sdk.actions.Groups;
-import com.vk.api.sdk.actions.Messages;
-import com.vk.api.sdk.actions.Photos;
-import com.vk.api.sdk.actions.Upload;
+import com.vk.api.sdk.actions.*;
+import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.base.Image;
@@ -63,7 +64,66 @@ public class Administration implements Script {
 
     @Override
     public void update() {
-        return;
+        Option autoposting = Settings.find("autoposting");
+        if(autoposting == null) return;
+        if (!Boolean.parseBoolean(autoposting.getValue())) return;
+        var autopostingTasks = Settings.find("autopostingtasks");
+        if(autopostingTasks == null) return;
+        JsonArray tasks = new JsonParser().parse(autopostingTasks.getValue()).getAsJsonArray();
+        tasks.forEach(taskElement -> {
+            var task = taskElement.getAsJsonObject();
+            String name = task.get("name").getAsString();
+            int count = task.get("count").getAsInt();
+            String url = task.get("albumurl").getAsString();
+            if (url.startsWith("http") || url.startsWith("vk.com")) {
+                url = url.replace("https://vk.com/", "");
+                url = url.replace("http://vk.com/", "");
+                url = url.replace("vk.com/", "");
+            }
+            if(url.startsWith("album")) url = url.replace("album", "");
+            String[] urlParts = url.split("_");
+            int ownerId = Integer.parseInt(urlParts[0]);
+            int albumId = Integer.parseInt(urlParts[1]);
+            int offset = 0;
+            if(task.has("offset")){
+                offset = task.get("offset").getAsInt();
+            }
+            User user = Users.find(Config.ADMIN_ID);
+            UserActor admin = new UserActor(Config.ADMIN_ID, user.getToken());
+            try {
+                var size = new Photos(Config.VK()).get(admin)
+                        .albumId(urlParts[1])
+                        .ownerId(ownerId)
+                        .count(1)
+                        .offset(0)
+                        .execute().getCount();
+                if(offset+1 >= size) return;
+                var res = new Photos(Config.VK()).get(admin)
+                        .albumId(urlParts[1])
+                        .ownerId(ownerId)
+                        .count(count)
+                        .offset(offset)
+                        .photoSizes(true)
+                        .execute();
+                var attaches = res.getItems().stream().map(p -> {
+                    /*if(p.getOwnerId() != user.getId()){
+                        return "photo"+p.getOwnerId()+"_"+p.getId()+"_"+p.getAccessKey();
+                    }else{
+                        return "photo"+p.getOwnerId()+"_"+p.getId();
+                    }*/
+                    return "photo"+p.getOwnerId()+"_"+p.getId();
+                }).collect(Collectors.joining(","));
+                new Wall(Config.VK()).post(admin)
+                        .ownerId(Config.GROUP_ID)
+                        .attachments(attaches)
+                        .fromGroup(true)
+                        .execute();
+                task.addProperty("offset", offset+count);
+                Settings.update(new Option("autopostingtasks", tasks.toString()));
+            } catch (ApiException | ClientException e) {
+                LOG.error(e);
+            }
+        });
     }
 
     @Override
@@ -80,269 +140,65 @@ public class Administration implements Script {
             keyboard.setButtons(buttons);
 
             switch (step){
-                case -1:
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.NEGATIVE)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+ScriptList.class.getName()+"\"," +
-                                                    "\"step\":"+1+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Назад")),
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.PRIMARY)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+0+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Опции"))
-                    ));
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("Меню")
-                            .keyboard(keyboard)
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    break;
                 case 0:
                     buttons.add(List.of(
                             new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+1+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Стена"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             "{\"script\":\""+ScriptList.class.getName()+"\"," +
                                                     "\"step\":"+1+"}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Назад")),
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.PRIMARY)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+1+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Базы данных")),
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.PRIMARY)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+2+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Переключатели"))
-                    ));
-                    buttons.add(List.of(
-                            /*new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.PRIMARY)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+3+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Авторизация")),*/
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.PRIMARY)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+4+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Обновление"))
+                                            .setLabel("Назад"))
                     ));
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message("Меню")
+                            .message("Управление сообществом")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     break;
                 case 1:
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.NEGATIVE)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+0+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Назад")),
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.PRIMARY)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+10+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Список")),
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.PRIMARY)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+11+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Пересоздать"))
-                    ));
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("Меню")
-                            .keyboard(keyboard)
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    break;
-                case 10:
                     keyboard.setInline(true);
                     buttons.add(List.of(
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.DEFAULT)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+101+"}"
+                                                    "\"step\":"+1_1+"}"
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Настройки"))
-                    ));
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+102+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Пользователи"))
+                                            .setLabel("Автопостинг"))
                     ));
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message("Список")
+                            .message("Стена")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     break;
-                case 101:
+                case 1_1:
                     keyboard.setInline(true);
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+1011+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Показать"))
-                    ));
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+1012+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Пересоздать"))
-                    ));
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("База данных \"Настройки\"")
-                            .keyboard(keyboard)
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    break;
-                case 1011:
-                    List<Option> options = Settings.findAll();
-                    if(!options.isEmpty()){
-                        String info = options.stream().map(Option::toString).collect(Collectors.joining("\n"));
-                        new Messages(Config.VK())
-                                .send(Config.GROUP)
-                                .message(info)
-                                .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
-                                .execute();
-                    }
-                    break;
-                case 1012:
-                    Settings.create();
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("База данных пересоздана.")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    break;
-                case 102:
-                    keyboard.setInline(true);
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+1021+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Показать"))
-                    ));
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+1022+"}"
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Пересоздать"))
-                    ));
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("База данных \"Пользователи\"")
-                            .keyboard(keyboard)
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    break;
-                case 1021:
-                    List<User> users = Users.findAll();
-                    if(!users.isEmpty()){
-                        String info = users.stream().map(User::toString).collect(Collectors.joining("\n"));
-                        new Messages(Config.VK())
-                                .send(Config.GROUP)
-                                .message(info)
-                                .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
-                                .execute();
-                    }
-                    break;
-                case 1022:
-                    Users.create();
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("База данных пересоздана.")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    break;
-                case 11:
-                    Users.create();
-                    Settings.create();
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("Базы данных пересозданы.")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    send(message, 0);
-                    break;
-                case 2:
-                    Option debbug = Settings.find("debbug");
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                            .setColor(KeyboardButtonColor.NEGATIVE)
-                            .setAction(new KeyboardButtonAction().setPayload(
-                                    "{\"script\":\""+getClass().getName()+"\"," +
-                                            "\"step\":"+0+"}"
-                            ).setType(KeyboardButtonActionType.TEXT)
-                                    .setLabel("Назад"))
-                    ));
-                    if(debbug != null){
-                        if(Boolean.parseBoolean(debbug.getValue())){
+                    Option autoposting = Settings.find("autoposting");
+                    if(autoposting != null){
+                        if(Boolean.parseBoolean(autoposting.getValue())){
                             buttons.add(List.of(
                                     new KeyboardButton()
                                             .setColor(KeyboardButtonColor.POSITIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
                                                     "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 212 + "}"
+                                                            "\"step\":" + 1_1_1 + "}"
                                             ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Отладка"))
+                                                    .setLabel("Включен"))
                             ));
                         }else{
                             buttons.add(List.of(
@@ -350,200 +206,268 @@ public class Administration implements Script {
                                             .setColor(KeyboardButtonColor.NEGATIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
                                                     "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 211 + "}"
+                                                            "\"step\":" + 1_1_1 + "}"
                                             ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Отладка"))
+                                                    .setLabel("Выключен"))
                             ));
                         }
                     }else{
-                        debbug = new Option("debbug", "false");
-                        Settings.add(debbug);
-                        send(message, 2);
+                        autoposting = new Option("autoposting", "false");
+                        Settings.add(autoposting);
+                        send(message, 1_1);
                         return;
                     }
-                    Option update = Settings.find("update");
-                    if(update != null){
-                        if(Boolean.parseBoolean(update.getValue())){
-                            buttons.add(List.of(
-                                    new KeyboardButton()
-                                            .setColor(KeyboardButtonColor.POSITIVE)
-                                            .setAction(new KeyboardButtonAction().setPayload(
-                                                    "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 222 + "}"
-                                            ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Обновление"))
-                            ));
-                        }else{
-                            buttons.add(List.of(
-                                    new KeyboardButton()
-                                            .setColor(KeyboardButtonColor.NEGATIVE)
-                                            .setAction(new KeyboardButtonAction().setPayload(
-                                                    "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 221 + "}"
-                                            ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Обновление"))
-                            ));
-                        }
-                    }else{
-                        update = new Option("update", "false");
-                        Settings.add(update);
-                        send(message, 2);
-                        return;
-                    }
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+1_1_2+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Задания"))
+                    ));
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message("Переключатели")
+                            .message("Автопостинг")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     break;
-                case 211:
-                    debbug = Settings.find("debbug");
-                    debbug.setValue("true");
-                    Settings.update(debbug);
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("Отладка включена.")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    send(message, 2);
+                case 1_1_1:
+                    autoposting = Settings.find("autoposting");
+                    autoposting = new Option("autoposting", Boolean.valueOf(autoposting.getValue()).toString());
+                    Settings.update(autoposting);
+                    send(message, 1_1);
                     break;
-                case 212:
-                    debbug = Settings.find("debbug");
-                    debbug.setValue("false");
-                    Settings.update(debbug);
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("Отладка отключена.")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    send(message, 2);
-                    break;
-                case 221:
-                    update = Settings.find("update");
-                    update.setValue("true");
-                    Settings.update(update);
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("Обновление включено.")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    send(message, 2);
-                    break;
-                case 222:
-                    update = Settings.find("update");
-                    update.setValue("false");
-                    Settings.update(update);
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("Обновление отключено.")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    send(message, 2);
-                    break;
-                case 3:
-                    /*var url = String.format("https://oauth.vk.com/authorize?client_id=%d&display=page&redirect_uri=%s&scope=groups,docs,offline,photos,wall&response_type=code&v=5.103",
-                    Config.APP_ID, Config.REDIRECT_URL);
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("Перейдите по ссылке:\n"+url)
-                            .peerId(message.getPeerId())
-                            .dontParseLinks(false)
-                            .randomId(Utils.getRandomInt32())
-                            .execute();*/
-                    break;
-                case 4:
-                    drawCover();
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("Обложка перерисована.")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    break;
-                case 56:
-                    /*getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
-                    attachments = getByIdResponse.getItems().get(0).getAttachments();
-                    if(attachments.isEmpty()){
-                        new Messages(Config.VK())
-                                .send(Config.GROUP)
-                                .message("Отправьте файл со ссылками и нажмите \"Начать\"")
-                                .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
-                                .execute();
+                case 1_1_2:
+                    var autopostingTasks = Settings.find("autopostingtasks");
+                    if(autopostingTasks == null){
+                        autopostingTasks = new Option("autopostingtasks", "[]");
+                        Settings.add(autopostingTasks);
                     }
-                    if(attachments.get(0).getType().equals(MessageAttachmentType.DOC)){
-                        URL url = attachments.get(0).getDoc().getUrl();
-                        List<String> lines = IOUtils.readLines(url.openStream(), StandardCharsets.UTF_8);
-                        File dir = new File("./tmp");
-                        if (!dir.exists()){
-                            dir.mkdirs();
+                    JsonArray tasks = new JsonParser().parse(autopostingTasks.getValue()).getAsJsonArray();
+
+                    if(tasks.size() > 0) {
+                        int offset = 0;
+                        var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+                        if(payload.has("offset")){
+                            offset = payload.get("offset").getAsInt();
                         }
-                        lines.forEach(s -> {
-                            try {
-                                long size = FileUtils.sizeOfDirectory(dir);
-                                LOG.debug(size);
-                                if(size > 48*1024*1024){
-                                    File file = new File(System.currentTimeMillis()+".zip");
-                                    pack(dir.getPath(), file.getPath());
-                                    UploadServer uploadServer = new Docs(Config.VK()).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
-                                    DocUploadResponse messageUploadResponse = new Upload(Config.VK())
-                                            .doc(uploadServer.getUploadUrl().toString(), file).execute();
-                                    SaveResponse doc = new Docs(Config.VK())
-                                            .save(Config.GROUP, messageUploadResponse.getFile())
-                                            .title(FilenameUtils.getName(file.getPath())).execute();
-                                    Files.deleteIfExists(file.toPath());
-                                    FileUtils.deleteDirectory(dir);
-                                    dir.mkdirs();
-                                    new Messages(Config.VK())
-                                            .send(Config.GROUP)
-                                            .attachment("doc"+doc.getDoc().getOwnerId()+"_"+doc.getDoc().getId())
-                                            .peerId(message.getPeerId())
-                                            .randomId(Utils.getRandomInt32())
-                                            .execute();
-                                }
-                                URL urlS = new URL(s);
-                                String name = System.currentTimeMillis()+"."+FilenameUtils.getExtension(urlS.getPath());
-                                LOG.debug(name);
-                                File fileS = new File(dir, name);
-                                FileUtils.copyURLToFile(
-                                        urlS,
-                                        fileS);
-                            } catch (IOException | ApiException | ClientException e) {
-                                LOG.error(e);
+                        int maxTaskButtons = 8;
+                        if(tasks.size() <= 10) maxTaskButtons = 10;
+                        int nextOffset = offset;
+
+                        int n = 0;
+                        for(int i = offset; i < tasks.size(); i++){
+                            var task = tasks.get(i).getAsJsonObject();
+                            var name = task.get("name").getAsString();
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.DEFAULT)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    "{\"script\":\""+getClass().getName()+"\"," +
+                                                            "\"step\":"+1_1_2_3+"}"
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel(name))
+                            ));
+                            nextOffset++;
+                            n++;
+                            if(n >= maxTaskButtons){
+                                break;
                             }
-                        });
-                        if(dir.listFiles().length < 1) break;
-                        File file = new File(System.currentTimeMillis()+".zip");
-                        pack(dir.getPath(), file.getPath());
-                        UploadServer uploadServer = new Docs(Config.VK()).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).execute();
-                        DocUploadResponse messageUploadResponse = new Upload(Config.VK())
-                                .doc(uploadServer.getUploadUrl().toString(), file).execute();
-                        SaveResponse doc = new Docs(Config.VK())
-                                .save(Config.GROUP, messageUploadResponse.getFile())
-                                .title(FilenameUtils.getName(file.getPath())).execute();
-                        Files.deleteIfExists(file.toPath());
-                        FileUtils.deleteDirectory(dir);
-                        dir.mkdirs();
-                        new Messages(Config.VK())
-                                .send(Config.GROUP)
-                                .attachment("doc"+doc.getDoc().getOwnerId()+"_"+doc.getDoc().getId())
-                                .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
-                                .execute();
+                        }
+                        keyboard.setInline(true);
+                        var btns = new ArrayList<KeyboardButton>();
+                        if(offset == 0){
+                            if(maxTaskButtons == 8){
+                                btns.add(new KeyboardButton()
+                                        .setColor(KeyboardButtonColor.DEFAULT)
+                                        .setAction(new KeyboardButtonAction().setPayload(
+                                                "{\"script\":\""+getClass().getName()+"\"," +
+                                                        "\"step\":"+1_1_2_2+"}"
+                                        ).setType(KeyboardButtonActionType.TEXT)
+                                                .setLabel(">")));
+                            }
+                        }else if(offset >= 8){
+                            btns.add(new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+1_1_2_1+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("<")));
+                            if(tasks.size() - offset > 0) {
+                                btns.add(new KeyboardButton()
+                                        .setColor(KeyboardButtonColor.DEFAULT)
+                                        .setAction(new KeyboardButtonAction().setPayload(
+                                                "{\"script\":\"" + getClass().getName() + "\"," +
+                                                        "\"step\":" + 1_1_2_2 + "}"
+                                        ).setType(KeyboardButtonActionType.TEXT)
+                                                .setLabel(">")));
+                            }
+                        }
+                        buttons.add(btns);
                     }else{
+                        keyboard.setInline(true);
+                        buttons.add(List.of(
+                                new KeyboardButton()
+                                        .setColor(KeyboardButtonColor.DEFAULT)
+                                        .setAction(new KeyboardButtonAction().setPayload(
+                                                "{\"script\":\""+getClass().getName()+"\"," +
+                                                        "\"step\":"+1_1_2_4+"}"
+                                        ).setType(KeyboardButtonActionType.TEXT)
+                                                .setLabel("Добавить"))
+                        ));
+                    }
+                    new Messages(Config.VK())
+                            .send(Config.GROUP)
+                            .message("Задачи")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 1_1_2_4:
+                    keyboard.setInline(true);
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+1_1_2_4_1+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Фото из альбома")),
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.PRIMARY)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+1_1_2_4+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("В разработке"))
+                    ));
+                    new Messages(Config.VK())
+                            .send(Config.GROUP)
+                            .message("Выберите тип задачи")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 1_1_2_4_1:
+                    keyboard.setInline(true);
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+1_1_2_4_1_1+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Выбрать"))
+                    ));
+                    new Messages(Config.VK())
+                            .send(Config.GROUP)
+                            .message("Отправьте ссылку на альбом и нажмите \"Выбрать\"")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 1_1_2_4_1_1:
+                    var getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
+                    var url = getByIdResponse.getItems().get(0).getText();
+                    if(url == null || url.isEmpty()){
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
-                                .message("Отправьте файл со ссылками и нажмите \"Начать\"")
+                                .message("Отправьте ссылку на альбом и нажмите \"Выбрать\"")
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
-                    }*/
+                        break;
+                    }
+                    keyboard.setInline(true);
+                    List<KeyboardButton> list = new ArrayList<>();
+                    for(int i = 1; i <= 10; i++){
+                        if(i == 6){
+                            buttons.add(list);
+                            list = new ArrayList<>();
+                        }
+                        list.add(new KeyboardButton()
+                                .setColor(KeyboardButtonColor.DEFAULT)
+                                .setAction(new KeyboardButtonAction().setPayload(
+                                        "{\"script\":\""+getClass().getName()+"\"," +
+                                                "\"url\":\""+url+"\"," +
+                                                "\"step\":"+1_1_2_4_1_2+"}"
+                                ).setType(KeyboardButtonActionType.TEXT)
+                                        .setLabel(""+i))
+                        );
+                    }
+                    new Messages(Config.VK())
+                            .send(Config.GROUP)
+                            .message("Какое количество фото необходимо прикреплять?")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 1_1_2_4_1_2:
+                    getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
+                    var num = getByIdResponse.getItems().get(0).getText();
+                    var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+                    url = payload.get("url").getAsString();
+                    if(num == null || num.isEmpty()){
+                        new Messages(Config.VK())
+                                .send(Config.GROUP)
+                                .message("Какое количество фото необходимо прикреплять?")
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                        break;
+                    }
+                    int photosCount = Integer.parseInt(num);
+                    keyboard.setInline(true);
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"url\":\""+url+"\"," +
+                                                    "\"count\":"+photosCount+"," +
+                                                    "\"step\":"+1_1_2_4_1_3+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Сохранить"))
+                    ));
+                    new Messages(Config.VK())
+                            .send(Config.GROUP)
+                            .message("Отправьте название задачи и нажмите \"Сохранить\"")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 1_1_2_4_1_3:
+                    getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
+                    var name = getByIdResponse.getItems().get(0).getText();
+                    payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+                    url = payload.get("url").getAsString();
+                    var count = payload.get("count").getAsInt();
+                    if(name == null || name.isEmpty()){
+                        new Messages(Config.VK())
+                                .send(Config.GROUP)
+                                .message("Отправьте название задачи и нажмите \"Сохранить\"")
+                                .peerId(message.getPeerId())
+                                .randomId(Utils.getRandomInt32())
+                                .execute();
+                        break;
+                    }
+                    JsonObject task = new JsonObject();
+                    task.addProperty("albumurl", url);
+                    task.addProperty("count", count);
+                    task.addProperty("name", name);
+                    autopostingTasks = Settings.find("autopostingtasks");
+                    tasks = new JsonParser().parse(autopostingTasks.getValue()).getAsJsonArray();
+                    tasks.add(task);
+                    Settings.update(autopostingTasks);
                     break;
                 default:
                     break;
@@ -553,51 +477,4 @@ public class Administration implements Script {
         }
     }
 
-    private static void drawCover(){
-        try {
-            UploadServer uploadServer = new Photos(Config.VK())
-                    .getOwnerCoverPhotoUploadServer(Config.GROUP, Config.GROUP_ID)
-                    .cropX(0).cropX2(1590)
-                    .cropY(0).cropY2(400)
-                    .execute();
-            BufferedImage coverImage = new BufferedImage(1590,400,BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2d = coverImage.createGraphics();
-            Utils.applyQualityRenderingHints(g2d);
-            g2d.setColor(Color.BLACK);
-            g2d.fillRect(0,0,1590,400);
-            GroupFull groupFull = new Groups(Config.VK()).getById(Config.GROUP).groupId(String.valueOf(Config.GROUP_ID)).execute().get(0);
-            g2d.setColor(Color.WHITE);
-            Utils.drawIntoRect(groupFull.getName(), new Rectangle(0,0,1590,400), Utils.Align.CENTER, g2d);
-            File coverFile = new File("cover.png");
-            ImageIO.write(coverImage, "png", coverFile);
-            OwnerCoverUploadResponse coverUploadResponse = new Upload(Config.VK()).photoOwnerCover(uploadServer.getUploadUrl().toString(), coverFile).execute();
-            List<Image> images = new Photos(Config.VK()).saveOwnerCoverPhoto(Config.GROUP, coverUploadResponse.getHash(), coverUploadResponse.getPhoto()).execute();
-        } catch (ApiException | ClientException | IOException e) {
-            LOG.error(e);
-        }
-    }
-
-    public static void pack(String sourceDirPath, String zipFilePath) {
-        try {
-            Path p = Files.createFile(Paths.get(zipFilePath));
-            try (ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(p))) {
-                Path pp = Paths.get(sourceDirPath);
-                Files.walk(pp)
-                        .filter(path -> !Files.isDirectory(path))
-                        .forEach(path -> {
-                            ZipEntry zipEntry = new ZipEntry(pp.relativize(path).toString());
-                            try {
-                                zs.putNextEntry(zipEntry);
-                                Files.copy(path, zs);
-                                zs.closeEntry();
-                            } catch (IOException e) {
-                                LOG.error(e);
-                            }
-                        });
-            }
-        } catch (IOException e) {
-            LOG.error(e);
-        }
-    }
-    
 }
