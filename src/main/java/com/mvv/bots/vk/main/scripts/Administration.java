@@ -397,6 +397,7 @@ public class Administration implements Script {
                                 .setAction(new KeyboardButtonAction().setPayload(
                                         "{\"script\":\""+getClass().getName()+"\"," +
                                                 "\"url\":\""+url+"\"," +
+                                                "\"count\":"+i+"," +
                                                 "\"step\":"+1_1_2_4_1_2+"}"
                                 ).setType(KeyboardButtonActionType.TEXT)
                                         .setLabel(""+i))
@@ -412,20 +413,9 @@ public class Administration implements Script {
                             .execute();
                     break;
                 case 1_1_2_4_1_2:
-                    getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
-                    var num = getByIdResponse.getItems().get(0).getText();
                     var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     url = payload.get("url").getAsString();
-                    if(num == null || num.isEmpty()){
-                        new Messages(Config.VK())
-                                .send(Config.GROUP)
-                                .message("Какое количество фото необходимо прикреплять?")
-                                .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
-                                .execute();
-                        break;
-                    }
-                    int photosCount = Integer.parseInt(num);
+                    int photosCount = payload.get("count").getAsInt();
                     keyboard.setInline(true);
                     buttons.add(List.of(
                             new KeyboardButton()
