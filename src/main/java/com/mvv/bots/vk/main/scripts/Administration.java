@@ -401,6 +401,7 @@ public class Administration implements Script {
                                 ).setType(KeyboardButtonActionType.TEXT)
                                         .setLabel(""+i))
                         );
+                        if(i == 10) buttons.add(list);
                     }
                     new Messages(Config.VK())
                             .send(Config.GROUP)
