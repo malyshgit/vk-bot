@@ -236,7 +236,7 @@ public class Administration implements Script {
                     break;
                 case 1_1_1:
                     autoposting = Settings.find("autoposting");
-                    autoposting = new Option("autoposting", Boolean.valueOf(autoposting.getValue()).toString());
+                    autoposting = new Option("autoposting", Boolean.parseBoolean(autoposting.getValue())==true?"false":"true");
                     Settings.update(autoposting);
                     send(message, 1_1);
                     break;
