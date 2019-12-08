@@ -88,17 +88,15 @@ public class Administration implements Script {
             if(task.has("offset")){
                 offset = task.get("offset").getAsInt();
             }
-            User user = Users.find(Config.ADMIN_ID);
-            UserActor admin = new UserActor(Config.ADMIN_ID, user.getToken());
             try {
-                var size = new Photos(Config.VK()).get(admin)
+                var size = new Photos(Config.VK()).get(Config.ADMIN)
                         .albumId(urlParts[1])
                         .ownerId(ownerId)
                         .count(1)
                         .offset(0)
                         .execute().getCount();
                 if(offset+1 >= size) return;
-                var res = new Photos(Config.VK()).get(admin)
+                var res = new Photos(Config.VK()).get(Config.ADMIN)
                         .albumId(urlParts[1])
                         .ownerId(ownerId)
                         .count(count)
@@ -113,7 +111,7 @@ public class Administration implements Script {
                     }*/
                     return "photo"+p.getOwnerId()+"_"+p.getId();
                 }).collect(Collectors.joining(","));
-                new Wall(Config.VK()).post(admin)
+                new Wall(Config.VK()).post(Config.ADMIN)
                         .ownerId(Config.GROUP_ID)
                         .attachments(attaches)
                         .fromGroup(true)

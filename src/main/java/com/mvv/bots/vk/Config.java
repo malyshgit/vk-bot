@@ -15,7 +15,7 @@ public class Config {
     public static final int ADMIN_ID = Integer.parseInt(System.getenv("ADMIN_ID"));
     public static final int GROUP_ID = Integer.parseInt(System.getenv("GROUP_ID"));
     public static final String GROUP_TOKEN = System.getenv("GROUP_TOKEN");
-    //public static final String ADMIN_TOKEN = System.getenv("ADMIN_TOKEN");
+    public static final String ADMIN_TOKEN = System.getenv("ADMIN_TOKEN");
     public static final String JDBC_DATABASE_URL = System.getenv("JDBC_DATABASE_URL");
     public static final String DARKSKY_API_KEY = System.getenv("DARKSKY_API_KEY");
     public static final int APP_ID = Integer.parseInt(System.getenv("APP_ID"));
@@ -23,7 +23,7 @@ public class Config {
     public static final String REDIRECT_URL = System.getenv("REDIRECT_URL");
 
     //public static final VkApiClient VK = new VkApiClient(HttpTransportClient.getInstance());
-    //public static final UserActor ADMIN = new UserActor(ADMIN_ID, ADMIN_TOKEN);
+    public static final UserActor ADMIN = new UserActor(ADMIN_ID, ADMIN_TOKEN);
     public static final GroupActor GROUP = new GroupActor(GROUP_ID, GROUP_TOKEN);
 
     public static VkApiClient VK(){
