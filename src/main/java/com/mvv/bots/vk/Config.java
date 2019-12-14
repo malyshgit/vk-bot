@@ -44,7 +44,7 @@ public class Config {
 
     public static final List<Script> SCRIPTS = Script.getSortedList(List.of(
             new AdminPanel(),
-            new Administration(),
+            //new Administration(),
             new Authorization(),
             new Advice(),
             new Donation(),

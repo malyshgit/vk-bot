@@ -174,6 +174,12 @@ public class WallParser implements Script {
                 case 3:
                     if(threadHashMap.containsKey(message.getFromId())) threadHashMap.get(message.getFromId()).stop();
                     break;
+                case 3_1:
+                    if(threadHashMap.containsKey(message.getFromId())) threadHashMap.get(message.getFromId()).stop();
+                    user = Users.find(message.getFromId());
+                    user.getParameters().remove("wallparsernextpush");
+                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    break;
                 default:
                     break;
             }
@@ -490,6 +496,15 @@ public class WallParser implements Script {
                                             "\"step\":" + 3 + "}"
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Остановить"))
+            ));
+            buttons.add(List.of(
+                    new KeyboardButton()
+                            .setColor(KeyboardButtonColor.NEGATIVE)
+                            .setAction(new KeyboardButtonAction().setPayload(
+                                    "{\"script\":\"" + WallParser.class.getName() + "\"," +
+                                            "\"step\":" + 3_1 + "}"
+                            ).setType(KeyboardButtonActionType.TEXT)
+                                    .setLabel("Отключить"))
             ));
             int mid = new Messages(Config.VK())
                     .send(Config.GROUP)
