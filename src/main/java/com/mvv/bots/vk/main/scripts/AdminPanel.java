@@ -41,6 +41,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.google.gson.*;
+import com.vk.api.sdk.objects.messages.keyboard.Payload;
 import com.vk.api.sdk.objects.messages.responses.GetByIdResponse;
 import com.vk.api.sdk.objects.photos.Photo;
 import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
@@ -101,15 +102,19 @@ public class AdminPanel implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+ScriptList.class.getName()+"\"," +
-                                                    "\"step\":"+1+"}"
+                                            new Payload()
+                                                    .put("script", ScriptList.class.getName())
+                                                    .put("step", 1)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад")),
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+0+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 0)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Опции"))
                     ));
@@ -126,22 +131,28 @@ public class AdminPanel implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+ScriptList.class.getName()+"\"," +
-                                                    "\"step\":"+1+"}"
+                                            new Payload()
+                                                    .put("script", ScriptList.class.getName())
+                                                    .put("step", 1)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад")),
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+1+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 1)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Базы данных")),
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+2+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 2)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Переключатели"))
                     ));
@@ -156,8 +167,10 @@ public class AdminPanel implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+4+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 4)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Обновление"))
                     ));
@@ -174,22 +187,28 @@ public class AdminPanel implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+0+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 0)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад")),
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+10+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 10)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Список")),
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+11+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 11)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Пересоздать"))
                     ));
@@ -207,8 +226,10 @@ public class AdminPanel implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.DEFAULT)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+101+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 101)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Настройки"))
                     ));
@@ -216,8 +237,10 @@ public class AdminPanel implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.DEFAULT)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+102+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 102)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Пользователи"))
                     ));
@@ -235,8 +258,10 @@ public class AdminPanel implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.DEFAULT)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+1011+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 1011)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Показать"))
                     ));
@@ -244,8 +269,10 @@ public class AdminPanel implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.DEFAULT)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+1012+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 1012)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Пересоздать"))
                     ));
@@ -284,8 +311,10 @@ public class AdminPanel implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.DEFAULT)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+1021+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 1021)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Показать"))
                     ));
@@ -293,8 +322,10 @@ public class AdminPanel implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.DEFAULT)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+1022+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 1022)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Пересоздать"))
                     ));
@@ -344,8 +375,10 @@ public class AdminPanel implements Script {
                             new KeyboardButton()
                             .setColor(KeyboardButtonColor.NEGATIVE)
                             .setAction(new KeyboardButtonAction().setPayload(
-                                    "{\"script\":\""+getClass().getName()+"\"," +
-                                            "\"step\":"+0+"}"
+                                    new Payload()
+                                            .put("script", getClass().getName())
+                                            .put("step", 0)
+                                            .toString()
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Назад"))
                     ));
@@ -355,8 +388,10 @@ public class AdminPanel implements Script {
                                     new KeyboardButton()
                                             .setColor(KeyboardButtonColor.POSITIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
-                                                    "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 212 + "}"
+                                                    new Payload()
+                                                            .put("script", getClass().getName())
+                                                            .put("step", 212)
+                                                            .toString()
                                             ).setType(KeyboardButtonActionType.TEXT)
                                                     .setLabel("Отладка"))
                             ));
@@ -365,8 +400,10 @@ public class AdminPanel implements Script {
                                     new KeyboardButton()
                                             .setColor(KeyboardButtonColor.NEGATIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
-                                                    "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 211 + "}"
+                                                    new Payload()
+                                                            .put("script", getClass().getName())
+                                                            .put("step", 211)
+                                                            .toString()
                                             ).setType(KeyboardButtonActionType.TEXT)
                                                     .setLabel("Отладка"))
                             ));
@@ -384,8 +421,10 @@ public class AdminPanel implements Script {
                                     new KeyboardButton()
                                             .setColor(KeyboardButtonColor.POSITIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
-                                                    "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 222 + "}"
+                                                    new Payload()
+                                                            .put("script", getClass().getName())
+                                                            .put("step", 222)
+                                                            .toString()
                                             ).setType(KeyboardButtonActionType.TEXT)
                                                     .setLabel("Обновление"))
                             ));
@@ -394,8 +433,10 @@ public class AdminPanel implements Script {
                                     new KeyboardButton()
                                             .setColor(KeyboardButtonColor.NEGATIVE)
                                             .setAction(new KeyboardButtonAction().setPayload(
-                                                    "{\"script\":\"" + getClass().getName() + "\"," +
-                                                            "\"step\":" + 221 + "}"
+                                                    new Payload()
+                                                            .put("script", getClass().getName())
+                                                            .put("step", 221)
+                                                            .toString()
                                             ).setType(KeyboardButtonActionType.TEXT)
                                                     .setLabel("Обновление"))
                             ));

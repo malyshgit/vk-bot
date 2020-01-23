@@ -21,6 +21,7 @@ import com.vk.api.sdk.actions.Upload;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.messages.*;
+import com.vk.api.sdk.objects.messages.keyboard.Payload;
 import com.vk.api.sdk.objects.messages.responses.GetByIdResponse;
 import com.vk.api.sdk.objects.photos.Photo;
 import com.vk.api.sdk.objects.photos.PhotoUpload;
@@ -90,8 +91,10 @@ public class InstaGet implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+0+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 0)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));
@@ -145,8 +148,10 @@ public class InstaGet implements Script {
                                 new KeyboardButton()
                                         .setColor(KeyboardButtonColor.PRIMARY)
                                         .setAction(new KeyboardButtonAction().setPayload(
-                                                "{\"script\":\"" + getClass().getName() + "\"," +
-                                                        "\"step\":" + 1 + "}"
+                                                new Payload()
+                                                        .put("script", getClass().getName())
+                                                        .put("step", 1)
+                                                        .toString()
                                         ).setType(KeyboardButtonActionType.TEXT)
                                                 .setLabel("Изменить теги"))
                         ));
@@ -156,8 +161,10 @@ public class InstaGet implements Script {
                                         new KeyboardButton()
                                                 .setColor(KeyboardButtonColor.NEGATIVE)
                                                 .setAction(new KeyboardButtonAction().setPayload(
-                                                        "{\"script\":\"" + getClass().getName() + "\"," +
-                                                                "\"step\":" + 22 + "}"
+                                                        new Payload()
+                                                                .put("script", getClass().getName())
+                                                                .put("step", 22)
+                                                                .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
                                                         .setLabel("Отписаться"))
                                 ));
@@ -166,8 +173,10 @@ public class InstaGet implements Script {
                                         new KeyboardButton()
                                                 .setColor(KeyboardButtonColor.POSITIVE)
                                                 .setAction(new KeyboardButtonAction().setPayload(
-                                                        "{\"script\":\"" + getClass().getName() + "\"," +
-                                                                "\"step\":" + 21 + "}"
+                                                        new Payload()
+                                                                .put("script", getClass().getName())
+                                                                .put("step", 21)
+                                                                .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
                                                         .setLabel("Подписаться"))
                                 ));
@@ -216,8 +225,10 @@ public class InstaGet implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 11 + "}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 11)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Сохранить"))
                     ));
@@ -225,8 +236,10 @@ public class InstaGet implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 0 + "}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 0)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Отмена"))
                     ));

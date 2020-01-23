@@ -13,6 +13,7 @@ import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.messages.*;
+import com.vk.api.sdk.objects.messages.keyboard.Payload;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,8 +60,10 @@ public class Donation implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+0+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 0)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));

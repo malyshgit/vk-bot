@@ -48,8 +48,6 @@ public class Config {
             new Authorization(),
             new Advice(),
             new Donation(),
-            //new Duty(),
-            //new Killer(),
             new InstaGet(),
             new WallParser(),
             new Weather(),

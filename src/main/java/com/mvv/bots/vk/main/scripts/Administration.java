@@ -24,6 +24,7 @@ import com.vk.api.sdk.objects.base.Image;
 import com.vk.api.sdk.objects.base.UploadServer;
 import com.vk.api.sdk.objects.groups.GroupFull;
 import com.vk.api.sdk.objects.messages.*;
+import com.vk.api.sdk.objects.messages.keyboard.Payload;
 import com.vk.api.sdk.objects.responses.OwnerCoverUploadResponse;
 
 import javax.imageio.ImageIO;
@@ -86,8 +87,10 @@ public class Administration implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.DEFAULT)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+1+"}"
+                                            new Payload()
+                                                .put("script", getClass().getName())
+                                                .put("step", 1)
+                                                .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Стена"))
                     ));
@@ -95,8 +98,10 @@ public class Administration implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+ScriptList.class.getName()+"\"," +
-                                                    "\"step\":"+1+"}"
+                                            new Payload()
+                                                .put("script", ScriptList.class.getName())
+                                                .put("step", 1)
+                                                .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));

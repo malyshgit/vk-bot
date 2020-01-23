@@ -18,6 +18,7 @@ import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.messages.*;
+import com.vk.api.sdk.objects.messages.keyboard.Payload;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -78,8 +79,10 @@ public class Weather implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+0+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 0)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));
@@ -114,8 +117,10 @@ public class Weather implements Script {
                         buttons.add(List.of(
                                 new KeyboardButton()
                                         .setAction(new KeyboardButtonAction().setPayload(
-                                                "{\"script\":\"" + getClass().getName() + "\"," +
-                                                        "\"step\":" + 1 + "}"
+                                                new Payload()
+                                                        .put("script", getClass().getName())
+                                                        .put("step", 1)
+                                                        .toString()
                                         ).setType(KeyboardButtonActionType.LOCATION))
                         ));
                         if(user.getParameters().has("weatherupdate")){
@@ -124,8 +129,10 @@ public class Weather implements Script {
                                         new KeyboardButton()
                                                 .setColor(KeyboardButtonColor.NEGATIVE)
                                                 .setAction(new KeyboardButtonAction().setPayload(
-                                                        "{\"script\":\"" + getClass().getName() + "\"," +
-                                                                "\"step\":" + 22 + "}"
+                                                        new Payload()
+                                                                .put("script", getClass().getName())
+                                                                .put("step", 22)
+                                                                .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
                                                         .setLabel("Отписаться"))
                                 ));
@@ -134,8 +141,10 @@ public class Weather implements Script {
                                         new KeyboardButton()
                                                 .setColor(KeyboardButtonColor.POSITIVE)
                                                 .setAction(new KeyboardButtonAction().setPayload(
-                                                        "{\"script\":\"" + getClass().getName() + "\"," +
-                                                                "\"step\":" + 21 + "}"
+                                                        new Payload()
+                                                                .put("script", getClass().getName())
+                                                                .put("step", 21)
+                                                                .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
                                                         .setLabel("Подписаться"))
                                 ));
@@ -158,8 +167,10 @@ public class Weather implements Script {
                         buttons.add(List.of(
                                 new KeyboardButton()
                                         .setAction(new KeyboardButtonAction().setPayload(
-                                                "{\"script\":\"" + getClass().getName() + "\"," +
-                                                        "\"step\":" + 1 + "}"
+                                                new Payload()
+                                                        .put("script", getClass().getName())
+                                                        .put("step", 1)
+                                                        .toString()
                                         ).setType(KeyboardButtonActionType.LOCATION))
                         ));
                         new Messages(Config.VK())

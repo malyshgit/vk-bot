@@ -15,6 +15,7 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.messages.*;
 import com.mvv.bots.vk.Config;
+import com.vk.api.sdk.objects.messages.keyboard.Payload;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,8 +78,10 @@ public class ScriptList implements Script {
                             row.add(new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+script.getClass().getName()+"\"," +
-                                                    "\"step\":"+0+"}"
+                                            new Payload()
+                                                    .put("script", script.getClass().getName())
+                                                    .put("step", 0)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel(script.smile() + " " + script.key())));
                             if(row.size() == 2){
@@ -107,8 +110,10 @@ public class ScriptList implements Script {
                                 row.add(new KeyboardButton()
                                         .setColor(KeyboardButtonColor.PRIMARY)
                                         .setAction(new KeyboardButtonAction().setPayload(
-                                                "{\"script\":\"" + script.getClass().getName() + "\"," +
-                                                        "\"step\":" + 0 + "}"
+                                                new Payload()
+                                                        .put("script", script.getClass().getName())
+                                                        .put("step", 0)
+                                                        .toString()
                                         ).setType(KeyboardButtonActionType.TEXT)
                                                 .setLabel(script.smile() + " " + script.key())));
 
@@ -125,35 +130,43 @@ public class ScriptList implements Script {
                             row.add(new KeyboardButton()
                                     .setColor(KeyboardButtonColor.POSITIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 1 + "," +
-                                                    "\"offset\":" + lastIndex + "}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 1)
+                                                    .put("offset", lastIndex)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Вперед")));
                         } else if(lastIndex >= Config.SCRIPTS.size() - 1){
                             row.add(new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 1 + "," +
-                                                    "\"offset\":" + (firstIndex - 17) + "}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 1)
+                                                    .put("offset", firstIndex - 17)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад")));
                         }else{
                             row.add(new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 1 + "," +
-                                                    "\"offset\":" + (firstIndex - 17) + "}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 1)
+                                                    .put("offset", firstIndex - 17)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад")));
                             row.add(new KeyboardButton()
                                     .setColor(KeyboardButtonColor.POSITIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 1 + "," +
-                                                    "\"offset\":" + lastIndex + "}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 1)
+                                                    .put("offset", lastIndex)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Вперед")));
                         }

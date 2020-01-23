@@ -19,6 +19,7 @@ import com.vk.api.sdk.actions.OAuth;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.messages.*;
+import com.vk.api.sdk.objects.messages.keyboard.Payload;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -69,8 +70,10 @@ public class Authorization implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+0+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 0)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));
@@ -89,8 +92,10 @@ public class Authorization implements Script {
                                 new KeyboardButton()
                                         .setColor(KeyboardButtonColor.NEGATIVE)
                                         .setAction(new KeyboardButtonAction().setPayload(
-                                                "{\"script\":\""+ScriptList.class.getName()+"\"," +
-                                                        "\"step\":"+0+"}"
+                                                new Payload()
+                                                        .put("script", ScriptList.class.getName())
+                                                        .put("step", 0)
+                                                        .toString()
                                         ).setType(KeyboardButtonActionType.TEXT)
                                                 .setLabel("Назад"))
                         ));
@@ -98,8 +103,10 @@ public class Authorization implements Script {
                                 new KeyboardButton()
                                         .setColor(KeyboardButtonColor.PRIMARY)
                                         .setAction(new KeyboardButtonAction().setPayload(
-                                                "{\"script\":\""+getClass().getName()+"\"," +
-                                                        "\"step\":"+1+"}"
+                                                new Payload()
+                                                        .put("script", getClass().getName())
+                                                        .put("step", 1)
+                                                        .toString()
                                         ).setType(KeyboardButtonActionType.TEXT)
                                                 .setLabel("Обновить токен"))
                         ));
@@ -107,8 +114,10 @@ public class Authorization implements Script {
                                 new KeyboardButton()
                                         .setColor(KeyboardButtonColor.NEGATIVE)
                                         .setAction(new KeyboardButtonAction().setPayload(
-                                                "{\"script\":\""+getClass().getName()+"\"," +
-                                                        "\"step\":"+2+"}"
+                                                new Payload()
+                                                        .put("script", getClass().getName())
+                                                        .put("step", 2)
+                                                        .toString()
                                         ).setType(KeyboardButtonActionType.TEXT)
                                                 .setLabel("Запретить доступ"))
                         ));

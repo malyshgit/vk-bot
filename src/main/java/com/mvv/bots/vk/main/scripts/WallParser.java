@@ -22,6 +22,7 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.enums.DocsType;
 import com.vk.api.sdk.objects.messages.*;
+import com.vk.api.sdk.objects.messages.keyboard.Payload;
 import com.vk.api.sdk.objects.photos.Image;
 import com.vk.api.sdk.objects.photos.Photo;
 import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
@@ -70,7 +71,7 @@ public class WallParser implements Script {
     @Override
     public void update() {
         Users.findAll().forEach(user -> {
-            if(user.getParameters().has("wallparsernextpush")){
+            /*if(user.getParameters().has("wallparsernextpush")){
                 var options = new JsonParser().parse(user.getParameters().get("wallparsernextpush")).getAsJsonObject();
                 var docUrl = options.get("docUrl").getAsString();
                 var publicName = options.get("publicName").getAsString();
@@ -87,7 +88,7 @@ public class WallParser implements Script {
                     );
                     send(message, 2);
                 }
-            }
+            }*/
         });
 
     }
@@ -107,8 +108,10 @@ public class WallParser implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\""+getClass().getName()+"\"," +
-                                                    "\"step\":"+0+"}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 0)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));
@@ -130,8 +133,10 @@ public class WallParser implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + ScriptList.class.getName() + "\"," +
-                                                    "\"step\":" + 0 + "}"
+                                            new Payload()
+                                                    .put("script", ScriptList.class.getName())
+                                                    .put("step", 0)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));
@@ -139,8 +144,10 @@ public class WallParser implements Script {
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.DEFAULT)
                                     .setAction(new KeyboardButtonAction().setPayload(
-                                            "{\"script\":\"" + getClass().getName() + "\"," +
-                                                    "\"step\":" + 1 + "}"
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 1)
+                                                    .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Начать"))
                     ));
@@ -276,8 +283,10 @@ public class WallParser implements Script {
                     new KeyboardButton()
                             .setColor(KeyboardButtonColor.NEGATIVE)
                             .setAction(new KeyboardButtonAction().setPayload(
-                                    "{\"script\":\"" + WallParser.class.getName() + "\"," +
-                                            "\"step\":" + 3 + "}"
+                                    new Payload()
+                                            .put("script", WallParser.class.getName())
+                                            .put("step", 3)
+                                            .toString()
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Остановить"))
             ));
@@ -362,10 +371,12 @@ public class WallParser implements Script {
                     new KeyboardButton()
                             .setColor(KeyboardButtonColor.DEFAULT)
                             .setAction(new KeyboardButtonAction().setPayload(
-                                    "{\"script\":\"" + WallParser.class.getName() + "\"," +
-                                            "\"step\":" + 2 + "," +
-                                            "\"publicName\":\"" + domain + "\"," +
-                                            "\"docUrl\":\"" + save.getDoc().getUrl() + "\"}"
+                                    new Payload()
+                                            .put("script", WallParser.class.getName())
+                                            .put("step", 2)
+                                            .put("publicName", domain)
+                                            .put("docUrl", save.getDoc().getUrl())
+                                            .toString()
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Заполнить альбом сейчас"))
             ));
@@ -492,8 +503,10 @@ public class WallParser implements Script {
                     new KeyboardButton()
                             .setColor(KeyboardButtonColor.NEGATIVE)
                             .setAction(new KeyboardButtonAction().setPayload(
-                                    "{\"script\":\"" + WallParser.class.getName() + "\"," +
-                                            "\"step\":" + 3 + "}"
+                                    new Payload()
+                                            .put("script", WallParser.class.getName())
+                                            .put("step", 3)
+                                            .toString()
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Остановить"))
             ));
@@ -501,8 +514,10 @@ public class WallParser implements Script {
                     new KeyboardButton()
                             .setColor(KeyboardButtonColor.NEGATIVE)
                             .setAction(new KeyboardButtonAction().setPayload(
-                                    "{\"script\":\"" + WallParser.class.getName() + "\"," +
-                                            "\"step\":" + 3_1 + "}"
+                                    new Payload()
+                                            .put("script", WallParser.class.getName())
+                                            .put("step", 3_1)
+                                            .toString()
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Отключить"))
             ));
