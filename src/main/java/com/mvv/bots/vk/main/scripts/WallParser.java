@@ -276,9 +276,46 @@ public class WallParser implements Script {
                     template.setElements(elements);
                     var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     var offset = payload.has("offset") ? payload.get("offset").getAsInt() : 0;
-                    var max = 10;
-                    var corrector = 0;
-                    for(var i = 0; elements.size() < max+1; i++){
+                    var max = 9;
+
+                    elements.add(new TemplateElement()
+                            .setTitle("Меню")
+                            .setDescription("Чтобы добавить стену отправьте ссылку и нажмите \"Добавить\"")
+                            .setButtons(List.of(
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.DEFAULT)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    new Payload()
+                                                            .put("script", getClass().getName())
+                                                            .put("step", 1)
+                                                            .put("offset", Math.max(offset - max, 0))
+                                                            .toString()
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Назад")),
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.DEFAULT)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    new Payload()
+                                                            .put("script", getClass().getName())
+                                                            .put("step", 10)
+                                                            .put("offset", Math.max(offset - max, 0))
+                                                            .toString()
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Добавить")),
+                                    new KeyboardButton()
+                                            .setColor(KeyboardButtonColor.DEFAULT)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    new Payload()
+                                                            .put("script", getClass().getName())
+                                                            .put("step", 1)
+                                                            .put("offset", offset + max)
+                                                            .toString()
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel("Вперед"))
+                            ))
+                    );
+
+                    for(var i = 1; elements.size() < max+1; i++){
                         if(offset + i > list.size()-1){
                             System.out.println(">>>>>>>>>>>>");
                             System.out.println("break");
@@ -286,37 +323,6 @@ public class WallParser implements Script {
                             break;
                         }
                         var album = list.get(offset + i);
-                        if(offset >= max-1){
-                            corrector++;
-                            var troffset = 0;
-                            if(offset - max > 0){
-                                troffset = 8;
-                            }
-
-                            System.out.println(">>>>>>>>>>>>");
-                            System.out.println("add prev");
-                            System.out.println(">>>>>>>>>>>>");
-                            elements.add(new TemplateElement()
-                                    .setTitle("Назад")
-                                    .setDescription("На предидущую страницу")
-                                    .setButtons(List.of(
-                                            new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 1)
-                                                                    .put("offset", troffset)
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel("Назад"))
-                                    ))
-                            );
-                            i++;
-                        }
-                        System.out.println(">>>>>>>>>>>>");
-                        System.out.println("add main");
-                        System.out.println(">>>>>>>>>>>>");
                         elements.add(new TemplateElement()
                                 .setTitle(album.getTitle())
                                 .setDescription(album.getDescription())
@@ -330,37 +336,24 @@ public class WallParser implements Script {
                                                                 .put("wall", album.getDescription())
                                                                 .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
-                                                        .setLabel("Заполнить"))
+                                                        .setLabel("Заполнить")),
+                                        new KeyboardButton()
+                                                .setColor(KeyboardButtonColor.DEFAULT)
+                                                .setAction(new KeyboardButtonAction().setPayload(
+                                                        new Payload()
+                                                                .put("script", getClass().getName())
+                                                                .put("step", 19991)
+                                                                .put("wall", album.getDescription())
+                                                                .toString()
+                                                ).setType(KeyboardButtonActionType.TEXT)
+                                                        .setLabel("Удалить"))
                                 ))
                         );
-                        if(i == 9 && offset + i < list.size()-1){
-                            System.out.println(">>>>>>>>>>>>");
-                            System.out.println("add next");
-                            System.out.println(">>>>>>>>>>>>");
-                            corrector++;
-                            elements.add(new TemplateElement()
-                                    .setTitle("Вперед")
-                                    .setDescription("На следующую страницу")
-                                    .setButtons(List.of(
-                                            new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 1)
-                                                                    .put("offset", offset + max - corrector)
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel("Вперед"))
-                                    ))
-                            );
-                        }
                     }
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Альбомы")
                             .template(template)
-                            //.unsafeParam("template", template)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
