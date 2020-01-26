@@ -219,7 +219,7 @@ public class WallParser implements Script {
                         }
                     }
                     var currentAlbum = new Photos(Config.VK())
-                            .createAlbum(userActor, smile()+wallName)
+                            .createAlbum(userActor, wallName)
                             .description(wallId)
                             .privacyView("only_me")
                             .execute();
@@ -236,9 +236,15 @@ public class WallParser implements Script {
                     user = UsersTable.find(message.getFromId());
                     userActor = new UserActor(user.getId(), user.getToken());
                     var albums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute();
+                    var tempList = new HashSet<String>();
                     var list = albums.getItems()
                             .stream()
-                            .filter(album -> album.getTitle().startsWith(smile()))
+                            .filter(album -> album.getDescription().matches("-?\\d+"))
+                            .filter(album -> {
+                                if(tempList.contains(album.getDescription())) return false;
+                                tempList.add(album.getDescription());
+                                return true;
+                            })
                             .collect(Collectors.toList());
                     if(list.size() < 1){
                         buttons.add(List.of(
@@ -298,7 +304,6 @@ public class WallParser implements Script {
                                                     new Payload()
                                                             .put("script", getClass().getName())
                                                             .put("step", 10)
-                                                            .put("offset", Math.max(offset - max, 0))
                                                             .toString()
                                             ).setType(KeyboardButtonActionType.TEXT)
                                                     .setLabel("Добавить")),
@@ -317,12 +322,10 @@ public class WallParser implements Script {
 
                     for(var i = 0; elements.size() < max+1; i++){
                         if(offset + i > list.size()-1){
-                            System.out.println(">>>>>>>>>>>>");
-                            System.out.println("break");
-                            System.out.println(">>>>>>>>>>>>");
                             break;
                         }
                         var album = list.get(offset + i);
+
                         elements.add(new TemplateElement()
                                 .setTitle(album.getTitle())
                                 .setDescription(album.getDescription())
@@ -367,10 +370,6 @@ public class WallParser implements Script {
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    break;
-                case 2:
-                    pushPhotos(message);
-                    ScriptList.open(message);
                     break;
                 case 3:
                     if(threadHashMap.containsKey(message.getFromId())) threadHashMap.get(message.getFromId()).stop();
