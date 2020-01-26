@@ -239,7 +239,6 @@ public class WallParser implements Script {
                     var list = albums.getItems()
                             .stream()
                             .filter(album -> album.getTitle().startsWith(smile()))
-                            .sorted()
                             .collect(Collectors.toList());
                     if(list.size() < 1){
                         buttons.add(List.of(
