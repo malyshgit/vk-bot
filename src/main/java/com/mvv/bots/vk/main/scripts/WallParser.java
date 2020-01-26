@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.mvv.bots.vk.main.scripts;
 
 import com.google.gson.Gson;
@@ -350,7 +345,7 @@ public class WallParser implements Script {
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Альбомы")
-                            .template(messageTemplate)
+                            .unsafeParam("template", messageTemplate)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
