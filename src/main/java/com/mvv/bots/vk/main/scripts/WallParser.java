@@ -315,8 +315,8 @@ public class WallParser implements Script {
                             ))
                     );
 
-                    for(var i = 1; elements.size() < max+1; i++){
-                        if(offset + i > list.size()){
+                    for(var i = 0; elements.size() < max+1; i++){
+                        if(offset + i > list.size()-1){
                             System.out.println(">>>>>>>>>>>>");
                             System.out.println("break");
                             System.out.println(">>>>>>>>>>>>");
