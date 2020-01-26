@@ -346,6 +346,16 @@ public class WallParser implements Script {
                                                                 .put("wall", album.getDescription())
                                                                 .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
+                                                        .setLabel("Автозаполнение")),
+                                        new KeyboardButton()
+                                                .setColor(KeyboardButtonColor.DEFAULT)
+                                                .setAction(new KeyboardButtonAction().setPayload(
+                                                        new Payload()
+                                                                .put("script", getClass().getName())
+                                                                .put("step", 19991)
+                                                                .put("wall", album.getDescription())
+                                                                .toString()
+                                                ).setType(KeyboardButtonActionType.TEXT)
                                                         .setLabel("Удалить"))
                                 ))
                         );
