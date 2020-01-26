@@ -92,8 +92,8 @@ public class WallParser implements Script {
             keyboard.setOneTime(false);
             keyboard.setButtons(buttons);
 
-            Template messageTemplate = new Template();
-
+            Template template = new Template();
+            template.setType(TemplateType.CAROUSEL);
 
             switch (step){
                 case -1:
@@ -273,24 +273,30 @@ public class WallParser implements Script {
                                 .execute();
                         return;
                     }
-                    messageTemplate.setType(TemplateType.CAROUSEL);
                     List<TemplateElement> elements = new ArrayList<>();
-                    messageTemplate.setElements(elements);
+                    template.setElements(elements);
                     var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     var offset = payload.has("offset") ? payload.get("offset").getAsInt() : 0;
                     var max = 10;
                     var corrector = 0;
-                    for(var i = 0; i < max; i++){
-                        if(offset + i > list.size()-1) break;
+                    for(var i = 0; elements.size() < max+1; i++){
+                        if(offset + i > list.size()-1){
+                            System.out.println(">>>>>>>>>>>>");
+                            System.out.println("break");
+                            System.out.println(">>>>>>>>>>>>");
+                            break;
+                        }
                         var album = list.get(offset + i);
                         if(offset >= max-1){
                             corrector++;
                             var troffset = 0;
-                            if(offset < max){
-                                troffset = 0;
-                            }else if(offset - max > 0){
+                            if(offset - max > 0){
                                 troffset = 8;
                             }
+
+                            System.out.println(">>>>>>>>>>>>");
+                            System.out.println("add prev");
+                            System.out.println(">>>>>>>>>>>>");
                             elements.add(new TemplateElement()
                                     .setTitle("Назад")
                                     .setDescription("На предидущую страницу")
@@ -309,6 +315,9 @@ public class WallParser implements Script {
                             );
                             i++;
                         }
+                        System.out.println(">>>>>>>>>>>>");
+                        System.out.println("add main");
+                        System.out.println(">>>>>>>>>>>>");
                         elements.add(new TemplateElement()
                                 .setTitle(album.getTitle())
                                 .setDescription(album.getDescription())
@@ -326,6 +335,9 @@ public class WallParser implements Script {
                                 ))
                         );
                         if(i == 9 && offset + i < list.size()-1){
+                            System.out.println(">>>>>>>>>>>>");
+                            System.out.println("add next");
+                            System.out.println(">>>>>>>>>>>>");
                             corrector++;
                             elements.add(new TemplateElement()
                                     .setTitle("Вперед")
@@ -348,7 +360,7 @@ public class WallParser implements Script {
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Альбомы")
-                            .unsafeParam("template", messageTemplate)
+                            .unsafeParam("template", template)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
