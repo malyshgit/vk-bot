@@ -349,7 +349,6 @@ public class WallParser implements Script {
                     }
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .template(messageTemplate)
                             .message("Альбомы")
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
