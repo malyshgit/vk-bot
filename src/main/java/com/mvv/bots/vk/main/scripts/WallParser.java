@@ -221,7 +221,8 @@ public class WallParser implements Script {
                     var currentAlbum = new Photos(Config.VK())
                             .createAlbum(userActor, smile()+wallName)
                             .description(wallId)
-                            .privacyView("only_me");
+                            .privacyView("only_me")
+                            .execute();
                     new Messages(Config.VK())
                         .send(Config.GROUP)
                         .message("Альбом создан.")
