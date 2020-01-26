@@ -274,10 +274,10 @@ public class WallParser implements Script {
                         return;
                     }
 
-                    Template template = new Template();
-                    template.setType(TemplateType.CAROUSEL);
+                    Template messageTemplate = new Template();
+                    messageTemplate.setType(TemplateType.CAROUSEL);
                     List<TemplateElement> elements = new ArrayList<>();
-                    template.setElements(elements);
+                    messageTemplate.setElements(elements);
                     var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     var offset = payload.has("offset") ? payload.get("offset").getAsInt() : 0;
                     var max = 10;
@@ -349,7 +349,7 @@ public class WallParser implements Script {
                     }
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .template(template)
+                            .template(messageTemplate)
                             .message("Альбомы")
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
