@@ -39,7 +39,6 @@ public class Server {
 
     public Server(){
         try {
-            BoolInt b = BoolInt.valueOf("");
             LOG.debug("Запуск сервера.");
             HttpServer server = HttpServer.create();
             server.bind(new InetSocketAddress(Integer.parseInt(System.getenv("PORT"))), 0);
