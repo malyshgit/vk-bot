@@ -10,7 +10,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.database.tables.users.User;
-import com.mvv.bots.vk.database.tables.users.Users;
+import com.mvv.bots.vk.database.tables.users.UsersTable;
 import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
@@ -51,7 +51,7 @@ public class Weather implements Script {
 
     @Override
     public void update() {
-        Users.findAll().forEach(user -> {
+        UsersTable.findAll().forEach(user -> {
             if(user.getParameters().has("weatherupdate")){
                 boolean b = Boolean.parseBoolean(user.getParameters().get("weatherupdate"));
                 if(b){
@@ -95,7 +95,7 @@ public class Weather implements Script {
                             .execute();
                     break;
                 case 0:
-                    User user = Users.find(message.getFromId());
+                    User user = UsersTable.find(message.getFromId());
                     if(user.getParameters().has("geo")){
                         String geo = (String)user.getParameters().get("geo");
                         JsonElement jelement = new JsonParser().parse(geo);
@@ -151,7 +151,7 @@ public class Weather implements Script {
                             }
                         }else{
                             user.getParameters().put("weatherupdate", false);
-                            Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                            UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                             send(message, 0);
                             return;
                         }
@@ -184,9 +184,9 @@ public class Weather implements Script {
                     break;
                 case 1:
                     String geo = message.getGeo().toString();
-                    user = Users.find(message.getFromId());
+                    user = UsersTable.find(message.getFromId());
                     user.getParameters().put("geo", geo);
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Местоположение сохранено.")
@@ -196,9 +196,9 @@ public class Weather implements Script {
                     send(message, 0);
                     break;
                 case 21:
-                    user = Users.find(message.getFromId());
+                    user = UsersTable.find(message.getFromId());
                     user.getParameters().put("weatherupdate", "true");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка активирована.")
@@ -208,9 +208,9 @@ public class Weather implements Script {
                     send(message, 0);
                     break;
                 case 22:
-                    user = Users.find(message.getFromId());
+                    user = UsersTable.find(message.getFromId());
                     user.getParameters().put("weatherupdate", "false");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка деактивирована.")

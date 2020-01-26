@@ -11,7 +11,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.database.tables.users.User;
-import com.mvv.bots.vk.database.tables.users.Users;
+import com.mvv.bots.vk.database.tables.users.UsersTable;
 import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
@@ -62,7 +62,7 @@ public class InstaGet implements Script {
 
     @Override
     public void update() {
-        Users.findAll().forEach(user -> {
+        UsersTable.findAll().forEach(user -> {
             if(user.getParameters().has("instagetupdate")){
                 boolean b = Boolean.parseBoolean(user.getParameters().get("instagetupdate"));
                 if(b){
@@ -107,7 +107,7 @@ public class InstaGet implements Script {
                             .execute();
                     break;
                 case 0:
-                    User user = Users.find(message.getFromId());
+                    User user = UsersTable.find(message.getFromId());
                     List<Photo> attach = new ArrayList<>();
                     if(user.getParameters().has("instagettags")){
                         String instagettags = (String)user.getParameters().get("instagettags");
@@ -183,7 +183,7 @@ public class InstaGet implements Script {
                             }
                         }else{
                             user.getParameters().put("instagetupdate", false);
-                            Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                            UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                             send(message, 0);
                             return;
                         }
@@ -255,11 +255,11 @@ public class InstaGet implements Script {
                     GetByIdResponse getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
                     String tags = getByIdResponse.getItems().get(0).getText().replaceAll("\\s+", "");
                     LOG.debug(tags);
-                    user = Users.find(message.getFromId());
+                    user = UsersTable.find(message.getFromId());
                     JsonArray array = new JsonArray();
                     List.of(tags.split(",")).forEach(array::add);
                     user.getParameters().put("instagettags", array.toString());
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Тэги сохранены.")
@@ -270,9 +270,9 @@ public class InstaGet implements Script {
                     ScriptList.open(message);
                     break;
                 case 21:
-                    user = Users.find(message.getFromId());
+                    user = UsersTable.find(message.getFromId());
                     user.getParameters().put("instagetupdate", "true");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка активирована.")
@@ -283,9 +283,9 @@ public class InstaGet implements Script {
                     ScriptList.open(message);
                     break;
                 case 22:
-                    user = Users.find(message.getFromId());
+                    user = UsersTable.find(message.getFromId());
                     user.getParameters().put("instagetupdate", "false");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка деактивирована.")

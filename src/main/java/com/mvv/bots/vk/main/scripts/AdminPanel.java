@@ -9,17 +9,15 @@ import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.database.tables.settings.Option;
 import com.mvv.bots.vk.database.tables.settings.Settings;
 import com.mvv.bots.vk.database.tables.users.User;
-import com.mvv.bots.vk.database.tables.users.Users;
+import com.mvv.bots.vk.database.tables.users.UsersTable;
 import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.*;
-import com.vk.api.sdk.client.AbstractQueryBuilder;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.base.*;
 import com.vk.api.sdk.objects.base.Image;
-import com.vk.api.sdk.objects.enums.DocsType;
 import com.vk.api.sdk.objects.groups.GroupFull;
 import com.vk.api.sdk.objects.messages.*;
 
@@ -27,32 +25,17 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.google.gson.*;
 import com.vk.api.sdk.objects.messages.keyboard.Payload;
-import com.vk.api.sdk.objects.messages.responses.GetByIdResponse;
-import com.vk.api.sdk.objects.photos.Photo;
-import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
-import com.vk.api.sdk.objects.photos.PhotoUpload;
-import com.vk.api.sdk.objects.photos.responses.GetAlbumsResponse;
-import com.vk.api.sdk.objects.photos.responses.GetResponse;
-import com.vk.api.sdk.objects.photos.responses.PhotoUploadResponse;
 import com.vk.api.sdk.objects.responses.OwnerCoverUploadResponse;
-import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 import javax.imageio.ImageIO;
 
@@ -338,7 +321,7 @@ public class AdminPanel implements Script {
                             .execute();
                     break;
                 case 1021:
-                    List<User> users = Users.findAll();
+                    List<User> users = UsersTable.findAll();
                     if(!users.isEmpty()){
                         String info = users.stream().map(User::toString).collect(Collectors.joining("\n"));
                         new Messages(Config.VK())
@@ -350,7 +333,7 @@ public class AdminPanel implements Script {
                     }
                     break;
                 case 1022:
-                    Users.create();
+                    UsersTable.create();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("База данных пересоздана.")
@@ -359,7 +342,7 @@ public class AdminPanel implements Script {
                             .execute();
                     break;
                 case 11:
-                    Users.create();
+                    UsersTable.create();
                     Settings.create();
                     new Messages(Config.VK())
                             .send(Config.GROUP)

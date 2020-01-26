@@ -5,12 +5,9 @@
  */
 package com.mvv.bots.vk.main.scripts;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.database.tables.users.User;
-import com.mvv.bots.vk.database.tables.users.Users;
+import com.mvv.bots.vk.database.tables.users.UsersTable;
 import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
@@ -20,11 +17,7 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.messages.*;
 import com.vk.api.sdk.objects.messages.keyboard.Payload;
-import org.apache.commons.io.IOUtils;
 
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,7 +79,7 @@ public class Authorization implements Script {
                             .execute();
                     break;
                 case 0:
-                    User user = Users.find(message.getFromId());
+                    User user = UsersTable.find(message.getFromId());
                     if(user.getToken() != null){
                         buttons.add(List.of(
                                 new KeyboardButton()
@@ -146,7 +139,7 @@ public class Authorization implements Script {
                     ScriptList.open(message);
                     break;
                 case 2:
-                    Users.update(message.getFromId(), "TOKEN", null);
+                    UsersTable.update(message.getFromId(), "TOKEN", null);
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Доступ запрещен.")
@@ -167,7 +160,7 @@ public class Authorization implements Script {
         try {
             var response = new OAuth(Config.VK()).userAuthorizationCodeFlow(Config.APP_ID, Config.APP_SECRET, Config.REDIRECT_URL, code).execute();
             if (response != null) {
-                Users.update(response.getUserId(), "TOKEN", response.getAccessToken());
+                UsersTable.update(response.getUserId(), "TOKEN", response.getAccessToken());
                 return true;
             }
         }catch (ApiException | ClientException e) {

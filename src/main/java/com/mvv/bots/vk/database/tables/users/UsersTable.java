@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class Users {
-    private static final Logger LOG = LogManager.getLogger(Users.class);
+public class UsersTable {
+    private static final Logger LOG = LogManager.getLogger(UsersTable.class);
     private static final String name = "USERS";
 
     public final static String tableString = "CREATE TABLE "+name+" " +

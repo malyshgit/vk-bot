@@ -8,7 +8,7 @@ package com.mvv.bots.vk.main.scripts;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mvv.bots.vk.database.tables.users.User;
-import com.mvv.bots.vk.database.tables.users.Users;
+import com.mvv.bots.vk.database.tables.users.UsersTable;
 import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
@@ -49,7 +49,7 @@ public class Advice implements Script {
 
     @Override
     public void update() {
-        Users.findAll().forEach(user -> {
+        UsersTable.findAll().forEach(user -> {
             if(user.getParameters().has("adviceupdate")){
                 boolean b = Boolean.parseBoolean(user.getParameters().get("adviceupdate"));
                 if(b){
@@ -74,7 +74,7 @@ public class Advice implements Script {
 
             switch (step) {
                 case 0:
-                    User user = Users.find(message.getFromId());
+                    User user = UsersTable.find(message.getFromId());
                     keyboard.setInline(true);
                     if(user.getParameters().has("adviceupdate")){
                         if(Boolean.parseBoolean(user.getParameters().get("adviceupdate"))){
@@ -104,7 +104,7 @@ public class Advice implements Script {
                         }
                     }else{
                         user.getParameters().put("adviceupdate", false);
-                        Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                        UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                         send(message, 0);
                         return;
                     }
@@ -147,9 +147,9 @@ public class Advice implements Script {
                             .execute();
                     break;
                 case 2:
-                    user = Users.find(message.getFromId());
+                    user = UsersTable.find(message.getFromId());
                     user.getParameters().put("adviceupdate", "true");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка активирована.")
@@ -159,9 +159,9 @@ public class Advice implements Script {
                     send(message, 0);
                     break;
                 case 3:
-                    user = Users.find(message.getFromId());
+                    user = UsersTable.find(message.getFromId());
                     user.getParameters().put("adviceupdate", "false");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Подписка деактивирована.")
@@ -171,9 +171,9 @@ public class Advice implements Script {
                     send(message, 0);
                     break;
                 case 4:
-                    user = Users.find(message.getFromId());
+                    user = UsersTable.find(message.getFromId());
                     user.getParameters().put("advicecensored", "true");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Цензура включена.")
@@ -183,9 +183,9 @@ public class Advice implements Script {
                     send(message, 0);
                     break;
                 case 5:
-                    user = Users.find(message.getFromId());
+                    user = UsersTable.find(message.getFromId());
                     user.getParameters().put("advicecensored", "false");
-                    Users.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Цензура выключена.")

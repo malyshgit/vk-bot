@@ -4,17 +4,17 @@ import com.google.gson.*;
 import com.mvv.bots.vk.database.tables.settings.Option;
 import com.mvv.bots.vk.database.tables.settings.Settings;
 import com.mvv.bots.vk.database.tables.users.User;
-import com.mvv.bots.vk.database.tables.users.Users;
+import com.mvv.bots.vk.database.tables.users.UsersTable;
 import com.mvv.bots.vk.main.scripts.Authorization;
 import com.mvv.bots.vk.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import com.vk.api.sdk.actions.Messages;
-import com.vk.api.sdk.actions.OAuth;
 import com.vk.api.sdk.callback.CallbackApi;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
+import com.vk.api.sdk.objects.base.BoolInt;
 import com.vk.api.sdk.objects.callback.messages.MessageWithClientInfo;
 import com.vk.api.sdk.objects.messages.Message;
 import com.mvv.bots.vk.Config;
@@ -39,6 +39,7 @@ public class Server {
 
     public Server(){
         try {
+            BoolInt b = BoolInt.valueOf("");
             LOG.debug("Запуск сервера.");
             HttpServer server = HttpServer.create();
             server.bind(new InetSocketAddress(Integer.parseInt(System.getenv("PORT"))), 0);
@@ -297,13 +298,13 @@ public class Server {
     }
 
     private static void plusUse(Message message){
-        User user = Users.find(message.getFromId());
+        User user = UsersTable.find(message.getFromId());
         if(user != null){
-            Users.update(user.getId(), "USE", user.getUse()+1);
+            UsersTable.update(user.getId(), "USE", user.getUse()+1);
         }else{
             user = new User(message.getFromId());
             user.setUse(1);
-            Users.add(user);
+            UsersTable.add(user);
         }
     }
 
