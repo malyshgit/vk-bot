@@ -92,6 +92,9 @@ public class WallParser implements Script {
             keyboard.setOneTime(false);
             keyboard.setButtons(buttons);
 
+            Template messageTemplate = new Template();
+
+
             switch (step){
                 case -1:
                     buttons.add(List.of(
@@ -262,14 +265,13 @@ public class WallParser implements Script {
                         ));
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
+                                .keyboard(keyboard)
                                 .message("Отправьте ссылку на стену и нажмите \"Добавить\"")
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
                         return;
                     }
-
-                    Template messageTemplate = new Template();
                     messageTemplate.setType(TemplateType.CAROUSEL);
                     List<TemplateElement> elements = new ArrayList<>();
                     messageTemplate.setElements(elements);
