@@ -627,7 +627,7 @@ public class WallParser implements Script {
             UserActor userActor = new UserActor(message.getFromId(), user.getToken());
             String wallName;
             if(domain.startsWith("-")) {
-                var groupProfile = new Groups(Config.VK()).getById(userActor).groupId(domain).execute();
+                var groupProfile = new Groups(Config.VK()).getById(userActor).groupId(domain.substring(1)).execute();
                 wallName = groupProfile.get(0).getName();
             }else{
                 var userProfile = new Users(Config.VK()).get(userActor).fields(Fields.PHOTO_200).userIds(domain).execute();
