@@ -10,7 +10,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>bots</artifactId>
+  <artifactId>vkbot</artifactId>
   <packaging>jar</packaging>
 
   <properties>
