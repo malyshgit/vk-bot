@@ -31,6 +31,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -336,6 +337,7 @@ public class WallParser implements Script {
                                                         new Payload()
                                                                 .put("script", getClass().getName())
                                                                 .put("step", 2)
+                                                                .put("auto", 0)
                                                                 .put("wall", album.getDescription())
                                                                 .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
@@ -346,6 +348,7 @@ public class WallParser implements Script {
                                                         new Payload()
                                                                 .put("script", getClass().getName())
                                                                 .put("step", 2)
+                                                                .put("auto", 1)
                                                                 .put("wall", album.getDescription())
                                                                 .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
@@ -395,7 +398,19 @@ public class WallParser implements Script {
                             e.printStackTrace();
                         }
                     });
-
+                    send(message, 1);
+                    break;
+                case 2:
+                    user = UsersTable.find(message.getFromId());
+                    userActor = new UserActor(user.getId(), user.getToken());
+                    payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+                    if(payload.has("domain") && payload.has("doc")){
+                        pushPhotos(message);
+                        return;
+                    }
+                    var auto = payload.get("auto").getAsInt();
+                    wall = payload.get("wall").getAsString();
+                    parseWall(message, wall.split("_")[1]);
                     break;
                 case 3222:
                     if(threadHashMap.containsKey(message.getFromId())) threadHashMap.get(message.getFromId()).stop();
@@ -477,16 +492,7 @@ public class WallParser implements Script {
             var query = new Wall(Config.VK()).get(userActor)
                     .offset(offset)
                     .count(count);
-            if (domain.matches("-\\d+")) {
-                query.ownerId(Integer.valueOf(domain));
-            } else if (domain.startsWith("http") || domain.startsWith("vk.com")) {
-                domain = domain.replace("https://vk.com/", "");
-                domain = domain.replace("http://vk.com/", "");
-                domain = domain.replace("vk.com/", "");
-                query.domain(domain);
-            } else {
-                query.domain(domain);
-            }
+            query.ownerId(Integer.valueOf(domain));
             var response = query.execute();
 
             StringBuffer sb = new StringBuffer();
@@ -593,8 +599,8 @@ public class WallParser implements Script {
                                     new Payload()
                                             .put("script", WallParser.class.getName())
                                             .put("step", 2)
-                                            .put("publicName", domain)
-                                            .put("docUrl", save.getDoc().getUrl())
+                                            .put("domain", domain)
+                                            .put("doc", save.getDoc().getUrl())
                                             .toString()
                             ).setType(KeyboardButtonActionType.TEXT)
                                     .setLabel("Заполнить альбом сейчас"))
@@ -613,24 +619,33 @@ public class WallParser implements Script {
     private static void pushPhotosThread(Message message) {
         try {
             var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
-            String docUrl = payload.get("docUrl").getAsString();
-            String publicName = payload.get("publicName").getAsString();
+            String docUrl = payload.get("doc").getAsString();
+            String domain = payload.get("domain").getAsString();
             List<String> lines = IOUtils.readLines(new URL(docUrl).openStream(), StandardCharsets.UTF_8);
             StringBuilder sb = new StringBuilder();
             User user = UsersTable.find(message.getFromId());
             UserActor userActor = new UserActor(message.getFromId(), user.getToken());
+            String wallName;
+            if(domain.startsWith("-")) {
+                var groupProfile = new Groups(Config.VK()).getById(userActor).groupId(domain).execute();
+                wallName = groupProfile.get(0).getName();
+            }else{
+                var userProfile = new Users(Config.VK()).get(userActor).fields(Fields.PHOTO_200).userIds(domain).execute();
+                wallName = userProfile.get(0).getFirstName()+" "+userProfile.get(0).getLastName();
+            }
 
             user.getParameters().put("wallparsernextpush",
-                    "{\"docUrl\":\"" + docUrl + "\"," +
-                            " \"publicName\":\"" + publicName + "\"," +
+                    "{\"doc\":\"" + docUrl + "\"," +
+                            " \"domain\":\"" + domain + "\"," +
                             " \"date\":"+System.currentTimeMillis()+"}");
             UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+
 
             GetAlbumsResponse response = new Photos(Config.VK()).getAlbums(userActor).ownerId(message.getFromId()).execute();
             int offset = 0;
             List<PhotoAlbumFull> albums = new ArrayList<>();
             response.getItems().forEach(a -> {
-                if(a.getTitle().startsWith(publicName)){
+                if(a.getDescription().startsWith("1_"+domain)){
                     albums.add(a);
                 }
             });
@@ -685,13 +700,15 @@ public class WallParser implements Script {
                 }
                 if(lastAlbum == null){
                     var albumQuery = new Photos(Config.VK())
-                            .createAlbum(userActor, publicName)
+                            .createAlbum(userActor, wallName)
+                            .description("1_"+domain)
                             .privacyView("only_me");
                     lastAlbum = albumQuery.execute();
                 }
                 offset = lastAlbum.getSize();
             }else{
-                var albumQuery = new Photos(Config.VK()).createAlbum(userActor, publicName)
+                var albumQuery = new Photos(Config.VK()).createAlbum(userActor, wallName)
+                        .description("1_"+domain)
                         .privacyView("only_me");
                 lastAlbum = albumQuery.execute();
             }
@@ -790,7 +807,8 @@ public class WallParser implements Script {
                 }
                 long startTime = System.currentTimeMillis();
                 if(offset >= 10000){
-                    var albumQuery = new Photos(Config.VK()).createAlbum(userActor, publicName)
+                    var albumQuery = new Photos(Config.VK()).createAlbum(userActor, wallName)
+                            .description("1_"+domain)
                             .privacyView("only_me");
                     lastAlbum = albumQuery.execute();
                     uploadQuery = new Photos(Config.VK())
@@ -846,7 +864,7 @@ public class WallParser implements Script {
             }else{
                 user.getParameters().put("wallparsernextpush",
                         "{\"docUrl\":\"" + docUrl + "\"," +
-                                " \"publicName\":\"" + publicName + "\"," +
+                                " \"domain\":\"" + domain + "\"," +
                                 " \"date\":"+System.currentTimeMillis()+"}");
                 UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                 new Messages(Config.VK())
