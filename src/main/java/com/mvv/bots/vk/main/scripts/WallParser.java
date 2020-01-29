@@ -220,7 +220,7 @@ public class WallParser implements Script {
                     }
                     var currentAlbum = new Photos(Config.VK())
                             .createAlbum(userActor, wallName)
-                            .description(wallId)
+                            .description(1+"_"+wallId)
                             .privacyView("only_me")
                             .execute();
                     new Messages(Config.VK())
@@ -239,7 +239,7 @@ public class WallParser implements Script {
                     var tempList = new HashSet<String>();
                     var list = albums.getItems()
                             .stream()
-                            .filter(album -> album.getDescription().matches("-?\\d+"))
+                            .filter(album -> album.getDescription().matches(1+"_-?\\d+"))
                             .filter(album -> {
                                 if(tempList.contains(album.getDescription())) return false;
                                 tempList.add(album.getDescription());
@@ -335,7 +335,7 @@ public class WallParser implements Script {
                                                 .setAction(new KeyboardButtonAction().setPayload(
                                                         new Payload()
                                                                 .put("script", getClass().getName())
-                                                                .put("step", 19991)
+                                                                .put("step", 2)
                                                                 .put("wall", album.getDescription())
                                                                 .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
@@ -345,7 +345,7 @@ public class WallParser implements Script {
                                                 .setAction(new KeyboardButtonAction().setPayload(
                                                         new Payload()
                                                                 .put("script", getClass().getName())
-                                                                .put("step", 19991)
+                                                                .put("step", 2)
                                                                 .put("wall", album.getDescription())
                                                                 .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
@@ -359,7 +359,7 @@ public class WallParser implements Script {
                                                                 .put("wall", album.getDescription())
                                                                 .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
-                                                        .setLabel("Удалить"))
+                                                        .setLabel("Не показывать"))
                                 ))
                         );
                     }
@@ -376,13 +376,16 @@ public class WallParser implements Script {
                     userActor = new UserActor(user.getId(), user.getToken());
                     albums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute();
                     payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
-                    var wall = payload.get("wall").getAsInt();
+                    var wall = payload.get("wall").getAsString();
                     albums.getItems()
                             .stream()
-                            .filter(album -> album.getDescription().equals(""+wall))
+                            .filter(album -> album.getDescription().equals(wall))
                             .forEach(album -> {
                         try {
-                            new Photos(Config.VK()).deleteAlbum(userActor, album.getId()).execute();
+                            new Photos(Config.VK())
+                                    .editAlbum(userActor, album.getId())
+                                    .description(wall.replaceFirst("1_", "0_"))
+                                    .execute();
                         } catch (ApiException | ClientException e) {
                             e.printStackTrace();
                         }
