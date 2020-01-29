@@ -7,7 +7,7 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>bots</module>
+    <module>vkbot</module>
     <module>common</module>
     <module>web</module>
     <module>worker</module>
