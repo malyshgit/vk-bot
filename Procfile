@@ -1,2 +1,2 @@
-web: java $JAVA_OPTS -jar targe/vkbot-0.0.1-SNAPSHOT-jar-with-dependencies.jar --port $PORT %web%
+web: java $JAVA_OPTS -jar target/vkbot-0.0.1-SNAPSHOT-jar-with-dependencies.jar --port $PORT %web%
 worker: java $JAVA_OPTS -jar target/vkbot-0.0.1-SNAPSHOT-jar-with-dependencies.jar --port $PORT %worker%
