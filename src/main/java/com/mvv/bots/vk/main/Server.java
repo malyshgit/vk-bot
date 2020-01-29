@@ -76,14 +76,14 @@ public class Server {
         }*/
         if(args.length > 0 && args[0].equals("%worker%")){
             new Server();
-            while(true){
+            /*while(true){
                 try {
                     LOG.info("REFRESH");
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }
+            }*/
         }
     }
 
