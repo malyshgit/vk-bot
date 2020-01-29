@@ -1,7 +1,6 @@
 package com.mvv.bots.vk.database;
 
 import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.main.Server;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

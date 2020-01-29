@@ -11,6 +11,8 @@ import java.util.List;
 
 public class Config {
 
+    public static final Integer PORT = Integer.parseInt(System.getenv("PORT"));
+
     public static final String CONFIRMATION_TOKEN = System.getenv("CONFIRMATION_TOKEN");
     public static final int ADMIN_ID = Integer.parseInt(System.getenv("ADMIN_ID"));
     public static final int GROUP_ID = Integer.parseInt(System.getenv("GROUP_ID"));

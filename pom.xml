@@ -144,7 +144,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.mvv.bots.vk.main.Server</mainClass>
+              <mainClass>com.mvv.bots.vk.main.Main</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>
