@@ -1,2 +1,2 @@
-web: java $JAVA_OPTS -jar web/target/dependency/webapp-runner.jar --port $PORT web/target/*.war
-worker: sh worker/target/bin/worker
+web: java $JAVA_OPTS -jar target\vkbot-0.0.1-SNAPSHOT.jar --port $PORT %web%
+worker: java $JAVA_OPTS -jar target\vkbot-0.0.1-SNAPSHOT.jar --port $PORT %worker%

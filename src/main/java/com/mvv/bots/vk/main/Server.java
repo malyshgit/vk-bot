@@ -74,16 +74,19 @@ public class Server {
                 }
             }
         }*/
-        if(args.length > 0 && args[0].equals("%worker%")){
-            new Server();
-            /*while(true){
-                try {
-                    LOG.info("REFRESH");
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        if(args.length > 0) {
+            if (args[0].equals("%worker%")) {
+                while (true) {
+                    try {
+                        LOG.info("REFRESH");
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }*/
+            }else if (args[0].equals("%web%")) {
+                new Server();
+            }
         }
     }
 
