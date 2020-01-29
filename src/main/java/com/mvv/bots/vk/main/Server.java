@@ -61,7 +61,7 @@ public class Server {
     }
 
     public static void main(String[] args) {
-        if(args.length > 0){
+        /*if(args.length > 0){
             LOG.debug(List.of(args));
             Option update = Settings.find("update");
             if(update != null){
@@ -73,9 +73,22 @@ public class Server {
                     }
                 }
             }
-            return;
+        }*/
+        if(args.length > 0 && args[0].equals("%worker%")){
+            new Server();
+            while(true){
+                try {
+                    LOG.info("REFRESH");
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        new Server();
+    }
+
+    private static void WebHandler(){
+
     }
 
     private static class CallbackHandler implements HttpHandler {
