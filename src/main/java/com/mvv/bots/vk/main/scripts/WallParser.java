@@ -355,7 +355,7 @@ public class WallParser implements Script {
                                                 .setAction(new KeyboardButtonAction().setPayload(
                                                         new Payload()
                                                                 .put("script", getClass().getName())
-                                                                .put("step", 19991)
+                                                                .put("step", 3)
                                                                 .put("wall", album.getDescription())
                                                                 .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
@@ -372,9 +372,32 @@ public class WallParser implements Script {
                             .execute();
                     break;
                 case 3:
+                    user = UsersTable.find(message.getFromId());
+                    userActor = new UserActor(user.getId(), user.getToken());
+                    albums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute();
+                    payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+                    var wall = payload.get("wall").getAsInt();
+                    albums.getItems()
+                            .stream()
+                            .filter(album -> album.getDescription().equals(""+wall))
+                            .forEach(album -> {
+                        try {
+                            new Photos(Config.VK()).deleteAlbum(userActor, album.getId()).execute();
+                        } catch (ApiException | ClientException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    });
+
+                    break;
+                case 3222:
                     if(threadHashMap.containsKey(message.getFromId())) threadHashMap.get(message.getFromId()).stop();
                     break;
-                case 3_1:
+                case 3_1222:
                     if(threadHashMap.containsKey(message.getFromId())) threadHashMap.get(message.getFromId()).stop();
                     user = UsersTable.find(message.getFromId());
                     user.getParameters().remove("wallparsernextpush");
