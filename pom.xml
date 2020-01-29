@@ -142,13 +142,14 @@
           </execution>
         </executions>
         <configuration>
-          <finalName>vkbot</finalName>
-          <appendAssemblyId>false</appendAssemblyId>
           <archive>
             <manifest>
               <mainClass>com.mvv.bots.vk.main.Server</mainClass>
             </manifest>
           </archive>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
         </configuration>
       </plugin>
       <plugin>
