@@ -37,6 +37,8 @@ public class Server {
 
     private static int restartsCount = 0;
 
+    public static List<String> temp = new ArrayList<>();
+
     public Server(){
         try {
             LOG.debug("Запуск сервера.");
@@ -78,6 +80,7 @@ public class Server {
             if (args[0].equals("%worker%")) {
                 while (true) {
                     try {
+                        LOG.info(temp);
                         LOG.info("REFRESH");
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
@@ -124,6 +127,7 @@ public class Server {
                     return;
                 }
                 spamList.add(request);
+                temp.add(request);
 
                 CallbackApi callback = new CallbackApi(){
 
