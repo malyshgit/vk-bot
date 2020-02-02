@@ -60,28 +60,7 @@ public class Server {
     }
 
     public static void main(String[] args) {
-        if(args.length > 0) {
-            if (args[0].equals("%worker%")) {
-                workerHandler();
-            }else if (args[0].equals("%web%")) {
-                new Server();
-            }
-        }
-    }
-
-    private static void webHandler(){
-
-    }
-
-    private static void workerHandler(){
-        long lastrefresh = System.currentTimeMillis();
-        while(true){
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        new Server();
     }
 
     private static class CallbackHandler implements HttpHandler {
