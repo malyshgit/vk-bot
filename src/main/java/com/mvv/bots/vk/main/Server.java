@@ -60,6 +60,18 @@ public class Server {
     }
 
     public static void main(String[] args) {
+        if(args.length > 0){
+            for(var arg : args){
+                switch (arg){
+                    case "%update-hour%":
+                        Config.SCRIPTS.forEach(Script::update);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return;
+        }
         new Server();
     }
 
