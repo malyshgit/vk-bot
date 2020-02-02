@@ -502,9 +502,7 @@ public class WallParser implements Script {
                                     albumsSizes.put(album.getDescription(), album.getSize());
                                 }
                             }).collect(Collectors.toList());
-                    var status = new Object() {
-                        int uploadsCount = 0;
-                    };
+                    int uploadsCount = 0;
                     for(var filteredUserAlbum : filteredUserAlbums){
                         try {
                             String id = filteredUserAlbum.getDescription().split("_")[0];
@@ -602,7 +600,7 @@ public class WallParser implements Script {
                                     .albumId(filteredUserAlbum.getId());
                             PhotoUpload upload = uploadQuery.execute();
                             var photosMap = photoList.stream()
-                                    .filter(photo -> !photoTextList.contains(photo.getPostId()+"_"+photo.getId()))
+                                    .filter(photo -> !photoTextList.contains(String.valueOf(photo.getId())))
                                     .map(photo -> {
                                         String sizes = photo.getSizes()
                                                 .stream()
@@ -613,10 +611,10 @@ public class WallParser implements Script {
                                                         )
                                                 )
                                                 .map(Image::getUrl).collect(Collectors.joining(","));
-                                        return Map.entry(photo.getPostId()+"_"+photo.getId(), sizes);
+                                        return Map.entry(photo.getId(), sizes);
                                     }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                             for(var e : photosMap.entrySet()){
-                                    if(filteredUserAlbum.getSize()+status.uploadsCount >= 10000){
+                                    if(filteredUserAlbum.getSize()+uploadsCount >= 10000){
                                         filteredUserAlbum = new Photos(Config.VK())
                                                 .createAlbum(userActor, filteredUserAlbum.getTitle())
                                                 .description(filteredUserAlbum.getDescription())
@@ -627,7 +625,7 @@ public class WallParser implements Script {
                                                 .albumId(filteredUserAlbum.getId());
                                         upload = uploadQuery.execute();
                                     }
-                                    if(status.uploadsCount > 500){
+                                    if(uploadsCount >= 500){
                                         break;
                                     }
                                     long startTime = System.currentTimeMillis();
@@ -655,10 +653,10 @@ public class WallParser implements Script {
                                             .hash(uplresponse.getHash())
                                             .photosList(uplresponse.getPhotosList())
                                             .server(uplresponse.getServer())
-                                            .caption(e.getKey());
+                                            .caption(String.valueOf(e.getKey()));
                                     saveQuery.execute();
                                     img.delete();
-                                    status.uploadsCount++;
+                                    uploadsCount++;
                                     long endTime = System.currentTimeMillis();
                                     long deltaTime = endTime - startTime;
                                     if (deltaTime > 0 && deltaTime < 1000) {
