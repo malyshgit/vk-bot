@@ -373,7 +373,7 @@ public class WallParser implements Script {
                                                                 .put("step", 2)
                                                                 .put("offset", offset)
                                                                 .put("auto", desc[2].equals("on") ? "off" : "on")
-                                                                .put("wall", album.getDescription())
+                                                                .put("desc", album.getDescription())
                                                                 .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
                                                         .setLabel("Заполнение")),
@@ -383,7 +383,7 @@ public class WallParser implements Script {
                                                         new Payload()
                                                                 .put("script", getClass().getName())
                                                                 .put("step", 3)
-                                                                .put("wall", album.getDescription())
+                                                                .put("desc", album.getDescription())
                                                                 .toString()
                                                 ).setType(KeyboardButtonActionType.TEXT)
                                                         .setLabel("Не показывать"))
@@ -432,12 +432,12 @@ public class WallParser implements Script {
                     userActor = new UserActor(user.getId(), user.getToken());
                     payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     var auto = payload.get("auto").getAsString();
-                    var wall = payload.get("wall").getAsString();
+                    var desc = payload.get("desc").getAsString();
                     offset = payload.get("offset").getAsInt();
                     userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute();
                     list = userAlbums.getItems()
                             .stream()
-                            .filter(album -> album.getDescription().matches("-?\\d+_(show|hide)_(on|off)"))
+                            .filter(album -> album.getDescription().matches(desc))
                             .collect(Collectors.toList());
                     for(var album : list){
                         var newDesc = album.getDescription().split("_");
@@ -464,10 +464,10 @@ public class WallParser implements Script {
                     userActor = new UserActor(user.getId(), user.getToken());
                     userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute();
                     payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
-                    wall = payload.get("wall").getAsString();
+                    desc = payload.get("desc").getAsString();
                     userAlbums.getItems()
                             .stream()
-                            .filter(album -> album.getDescription().equals(wall))
+                            .filter(album -> album.getDescription().equals(desc))
                             .forEach(album -> {
                         try {
                             var newDesc = album.getDescription().split("_");
