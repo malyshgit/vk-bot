@@ -257,29 +257,29 @@ public class WallParser implements Script {
                                 return true;
                             })
                             .collect(Collectors.toList());
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 0)
+                                                    .toString()
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Назад"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 10)
+                                                    .toString()
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Добавить"))
+                    ));
                     if(list.size() < 1){
-                        buttons.add(List.of(
-                                new KeyboardButton()
-                                        .setColor(KeyboardButtonColor.NEGATIVE)
-                                        .setAction(new KeyboardButtonAction().setPayload(
-                                                new Payload()
-                                                        .put("script", getClass().getName())
-                                                        .put("step", 0)
-                                                        .toString()
-                                        ).setType(KeyboardButtonActionType.TEXT)
-                                                .setLabel("Назад"))
-                        ));
-                        buttons.add(List.of(
-                                new KeyboardButton()
-                                        .setColor(KeyboardButtonColor.DEFAULT)
-                                        .setAction(new KeyboardButtonAction().setPayload(
-                                                new Payload()
-                                                        .put("script", getClass().getName())
-                                                        .put("step", 10)
-                                                        .toString()
-                                        ).setType(KeyboardButtonActionType.TEXT)
-                                                .setLabel("Добавить"))
-                        ));
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .keyboard(keyboard)
@@ -289,6 +289,13 @@ public class WallParser implements Script {
                                 .execute();
                         return;
                     }
+                    new Messages(Config.VK())
+                            .send(Config.GROUP)
+                            .keyboard(keyboard)
+                            .message("Меню")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
                     List<TemplateElement> elements = new ArrayList<>();
                     template.setElements(elements);
                     var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
@@ -328,8 +335,8 @@ public class WallParser implements Script {
                         }
                         if(offset > 0){
                             elements.add(new TemplateElement()
-                                    .setTitle("Меню")
-                                    .setDescription("Чтобы добавить стену отправьте ссылку и нажмите \"Добавить\"")
+                                    .setTitle("Навигация")
+                                    .setDescription("Назад")
                                     .setButtons(List.of(
                                             new KeyboardButton()
                                                     .setColor(KeyboardButtonColor.DEFAULT)
