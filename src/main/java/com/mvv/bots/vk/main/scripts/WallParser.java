@@ -60,7 +60,6 @@ public class WallParser implements Script {
     public void update() {
         UsersTable.findAll().forEach(user -> {
             if(user.getToken() != null){
-                UserActor userActor = new UserActor(user.getId(), user.getToken());
                 if(user.getParameters().has("wallparser")){
                     var options = new JsonParser().parse(user.getParameters().get("wallparser")).getAsJsonObject();
                     var date = options.get("date").getAsLong();
@@ -75,6 +74,10 @@ public class WallParser implements Script {
                                         .put("step", 4)
                                         .toString()
                         );
+                        JsonObject object = new JsonObject();
+                        object.addProperty("date", System.currentTimeMillis());
+                        user.getParameters().put("wallparser", object);
+                        UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                         send(message, 4);
                     }
                 }else{
@@ -432,7 +435,6 @@ public class WallParser implements Script {
                     var wall = payload.get("wall").getAsString();
                     offset = payload.get("offset").getAsInt();
                     userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute();
-                    tempList = new HashSet<String>();
                     list = userAlbums.getItems()
                             .stream()
                             .filter(album -> album.getDescription().matches("-?\\d+_(show|hide)_(on|off)"))

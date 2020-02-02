@@ -63,7 +63,7 @@ public class Server {
         if(args.length > 0){
             for(var arg : args){
                 switch (arg){
-                    case "%update-hour%":
+                    case "%update%":
                         Config.SCRIPTS.forEach(Script::update);
                         break;
                     default:
