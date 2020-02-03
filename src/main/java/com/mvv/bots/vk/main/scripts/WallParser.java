@@ -329,11 +329,11 @@ public class WallParser implements Script {
                     );*/
 
                     var nextOffset = offset;
-                    for(var i = 0; elements.size() < 10; i++){
-                        if(offset + i > list.size()-1){
+                    for(var i = 0; elements.size() < 10; i++) {
+                        if (offset + i > list.size() - 1) {
                             break;
                         }
-                        if(offset > 0){
+                        if (offset > 0) {
                             elements.add(new TemplateElement()
                                     .setTitle("Навигация")
                                     .setDescription("Назад")
@@ -361,70 +361,66 @@ public class WallParser implements Script {
                                     ))
                             );
                         }
-
-                        if(i == 9 && offset + i < list.size()-1){
-
+                        if (i == 9 && nextOffset < list.size()-1) {
+                            elements.add(new TemplateElement()
+                                    .setTitle("Навигация")
+                                    .setDescription("Вперед")
+                                    .setButtons(List.of(
+                                            new KeyboardButton()
+                                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                                    .setAction(new KeyboardButtonAction().setPayload(
+                                                            new Payload()
+                                                                    .put("script", getClass().getName())
+                                                                    .put("step", 1)
+                                                                    .put("offset", nextOffset)
+                                                                    .toString()
+                                                    ).setType(KeyboardButtonActionType.TEXT)
+                                                            .setLabel(">")),
+                                            new KeyboardButton()
+                                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                                    .setAction(new KeyboardButtonAction().setPayload(
+                                                            new Payload()
+                                                                    .put("script", getClass().getName())
+                                                                    .put("step", 1)
+                                                                    .put("offset", list.size() - 10)
+                                                                    .toString()
+                                                    ).setType(KeyboardButtonActionType.TEXT)
+                                                            .setLabel(">>"))
+                                    ))
+                            );
+                        } else {
+                            var album = list.get(offset + i);
+                            var desc = album.getDescription().split("_");
+                            elements.add(new TemplateElement()
+                                    .setTitle(album.getTitle())
+                                    .setDescription(album.getDescription())
+                                    .setButtons(List.of(
+                                            new KeyboardButton()
+                                                    .setColor(desc[2].equals("on") ? KeyboardButtonColor.POSITIVE : KeyboardButtonColor.NEGATIVE)
+                                                    .setAction(new KeyboardButtonAction().setPayload(
+                                                            new Payload()
+                                                                    .put("script", getClass().getName())
+                                                                    .put("step", 2)
+                                                                    .put("offset", offset)
+                                                                    .put("auto", desc[2].equals("on") ? "off" : "on")
+                                                                    .put("desc", album.getDescription())
+                                                                    .toString()
+                                                    ).setType(KeyboardButtonActionType.TEXT)
+                                                            .setLabel("Заполнение")),
+                                            new KeyboardButton()
+                                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                                    .setAction(new KeyboardButtonAction().setPayload(
+                                                            new Payload()
+                                                                    .put("script", getClass().getName())
+                                                                    .put("step", 3)
+                                                                    .put("desc", album.getDescription())
+                                                                    .toString()
+                                                    ).setType(KeyboardButtonActionType.TEXT)
+                                                            .setLabel("Не показывать"))
+                                    ))
+                            );
+                            nextOffset++;
                         }
-
-                        var album = list.get(offset + i);
-                        var desc = album.getDescription().split("_");
-                        elements.add(new TemplateElement()
-                                .setTitle(album.getTitle())
-                                .setDescription(album.getDescription())
-                                .setButtons(List.of(
-                                        new KeyboardButton()
-                                                .setColor(desc[2].equals("on") ? KeyboardButtonColor.POSITIVE : KeyboardButtonColor.NEGATIVE)
-                                                .setAction(new KeyboardButtonAction().setPayload(
-                                                        new Payload()
-                                                                .put("script", getClass().getName())
-                                                                .put("step", 2)
-                                                                .put("offset", offset)
-                                                                .put("auto", desc[2].equals("on") ? "off" : "on")
-                                                                .put("desc", album.getDescription())
-                                                                .toString()
-                                                ).setType(KeyboardButtonActionType.TEXT)
-                                                        .setLabel("Заполнение")),
-                                        new KeyboardButton()
-                                                .setColor(KeyboardButtonColor.DEFAULT)
-                                                .setAction(new KeyboardButtonAction().setPayload(
-                                                        new Payload()
-                                                                .put("script", getClass().getName())
-                                                                .put("step", 3)
-                                                                .put("desc", album.getDescription())
-                                                                .toString()
-                                                ).setType(KeyboardButtonActionType.TEXT)
-                                                        .setLabel("Не показывать"))
-                                ))
-                        );
-                        nextOffset++;
-                    }
-                    if(nextOffset > 0 && nextOffset < list.size()-1){
-                        elements.add(new TemplateElement()
-                                .setTitle("Навигация")
-                                .setDescription("Вперед")
-                                .setButtons(List.of(
-                                        new KeyboardButton()
-                                                .setColor(KeyboardButtonColor.DEFAULT)
-                                                .setAction(new KeyboardButtonAction().setPayload(
-                                                        new Payload()
-                                                                .put("script", getClass().getName())
-                                                                .put("step", 1)
-                                                                .put("offset", nextOffset)
-                                                                .toString()
-                                                ).setType(KeyboardButtonActionType.TEXT)
-                                                        .setLabel(">")),
-                                        new KeyboardButton()
-                                                .setColor(KeyboardButtonColor.DEFAULT)
-                                                .setAction(new KeyboardButtonAction().setPayload(
-                                                        new Payload()
-                                                                .put("script", getClass().getName())
-                                                                .put("step", 1)
-                                                                .put("offset", list.size()-10)
-                                                                .toString()
-                                                ).setType(KeyboardButtonActionType.TEXT)
-                                                        .setLabel(">>"))
-                                ))
-                        );
                     }
                     new Messages(Config.VK())
                             .send(Config.GROUP)
