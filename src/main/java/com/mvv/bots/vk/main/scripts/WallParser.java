@@ -333,7 +333,7 @@ public class WallParser implements Script {
                         if (offset + i > list.size() - 1) {
                             break;
                         }
-                        if (offset > 0) {
+                        if (i == 0 && offset > 0) {
                             elements.add(new TemplateElement()
                                     .setTitle("Навигация")
                                     .setDescription("Назад")
