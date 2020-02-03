@@ -482,6 +482,13 @@ public class Resave implements Script {
                         try {
                             String ownerId = filteredUserAlbum.getDescription().split("_")[0];
                             String ownerAlbumId = filteredUserAlbum.getDescription().split("_")[1];
+                            if(ownerAlbumId.matches("0")){
+                                ownerAlbumId = "profile";
+                            }else if(ownerAlbumId.matches("00")){
+                                ownerAlbumId = "wall";
+                            }else if(ownerAlbumId.matches("000")){
+                                ownerAlbumId = "saved";
+                            }
                             Integer size = albumsSizes.get(filteredUserAlbum.getDescription());
                             if(filteredUserAlbum.getSize() == 10000 && size == 10000){
                                 filteredUserAlbum = new Photos(Config.VK())
