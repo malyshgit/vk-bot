@@ -370,7 +370,6 @@ public class WallParser implements Script {
                                     lastOffset+=8;
                                 }
                             }
-                            lastOffset = list.size()-lastOffset;
                             elements.add(new TemplateElement()
                                     .setTitle("Навигация")
                                     .setDescription("Вперед")
