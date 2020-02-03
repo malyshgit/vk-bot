@@ -51,7 +51,7 @@ public class Config {
             new Advice(),
             new Donation(),
             new InstaGet(),
-            new WallParser(),
+            new Resave(),
             new Weather(),
             new ScriptList()
     ));

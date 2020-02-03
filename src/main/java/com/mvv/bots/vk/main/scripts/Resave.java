@@ -34,21 +34,21 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class WallParser implements Script {
+public class Resave implements Script {
 
     @Override
     public String smile(){
-        return "\uD83D\uDD0D";
+        return "\uD83D\uDCBE";
     }
 
     @Override
     public String key(){
-        return "парсинг";
+        return "ресейв";
     }
 
     @Override
     public String description(){
-        return smile()+"["+ key()+"] - парсинг стены сообщества.";
+        return smile()+"["+ key()+"] - пересохранение альбомов.";
     }
 
     @Override
@@ -60,8 +60,8 @@ public class WallParser implements Script {
     public void update() {
         UsersTable.findAll().forEach(user -> {
             if(user.getToken() != null){
-                if(user.getParameters().has("wallparser")){
-                    var options = new JsonParser().parse(user.getParameters().get("wallparser")).getAsJsonObject();
+                if(user.getParameters().has("resave")){
+                    var options = new JsonParser().parse(user.getParameters().get("resave")).getAsJsonObject();
                     var date = options.get("date").getAsLong();
                     var dt = System.currentTimeMillis() - date;
                     if(dt >= DateUtils.MILLIS_PER_HOUR){
@@ -76,14 +76,14 @@ public class WallParser implements Script {
                         );
                         JsonObject object = new JsonObject();
                         object.addProperty("date", System.currentTimeMillis());
-                        user.getParameters().put("wallparser", object);
+                        user.getParameters().put("resave", object);
                         UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                         send(message, 4);
                     }
                 }else{
                     JsonObject object = new JsonObject();
                     object.addProperty("date", System.currentTimeMillis());
-                    user.getParameters().put("wallparser", object);
+                    user.getParameters().put("resave", object);
                     UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                 }
             }
@@ -154,7 +154,7 @@ public class WallParser implements Script {
                     ));
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message("Парсинг стен")
+                            .message("Пересохранение альбомов")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
@@ -163,10 +163,10 @@ public class WallParser implements Script {
                 case 10:
                     var getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
                     var url = getByIdResponse.getItems().get(0).getText();
-                    if(url == null || url.isEmpty()){
+                    if(url == null || url.isEmpty() || !url.matches("https://vk.com/album-?\\d+_\\d+")){
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
-                                .message("Отправьте ссылку на стену и нажмите \"Добавить\"")
+                                .message("Отправьте ссылку альбом и нажмите \"Добавить\"")
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
@@ -177,63 +177,54 @@ public class WallParser implements Script {
                     var query = new Wall(Config.VK()).get(userActor);
                     String wallAvatarUrl;
                     String wallName;
-                    String wallId;
-                    String domain = url;
-                    if (domain.matches("-?\\d+")) {
-                        if(domain.startsWith("-")){
-                            var groupProfile = new Groups(Config.VK()).getById(userActor).groupId(domain.substring(1)).execute();
-                            wallAvatarUrl = groupProfile.get(0).getPhoto200();
-                            wallName = groupProfile.get(0).getName();
-                            wallId = "-"+groupProfile.get(0).getId().toString();
+
+                    var albumInfo = url.substring(20).split("_");
+                    if(albumInfo[0].startsWith("-")){
+                        var groupProfile = new Groups(Config.VK()).getById(userActor).groupId(albumInfo[0].substring(1)).execute();
+                        wallAvatarUrl = groupProfile.get(0).getPhoto200();
+                        wallName = groupProfile.get(0).getName();
+                    }else{
+                        var userProfile = new Users(Config.VK()).get(userActor).fields(Fields.PHOTO_200).userIds(albumInfo[0]).execute();
+                        wallAvatarUrl = userProfile.get(0).getPhoto200();
+                        wallName = userProfile.get(0).getFirstName()+" "+userProfile.get(0).getLastName();
+                    }
+                    query.ownerId(Integer.valueOf(albumInfo[0]));
+
+                    var albumDesc = "";
+                    if(albumInfo[0].startsWith("-")){
+                        if(albumInfo[1].matches("0")){
+                            albumDesc = "Фотографии страницы";
+                        }else if(albumInfo[1].matches("00")){
+                            albumDesc = "Фотографии со стены";
                         }else{
-                            var userProfile = new Users(Config.VK()).get(userActor).fields(Fields.PHOTO_200).userIds(domain).execute();
-                            wallAvatarUrl = userProfile.get(0).getPhoto200();
-                            wallName = userProfile.get(0).getFirstName()+" "+userProfile.get(0).getLastName();
-                            wallId = userProfile.get(0).getId().toString();
+                            var album = new Photos(Config.VK()).getAlbums(userActor)
+                                    .ownerId(Integer.valueOf(albumInfo[0]))
+                                    .albumIds(Integer.valueOf(albumInfo[1])).execute();
+                            albumDesc = album.getItems().get(0).getTitle();
                         }
-                        query.ownerId(Integer.valueOf(domain));
-                    } else{
-                        if (domain.startsWith("http") || domain.startsWith("vk.com")) {
-                            domain = domain.replace("https://vk.com/", "");
-                            domain = domain.replace("http://vk.com/", "");
-                            domain = domain.replace("vk.com/", "");
-                            query.domain(domain);
-                        } else {
-                            query.domain(domain);
-                        }
-                        var info = new com.vk.api.sdk.actions.Utils(Config.VK()).resolveScreenName(userActor, domain).execute();
-                        switch (info.getType()){
-                            case USER:
-                                var userProfile = new Users(Config.VK()).get(userActor).fields(Fields.PHOTO_200).userIds(info.getObjectId().toString()).execute();
-                                wallAvatarUrl = userProfile.get(0).getPhoto200();
-                                wallName = userProfile.get(0).getFirstName()+" "+userProfile.get(0).getLastName();
-                                wallId = userProfile.get(0).getId().toString();
-                                break;
-                            case GROUP:
-                                var groupProfile = new Groups(Config.VK()).getById(userActor).groupId(info.getObjectId().toString()).execute();
-                                wallAvatarUrl = groupProfile.get(0).getPhoto200();
-                                wallName = groupProfile.get(0).getName();
-                                wallId = "-"+groupProfile.get(0).getId().toString();
-                                break;
-                            default:
-                                wallAvatarUrl = null;
-                                new Messages(Config.VK())
-                                        .send(Config.GROUP)
-                                        .message("Отправьте ссылку на стену и нажмите \"Добавить\"")
-                                        .peerId(message.getPeerId())
-                                        .randomId(Utils.getRandomInt32())
-                                        .execute();
-                                return;
+                    }else{
+                        if(albumInfo[1].matches("0")){
+                            albumDesc = "Фотографии страницы";
+                        }else if(albumInfo[1].matches("00")){
+                            albumDesc = "Фотографии со стены";
+                        }else if(albumInfo[1].matches("000")){
+                            albumDesc = "Сохраненные фотографии";
+                        }else{
+                            var album = new Photos(Config.VK()).getAlbums(userActor)
+                                    .ownerId(Integer.valueOf(albumInfo[0]))
+                                    .albumIds(Integer.valueOf(albumInfo[1])).execute();
+                            albumDesc = album.getItems().get(0).getTitle();
                         }
                     }
+
                     new Photos(Config.VK())
-                            .createAlbum(userActor, wallName)
-                            .description(wallId+"_show_on")
+                            .createAlbum(userActor, wallName+"("+albumDesc+")")
+                            .description(albumInfo[0]+"_"+albumInfo[1]+"_show_on")
                             .privacyView("only_me")
                             .execute();
                     JsonObject object = new JsonObject();
                     object.addProperty("date", System.currentTimeMillis());
-                    user.getParameters().put("wallparser", object);
+                    user.getParameters().put("resave", object);
                     UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                         .send(Config.GROUP)
@@ -250,7 +241,7 @@ public class WallParser implements Script {
                     var tempList = new HashSet<String>();
                     var list = userAlbums.getItems()
                             .stream()
-                            .filter(album -> album.getDescription().matches("-?\\d+_show_(on|off)"))
+                            .filter(album -> album.getDescription().matches("-?\\d+_\\d+_show_(on|off)"))
                             .filter(album -> {
                                 if(tempList.contains(album.getDescription())) return false;
                                 tempList.add(album.getDescription());
@@ -283,7 +274,7 @@ public class WallParser implements Script {
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .keyboard(keyboard)
-                                .message("Отправьте ссылку на стену и нажмите \"Добавить\"")
+                                .message("Отправьте ссылку альбом и нажмите \"Добавить\"")
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
@@ -300,33 +291,6 @@ public class WallParser implements Script {
                     template.setElements(elements);
                     var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     var offset = payload.has("offset") ? payload.get("offset").getAsInt() : 0;
-
-                    /*elements.add(new TemplateElement()
-                            .setTitle("Меню")
-                            .setDescription("Чтобы добавить стену отправьте ссылку и нажмите \"Добавить\"")
-                            .setButtons(List.of(
-                                    new KeyboardButton()
-                                            .setColor(KeyboardButtonColor.DEFAULT)
-                                            .setAction(new KeyboardButtonAction().setPayload(
-                                                    new Payload()
-                                                            .put("script", getClass().getName())
-                                                            .put("step", 1)
-                                                            .put("offset", Math.max(offset - max, 0))
-                                                            .toString()
-                                            ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Назад")),
-                                    new KeyboardButton()
-                                            .setColor(KeyboardButtonColor.DEFAULT)
-                                            .setAction(new KeyboardButtonAction().setPayload(
-                                                    new Payload()
-                                                            .put("script", getClass().getName())
-                                                            .put("step", 1)
-                                                            .put("offset", offset + max)
-                                                            .toString()
-                                            ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Вперед"))
-                            ))
-                    );*/
 
                     var nextOffset = offset;
                     for(var i = 0; elements.size() < 10; i++) {
@@ -410,7 +374,7 @@ public class WallParser implements Script {
                                                                     .put("script", getClass().getName())
                                                                     .put("step", 2)
                                                                     .put("offset", offset)
-                                                                    .put("auto", desc[2].equals("on") ? "off" : "on")
+                                                                    .put("auto", desc[3].equals("on") ? "off" : "on")
                                                                     .put("desc", album.getDescription())
                                                                     .toString()
                                                     ).setType(KeyboardButtonActionType.TEXT)
@@ -452,7 +416,7 @@ public class WallParser implements Script {
                             .collect(Collectors.toList());
                     for(var album : list){
                         var newDesc = album.getDescription().split("_");
-                        newDesc[2] = auto;
+                        newDesc[3] = auto;
                         new Photos(Config.VK())
                                 .editAlbum(userActor, album.getId())
                                 .description(String.join( "_", newDesc))
@@ -482,7 +446,7 @@ public class WallParser implements Script {
                             .forEach(album -> {
                         try {
                             var newDesc = album.getDescription().split("_");
-                            newDesc[1] = "hide";
+                            newDesc[2] = "hide";
                             new Photos(Config.VK())
                                     .editAlbum(userActor, album.getId())
                                     .description(String.join("_", newDesc))
@@ -505,7 +469,7 @@ public class WallParser implements Script {
                     HashMap<String, Integer> albumsSizes = new HashMap<>();
                     var filteredUserAlbums = userAlbums.getItems()
                             .stream()
-                            .filter(album -> album.getDescription().matches("-?\\d+_show_on"))
+                            .filter(album -> album.getDescription().matches("-?\\d+_\\d+_show_on"))
                             .peek(album -> {
                                 if(albumsSizes.containsKey(album.getDescription())){
                                     albumsSizes.put(album.getDescription(), albumsSizes.get(album.getDescription())+album.getSize());
@@ -516,7 +480,8 @@ public class WallParser implements Script {
                     int uploadsCount = 0;
                     for(var filteredUserAlbum : filteredUserAlbums){
                         try {
-                            String id = filteredUserAlbum.getDescription().split("_")[0];
+                            String ownerId = filteredUserAlbum.getDescription().split("_")[0];
+                            String ownerAlbumId = filteredUserAlbum.getDescription().split("_")[1];
                             Integer size = albumsSizes.get(filteredUserAlbum.getDescription());
                             if(filteredUserAlbum.getSize() == 10000 && size == 10000){
                                 filteredUserAlbum = new Photos(Config.VK())
@@ -529,10 +494,9 @@ public class WallParser implements Script {
                             }
                             HashSet<String> photoTextList = new HashSet<>();
                             for(var userAlbum : userAlbums.getItems()){
-                                var albumId = userAlbum.getId();
                                 if(!userAlbum.getDescription().matches(filteredUserAlbum.getDescription())) continue;
                                 var userAlbumPhotos = new Photos(Config.VK()).get(userActor)
-                                        .ownerId(user.getId()).albumId(String.valueOf(albumId)).count(1).offset(0).execute();
+                                        .ownerId(user.getId()).albumId(String.valueOf(userAlbum.getId())).count(1).offset(0).execute();
                                 var i = 0;
                                 List<AbstractQueryBuilder> queryList = new ArrayList<>();
                                 while(i < userAlbumPhotos.getCount()) {
@@ -549,7 +513,7 @@ public class WallParser implements Script {
                                     }
                                     var batch = new Photos(Config.VK()).get(userActor)
                                             .ownerId(user.getId())
-                                            .albumId(String.valueOf(albumId))
+                                            .albumId(String.valueOf(userAlbum.getId()))
                                             .offset(i)
                                             .count(1000);
                                     queryList.add(batch);
@@ -571,13 +535,13 @@ public class WallParser implements Script {
 
                             HashSet<Photo> photoList = new HashSet<>();
 
-                            var wallAlbum = new Photos(Config.VK()).get(userActor)
-                                    .ownerId(Integer.valueOf(id)).albumId("wall").photoSizes(true).count(1).offset(0).execute();
-                            if(wallAlbum == null) return;
-                            if(size >= wallAlbum.getCount()) return;
+                            var ownerAlbum = new Photos(Config.VK()).get(userActor)
+                                    .ownerId(Integer.valueOf(ownerId)).albumId(ownerAlbumId).photoSizes(true).count(1).offset(0).execute();
+                            if(ownerAlbum == null) return;
+                            if(size >= ownerAlbum.getCount()) return;
                             List<AbstractQueryBuilder> queryList = new ArrayList<>();
                             var i = 0;
-                            while(i < wallAlbum.getCount()){
+                            while(i < ownerAlbum.getCount()){
                                 if(queryList.size() >= 5){
                                     var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
                                     var array = json.getAsJsonArray();
@@ -588,8 +552,8 @@ public class WallParser implements Script {
                                     queryList.clear();
                                 }
                                 var batch = new Photos(Config.VK()).get(userActor)
-                                        .ownerId(Integer.valueOf(id))
-                                        .albumId("wall")
+                                        .ownerId(Integer.valueOf(ownerId))
+                                        .albumId(ownerAlbumId)
                                         .photoSizes(true)
                                         .offset(i)
                                         .count(1000);
@@ -676,7 +640,7 @@ public class WallParser implements Script {
                             }
                             object = new JsonObject();
                             object.addProperty("date", System.currentTimeMillis());
-                            user.getParameters().put("wallparser", object);
+                            user.getParameters().put("resave", object);
                             UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                         } catch (ApiException | ClientException | InterruptedException | IOException e) {
                             e.printStackTrace();
@@ -691,376 +655,4 @@ public class WallParser implements Script {
             LOG.error(e);
         }
     }
-
-    /*private static HashMap<Integer, WallParserThread> threadHashMap = new HashMap<>();
-
-    private static abstract class WallParserThread{
-        private Thread thread;
-        private boolean started;
-
-        WallParserThread(){
-            started = false;
-            thread = new Thread(()->{
-                run();
-                thread.interrupt();
-            });
-        }
-
-        abstract void run();
-
-        public boolean isStarted() {
-            return started;
-        }
-
-        public void start(){
-            started = true;
-            thread.start();
-        }
-
-        public void stop(){
-            started = false;
-        }
-    }
-
-    private static void parseWall(Message message, String domain) {
-        if(threadHashMap.containsKey(message.getFromId())) return;
-        WallParserThread thread = new WallParserThread() {
-            @Override
-            void run() {
-                parseWallThread(message, domain);
-                threadHashMap.remove(message.getFromId());
-            }
-        };
-        threadHashMap.put(message.getFromId(), thread);
-        thread.start();
-    }
-    private static void pushPhotos(Message message) {
-        if(threadHashMap.containsKey(message.getFromId())) return;
-        WallParserThread thread = new WallParserThread() {
-            @Override
-            void run() {
-                pushPhotosThread(message);
-                threadHashMap.remove(message.getFromId());
-            }
-        };
-        threadHashMap.put(message.getFromId(), thread);
-        thread.start();
-    }
-    private static void parseWallThread(Message message, String domain){
-        try {
-            int offset = 0;
-            int count = 100;
-            User user = UsersTable.find(message.getFromId());
-            UserActor userActor = new UserActor(message.getPeerId(), user.getToken());
-            var query = new Wall(Config.VK()).get(userActor)
-                    .offset(offset)
-                    .count(count);
-            query.ownerId(Integer.valueOf(domain));
-            var response = query.execute();
-
-            StringBuffer sb = new StringBuffer();
-
-            int size = response.getCount();
-
-            Keyboard keyboard = new Keyboard();
-            List<List<KeyboardButton>> buttons = new ArrayList<>();
-            keyboard.setOneTime(false);
-            keyboard.setButtons(buttons);
-            keyboard.setInline(true);
-            buttons.add(List.of(
-                    new KeyboardButton()
-                            .setColor(KeyboardButtonColor.NEGATIVE)
-                            .setAction(new KeyboardButtonAction().setPayload(
-                                    new Payload()
-                                            .put("script", WallParser.class.getName())
-                                            .put("step", 3)
-                                            .toString()
-                            ).setType(KeyboardButtonActionType.TEXT)
-                                    .setLabel("Остановить"))
-            ));
-
-            int mid = new Messages(Config.VK())
-                    .send(Config.GROUP)
-                    .peerId(message.getPeerId())
-                    .message("Постов обработанно: 0")
-                    .randomId(Utils.getRandomInt32())
-                    .execute();
-
-            new Messages(Config.VK())
-                    .send(Config.GROUP)
-                    .peerId(message.getPeerId())
-                    .keyboard(keyboard)
-                    .message("В любой момент можно остановить.")
-                    .randomId(Utils.getRandomInt32())
-                    .execute();
-            int dt = size/10;
-            int nextEdit = dt;
-            while (offset < size) {
-                if(!threadHashMap.get(message.getFromId()).isStarted()) break;
-                if(offset > nextEdit){
-                    new Messages(Config.VK())
-                            .edit(Config.GROUP, message.getPeerId(), mid)
-                            .message("Постов обработанно: "+offset+"/"+size)
-                            .execute();
-                    nextEdit += dt;
-                }
-                response.getItems().forEach(post -> {
-                    if (post == null || post.getAttachments() == null) return;
-                    post.getAttachments().forEach(attachment -> {
-                        if (attachment.getType().equals(WallpostAttachmentType.PHOTO)) {
-                            Photo photo = attachment.getPhoto();
-                            String sizes = photo.getSizes()
-                                    .stream()
-                                    .sorted((o1, o2) ->
-                                            Integer.compare(
-                                                    o2.getWidth()*o2.getHeight(),
-                                                    o1.getWidth()*o1.getHeight()
-                                            )
-                                    )
-                                    .map(Image::getUrl).collect(Collectors.joining(","));
-                            sb.append(photo.getOwnerId())
-                                    .append(" ")
-                                    .append(post.getId())
-                                    .append(" ")
-                                    .append(photo.getId())
-                                    .append(" ")
-                                    .append(sizes)
-                                    .append("\n");
-                        }
-                    });
-                });
-                offset += count;
-                response = query.offset(offset)
-                        .count(count)
-                        .execute();
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    LOG.error(e);
-                }
-            }
-            new Messages(Config.VK())
-                    .edit(Config.GROUP, message.getPeerId(), mid)
-                    .message("Постов обработанно: "+Math.min(offset, size)+"/"+size)
-                    .execute();
-            File urls = new File(message.getPeerId() + ".txt");
-            FileUtils.write(urls, sb.toString(), StandardCharsets.UTF_8);
-            var upload = new Docs(Config.VK()).getMessagesUploadServer(Config.GROUP).peerId(message.getPeerId()).type(DocsType.DOC).execute();
-            var resp = new Upload(Config.VK()).doc(upload.getUploadUrl(), urls).execute();
-            var save = new Docs(Config.VK()).save(Config.GROUP, resp.getFile()).title(domain + ".txt").execute();
-            urls.delete();
-            keyboard = new Keyboard();
-
-            buttons = new ArrayList<>();
-            keyboard.setOneTime(false);
-            keyboard.setButtons(buttons);
-            keyboard.setInline(true);
-            buttons.add(List.of(
-                    new KeyboardButton()
-                            .setColor(KeyboardButtonColor.DEFAULT)
-                            .setAction(new KeyboardButtonAction().setPayload(
-                                    new Payload()
-                                            .put("script", WallParser.class.getName())
-                                            .put("step", 2)
-                                            .put("domain", domain)
-                                            .put("doc", save.getDoc().getUrl())
-                                            .toString()
-                            ).setType(KeyboardButtonActionType.TEXT)
-                                    .setLabel("Заполнить альбом сейчас"))
-            ));
-            new Messages(Config.VK())
-                    .send(Config.GROUP)
-                    .attachment("doc" + save.getDoc().getOwnerId() + "_" + save.getDoc().getId())
-                    .keyboard(keyboard)
-                    .peerId(message.getPeerId())
-                    .randomId(Utils.getRandomInt32())
-                    .execute();
-        } catch (ApiException | ClientException | IOException e) {
-            LOG.error(e);
-        }
-    }
-    private static void pushPhotosThread(Message message) {
-        try {
-            var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
-            String docUrl = payload.get("doc").getAsString();
-            String domain = payload.get("domain").getAsString();
-            List<String> lines = IOUtils.readLines(new URL(docUrl).openStream(), StandardCharsets.UTF_8);
-            User user = UsersTable.find(message.getFromId());
-            UserActor userActor = new UserActor(message.getFromId(), user.getToken());
-            String wallName;
-            if(domain.startsWith("-")) {
-                var groupProfile = new Groups(Config.VK()).getById(userActor).groupId(domain.substring(1)).execute();
-                wallName = groupProfile.get(0).getName();
-            }else{
-                var userProfile = new Users(Config.VK()).get(userActor).fields(Fields.PHOTO_200).userIds(domain).execute();
-                wallName = userProfile.get(0).getFirstName()+" "+userProfile.get(0).getLastName();
-            }
-
-            user.getParameters().put("wallparsernextpush",
-                    "{\"doc\":\"" + docUrl + "\"," +
-                            " \"domain\":\"" + domain + "\"," +
-                            " \"date\":"+System.currentTimeMillis()+"}");
-            UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-
-
-            GetAlbumsResponse response = new Photos(Config.VK()).getAlbums(userActor).ownerId(message.getFromId()).execute();
-            int offset = 0;
-            List<PhotoAlbumFull> albums = new ArrayList<>();
-            response.getItems().forEach(a -> {
-                if(a.getDescription().startsWith("1_"+domain)){
-                    albums.add(a);
-                }
-            });
-            albums.sort(Comparator.comparingInt(PhotoAlbumFull::getSize));
-
-            PhotoAlbumFull lastAlbum = null;
-
-            HashSet<String> captions = new HashSet<>();
-
-            if(!albums.isEmpty()){
-                for(PhotoAlbumFull a : albums){
-                    int i = 0;
-                    List<AbstractQueryBuilder> queryList = new ArrayList<>();
-                    while(i < a.getSize()) {
-                        if(queryList.size() >= 5){
-                            var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
-                            var array = json.getAsJsonArray();
-                            array.forEach(e -> {
-                                var resp = new Gson().fromJson(e, GetResponse.class);
-                                resp.getItems().forEach(photo -> {
-                                    captions.add(photo.getText());
-                                });
-                            });
-                            queryList.clear();
-                        }
-                        var batch = new Photos(Config.VK()).get(userActor)
-                                .ownerId(a.getOwnerId())
-                                .albumId(String.valueOf(a.getId()))
-                                .offset(i)
-                                .count(1000);
-                        queryList.add(batch);
-                        Thread.sleep(1500);
-                        i += 1000;
-                    }
-                    if(!queryList.isEmpty()){
-                        var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
-                        var array = json.getAsJsonArray();
-                        array.forEach(e -> {
-                            var resp = new Gson().fromJson(e, GetResponse.class);
-                            resp.getItems().forEach(photo -> {
-                                captions.add(photo.getText());
-                            });
-                        });
-                        queryList.clear();
-                    }
-                    if(a.getSize() >= 10000) continue;
-                    if(lastAlbum == null) lastAlbum = a;
-                }
-                if(lastAlbum == null){
-                    var albumQuery = new Photos(Config.VK())
-                            .createAlbum(userActor, wallName)
-                            .description("1_"+domain)
-                            .privacyView("only_me");
-                    lastAlbum = albumQuery.execute();
-                }
-                offset = lastAlbum.getSize();
-            }else{
-                var albumQuery = new Photos(Config.VK()).createAlbum(userActor, wallName)
-                        .description("1_"+domain)
-                        .privacyView("only_me");
-                lastAlbum = albumQuery.execute();
-            }
-            var uploadQuery = new Photos(Config.VK())
-                    .getUploadServer(userActor)
-                    .albumId(lastAlbum.getId());
-            PhotoUpload upload = uploadQuery.execute();
-            int savesCount = 0;
-            int nextProgress = 50;
-            int skipCount = 0;
-            for(String line : lines) {
-                if(savesCount >= 500){
-                    threadHashMap.get(message.getFromId()).stop();
-                    break;
-                }
-                if(!threadHashMap.get(message.getFromId()).isStarted()) break;
-                if(savesCount >= nextProgress){
-                    nextProgress += 50;
-                }
-                String[] lineParts = line.split(" ");
-                String owner = lineParts[0];
-                String post = lineParts[1];
-                String id = lineParts[2];
-                String sizesString = lineParts[3];
-                String[] sizesArray = sizesString.split(",");
-
-                String caption = owner+"_"+post+"_"+id;
-
-                if(captions.contains(caption)){
-                    LOG.debug("Skip photo: "+line);
-                    continue;
-                }
-                long startTime = System.currentTimeMillis();
-                if(offset >= 10000){
-                    var albumQuery = new Photos(Config.VK()).createAlbum(userActor, wallName)
-                            .description("1_"+domain)
-                            .privacyView("only_me");
-                    lastAlbum = albumQuery.execute();
-                    uploadQuery = new Photos(Config.VK())
-                            .getUploadServer(userActor)
-                            .albumId(lastAlbum.getId());
-                    upload = uploadQuery.execute();
-                    offset = 0;
-                }
-                HttpURLConnection connection = null;
-                for(String src : sizesArray) {
-                    var url = new URL(src);
-                    connection = (HttpURLConnection) url.openConnection();
-                    var code = connection.getResponseCode();
-                    if (code != 200) {
-                        LOG.debug("Response code: " + code + ", photo: " + line);
-                        connection.disconnect();
-                        continue;
-                    }
-                    break;
-                }
-                if(connection == null){
-                    skipCount++;
-                    continue;
-                }
-                File img = new File(message.getPeerId()+".jpg");
-                FileUtils.copyURLToFile(connection.getURL(), img);
-                connection.disconnect();
-                PhotoUploadResponse uplresponse = new Upload(Config.VK()).photo(upload.getUploadUrl(), img).execute();
-                var saveQuery = new Photos(Config.VK()).save(userActor)
-                        .albumId(uplresponse.getAid())
-                        .hash(uplresponse.getHash())
-                        .photosList(uplresponse.getPhotosList())
-                        .server(uplresponse.getServer())
-                        .caption(caption);
-                saveQuery.execute();
-
-                img.delete();
-                savesCount++;
-                offset++;
-                long endTime = System.currentTimeMillis();
-                long deltaTime = endTime - startTime;
-                if(deltaTime > 0 && deltaTime < 1000){
-                    Thread.sleep(deltaTime);
-                }
-            }
-            if(lines.size() <= (captions.size()+savesCount+skipCount)){
-                user.getParameters().remove("wallparsernextpush");
-                UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-            }else{
-                user.getParameters().put("wallparsernextpush",
-                        "{\"docUrl\":\"" + docUrl + "\"," +
-                                " \"domain\":\"" + domain + "\"," +
-                                " \"date\":"+System.currentTimeMillis()+"}");
-                UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-            }
-            LOG.debug("Skip count: "+skipCount);
-        } catch (ApiException | ClientException | InterruptedException | IOException e) {
-            LOG.error(e);
-        }
-    }*/
 }
