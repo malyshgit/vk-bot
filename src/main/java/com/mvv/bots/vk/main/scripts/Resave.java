@@ -368,7 +368,7 @@ public class Resave implements Script {
                                     .setDescription(album.getDescription())
                                     .setButtons(List.of(
                                             new KeyboardButton()
-                                                    .setColor(desc[2].equals("on") ? KeyboardButtonColor.POSITIVE : KeyboardButtonColor.NEGATIVE)
+                                                    .setColor(desc[3].equals("on") ? KeyboardButtonColor.POSITIVE : KeyboardButtonColor.NEGATIVE)
                                                     .setAction(new KeyboardButtonAction().setPayload(
                                                             new Payload()
                                                                     .put("script", getClass().getName())
