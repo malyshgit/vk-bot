@@ -329,7 +329,7 @@ public class WallParser implements Script {
                     );*/
 
                     var nextOffset = offset;
-                    for(var i = 0; elements.size() <= 10; i++){
+                    for(var i = 0; elements.size() < 10; i++){
                         if(offset + i > list.size()-1){
                             break;
                         }
