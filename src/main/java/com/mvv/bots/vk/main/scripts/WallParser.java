@@ -362,6 +362,15 @@ public class WallParser implements Script {
                             );
                         }
                         if (i == 9 && nextOffset < list.size()-1) {
+                            int lastOffset = 0;
+                            while(lastOffset < list.size()-lastOffset){
+                                if(lastOffset == 0 || lastOffset == list.size()){
+                                    lastOffset+=9;
+                                }else{
+                                    lastOffset+=8;
+                                }
+                            }
+                            lastOffset = list.size()-lastOffset;
                             elements.add(new TemplateElement()
                                     .setTitle("Навигация")
                                     .setDescription("Вперед")
@@ -382,7 +391,7 @@ public class WallParser implements Script {
                                                             new Payload()
                                                                     .put("script", getClass().getName())
                                                                     .put("step", 1)
-                                                                    .put("offset", list.size() - 10)
+                                                                    .put("offset", lastOffset)
                                                                     .toString()
                                                     ).setType(KeyboardButtonActionType.TEXT)
                                                             .setLabel(">>"))
