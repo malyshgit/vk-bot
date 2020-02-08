@@ -112,12 +112,23 @@ public class Weather implements Script {
                         jobject = jelement.getAsJsonObject();
                         JsonObject currently = jobject.get("currently").getAsJsonObject();
                         String summary = currently.get("summary").getAsString();
-                        int temperature = (int)currently.get("temperature").getAsFloat();
-                        String info = summary
-                                +"\n"
-                                +temperature+"˚C"
-                                +"\n"
-                                +"@https://darksky.net/poweredby/ (Powered by Dark Sky)";
+                        var temperature = currently.get("temperature").getAsFloat();
+                        var apparentTemperature = currently.get("apparentTemperature").getAsFloat();
+                        var visibility = currently.get("visibility").getAsFloat();
+                        var pressure  = currently.get("pressure").getAsFloat()/1.333;
+                        var windSpeed = currently.get("windSpeed").getAsFloat();
+                        String windBearing = (int)windSpeed == 0 ? ""
+                                : (int)currently.get("windBearing").getAsFloat() <= 30 ? "С"
+                                : (int)currently.get("windBearing").getAsFloat() <= 60 ? "СВ"
+                                : (int)currently.get("windBearing").getAsFloat() <= 120 ? "В"
+                                : (int)currently.get("windBearing").getAsFloat() <= 150 ? "ЮВ"
+                                : (int)currently.get("windBearing").getAsFloat() <= 210 ? "Ю"
+                                : (int)currently.get("windBearing").getAsFloat() <= 240 ? "ЮЗ"
+                                : (int)currently.get("windBearing").getAsFloat() <= 300 ? "З"
+                                : (int)currently.get("windBearing").getAsFloat() <= 330 ? "СЗ"
+                                : "С";
+
+
                         keyboard.setInline(true);
                         buttons.add(List.of(
                                 new KeyboardButton()
@@ -162,6 +173,36 @@ public class Weather implements Script {
                                                             ? "Отписаться"
                                                             : "Подписаться"))
                             ));
+
+                            String info;
+                            if(full){
+                                info = summary
+                                        +"\n"
+                                        +temperature+"˚C"
+                                        +"\n"
+                                        +"Ощущается как "+ apparentTemperature+"˚C"
+                                        +"\n"
+                                        +"Ветер "+(windSpeed==0?"":windBearing+" ")+windSpeed+"м/с"
+                                        +"\n"
+                                        +"Давление "+ pressure+"мм рт. ст."
+                                        +"\n"
+                                        +"Видимость "+ visibility+"км"
+                                        +"\n"
+                                        +"@https://darksky.net/poweredby/ (Powered by Dark Sky)";
+                            }else{
+                                info = summary
+                                        +"\n"
+                                        +temperature+"˚C"
+                                        +"\n"
+                                        +"@https://darksky.net/poweredby/ (Powered by Dark Sky)";
+                            }
+                            new Messages(Config.VK())
+                                    .send(Config.GROUP)
+                                    .message(info)
+                                    .keyboard(keyboard)
+                                    .peerId(message.getPeerId())
+                                    .randomId(Utils.getRandomInt32())
+                                    .execute();
                         }else{
                             JsonObject object = new JsonObject();
                             object.addProperty("update", false);
@@ -171,13 +212,6 @@ public class Weather implements Script {
                             send(message, 0);
                             return;
                         }
-						new Messages(Config.VK())
-                                .send(Config.GROUP)
-                                .message(info)
-                                .keyboard(keyboard)
-                                .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
-                                .execute();
                     }else {
                         keyboard.setInline(true);
                         buttons.add(List.of(
