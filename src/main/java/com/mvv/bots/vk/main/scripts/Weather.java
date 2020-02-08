@@ -250,6 +250,7 @@ public class Weather implements Script {
                     var options = new JsonParser().parse(user.getParameters().get("weather")).getAsJsonObject();
                     var update = options.get("update").getAsBoolean();
                     options.addProperty("update", !update);
+                    user.getParameters().put("weather", options);
                     UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
@@ -266,6 +267,7 @@ public class Weather implements Script {
                     options = new JsonParser().parse(user.getParameters().get("weather")).getAsJsonObject();
                     var full = options.get("full").getAsBoolean();
                     options.addProperty("full", !full);
+                    user.getParameters().put("weather", options);
                     UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
