@@ -112,10 +112,37 @@ public class Weather implements Script {
                         jobject = jelement.getAsJsonObject();
                         JsonObject currently = jobject.get("currently").getAsJsonObject();
                         String summary = currently.get("summary").getAsString();
+                        var icon = "";
+                        switch (currently.get("icon").getAsString()){
+                            case "clear-day":
+                                icon = "☀";
+                            case "clear-night":
+                                icon = "\uD83C\uDF19";
+                            case "rain":
+                                icon = "\uD83C\uDF27";
+                            case "snow":
+                                icon = "\uD83C\uDF28";
+                            case "sleet":
+                                icon = "\uD83C\uDF27\uD83C\uDF28";
+                            case "wind":
+                                icon = "\uD83C\uDF2C";
+                            case "fog":
+                                icon = "\uD83C\uDF2B";
+                            case "cloudy":
+                                icon = "☁";
+                            case "partly-cloudy-day":
+                                icon = "⛅";
+                            case "partly-cloudy-night":
+                                icon = "\uD83C\uDF25";
+                                break;
+                            default:
+                                break;
+                        }
+                        //clear-day, clear-night, rain, snow, sleet, wind, fog, cloudy, partly-cloudy-day, or partly-cloudy-night
                         var temperature = currently.get("temperature").getAsFloat();
                         var apparentTemperature = currently.get("apparentTemperature").getAsFloat();
                         var visibility = currently.get("visibility").getAsFloat();
-                        var pressure  = currently.get("pressure").getAsFloat()/1.333;
+                        var pressure  = String.format("%.2f", currently.get("pressure").getAsFloat()/1.333);
                         var windSpeed = currently.get("windSpeed").getAsFloat();
                         String windBearing = (int)windSpeed == 0 ? ""
                                 : (int)currently.get("windBearing").getAsFloat() <= 30 ? "С"
@@ -176,7 +203,7 @@ public class Weather implements Script {
 
                             String info;
                             if(full){
-                                info = summary
+                                info = icon+summary
                                         +"\n"
                                         +temperature+"˚C"
                                         +"\n"
@@ -190,7 +217,7 @@ public class Weather implements Script {
                                         +"\n"
                                         +"Powered by Dark Sky";
                             }else{
-                                info = summary
+                                info = icon+summary
                                         +"\n"
                                         +temperature+"˚C"
                                         +"\n"
