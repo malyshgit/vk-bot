@@ -188,13 +188,13 @@ public class Weather implements Script {
                                         +"\n"
                                         +"Видимость "+ visibility+"км"
                                         +"\n"
-                                        +"@https://darksky.net/poweredby/ (Powered by Dark Sky)";
+                                        +"Powered by Dark Sky";
                             }else{
                                 info = summary
                                         +"\n"
                                         +temperature+"˚C"
                                         +"\n"
-                                        +"@https://darksky.net/poweredby/ (Powered by Dark Sky)";
+                                        +"Powered by Dark Sky";
                             }
                             new Messages(Config.VK())
                                     .send(Config.GROUP)
