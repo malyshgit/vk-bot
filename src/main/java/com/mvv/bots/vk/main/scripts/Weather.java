@@ -172,9 +172,7 @@ public class Weather implements Script {
                             var full = options.get("full").getAsBoolean();
                             buttons.add(List.of(
                                     new KeyboardButton()
-                                            .setColor(full
-                                                    ? KeyboardButtonColor.NEGATIVE
-                                                    : KeyboardButtonColor.POSITIVE)
+                                            .setColor(KeyboardButtonColor.PRIMARY)
                                             .setAction(new KeyboardButtonAction().setPayload(
                                                     new Payload()
                                                             .put("script", getClass().getName())
