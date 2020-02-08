@@ -147,10 +147,10 @@ public class Resave implements Script {
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             new Payload()
                                                     .put("script", getClass().getName())
-                                                    .put("step", 1)
+                                                    .put("step", 10)
                                                     .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Список"))
+                                            .setLabel("Добавить"))
                     ));
                     new Messages(Config.VK())
                             .send(Config.GROUP)
@@ -159,6 +159,7 @@ public class Resave implements Script {
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
+                    send(message, 1);
                     break;
                 case 10:
                     var getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
@@ -248,45 +249,15 @@ public class Resave implements Script {
                                 return true;
                             })
                             .collect(Collectors.toList());
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.NEGATIVE)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            new Payload()
-                                                    .put("script", getClass().getName())
-                                                    .put("step", 0)
-                                                    .toString()
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Назад"))
-                    ));
-                    buttons.add(List.of(
-                            new KeyboardButton()
-                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                    .setAction(new KeyboardButtonAction().setPayload(
-                                            new Payload()
-                                                    .put("script", getClass().getName())
-                                                    .put("step", 10)
-                                                    .toString()
-                                    ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel("Добавить"))
-                    ));
                     if(list.size() < 1){
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
-                                .keyboard(keyboard)
                                 .message("Отправьте ссылку на альбом и нажмите \"Добавить\"")
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
                         return;
                     }
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .keyboard(keyboard)
-                            .message("Меню")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
                     List<TemplateElement> elements = new ArrayList<>();
                     template.setElements(elements);
                     var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
