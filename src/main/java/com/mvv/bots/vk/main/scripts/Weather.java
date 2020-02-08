@@ -204,7 +204,7 @@ public class Weather implements Script {
                             String info;
                             if(full){
                                 info = icon+summary
-                                        +"\n"
+                                        +" "
                                         +temperature+"˚C"
                                         +"\n"
                                         +"Ощущается как "+ apparentTemperature+"˚C"
@@ -218,7 +218,7 @@ public class Weather implements Script {
                                         +"Powered by Dark Sky";
                             }else{
                                 info = icon+summary
-                                        +"\n"
+                                        +" "
                                         +temperature+"˚C"
                                         +"\n"
                                         +"Powered by Dark Sky";
