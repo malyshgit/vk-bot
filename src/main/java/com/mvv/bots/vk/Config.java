@@ -50,7 +50,6 @@ public class Config {
             new Authorization(),
             new Advice(),
             new Donation(),
-            new InstaGet(),
             new Resave(),
             new Weather(),
             new ScriptList()
