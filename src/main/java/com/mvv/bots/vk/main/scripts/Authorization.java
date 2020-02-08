@@ -131,7 +131,7 @@ public class Authorization implements Script {
                     var vkcc = new com.vk.api.sdk.actions.Utils(Config.VK()).getShortLink(Config.GROUP, url).execute();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message("Перейдя по ссылке Вы предоставляете доступ к Вашим группам, документам, фотографиям и записям на стене." +
+                            .message("Перейдя по ссылке, Вы предоставляете доступ к: сообществам, документам, фотографиям и записям на стене." +
                                     "\n"+vkcc.getShortUrl())
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())

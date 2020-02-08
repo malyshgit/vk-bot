@@ -337,6 +337,13 @@ public class Resave implements Script {
                             elements.add(new TemplateElement()
                                     .setTitle(album.getTitle())
                                     .setDescription(album.getDescription())
+                                    .setAction(new TemplateElementAction()
+                                            .setType(TemplateElementActionType.OPEN_LINK)
+                                            .setLink(desc[0].startsWith("-")
+                                                    ? "https://vk.com/public"+desc[0].substring(1)
+                                                    : "https://vk.com/id"+desc[0]
+                                            )
+                                    )
                                     .setButtons(List.of(
                                             new KeyboardButton()
                                                     .setColor(desc[3].equals("on") ? KeyboardButtonColor.POSITIVE : KeyboardButtonColor.NEGATIVE)
