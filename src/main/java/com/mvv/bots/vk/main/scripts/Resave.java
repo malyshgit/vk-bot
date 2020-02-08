@@ -339,10 +339,7 @@ public class Resave implements Script {
                                     .setDescription(album.getDescription())
                                     .setAction(new TemplateElementAction()
                                             .setType(TemplateElementActionType.OPEN_LINK)
-                                            .setLink(desc[0].startsWith("-")
-                                                    ? "https://vk.com/public"+desc[0].substring(1)
-                                                    : "https://vk.com/id"+desc[0]
-                                            )
+                                            .setLink("https://vk.com/album"+desc[0]+"_"+desc[1])
                                     )
                                     .setButtons(List.of(
                                             new KeyboardButton()
