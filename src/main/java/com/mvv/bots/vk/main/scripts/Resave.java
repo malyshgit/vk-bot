@@ -166,7 +166,7 @@ public class Resave implements Script {
                     if(url == null || url.isEmpty() || !url.matches("https://vk.com/album-?\\d+_\\d+")){
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
-                                .message("Отправьте ссылку альбом и нажмите \"Добавить\"")
+                                .message("Отправьте ссылку на альбом и нажмите \"Добавить\"")
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
@@ -274,7 +274,7 @@ public class Resave implements Script {
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .keyboard(keyboard)
-                                .message("Отправьте ссылку альбом и нажмите \"Добавить\"")
+                                .message("Отправьте ссылку на альбом и нажмите \"Добавить\"")
                                 .peerId(message.getPeerId())
                                 .randomId(Utils.getRandomInt32())
                                 .execute();
