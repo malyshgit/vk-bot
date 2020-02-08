@@ -22,6 +22,7 @@ import com.vk.api.sdk.objects.messages.keyboard.Payload;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,10 +50,12 @@ public class Advice implements Script {
 
     @Override
     public void update() {
+        if(LocalDateTime.now().getMinute() >= 30) return;
         UsersTable.findAll().forEach(user -> {
-            if(user.getParameters().has("adviceupdate")){
-                boolean b = Boolean.parseBoolean(user.getParameters().get("adviceupdate"));
-                if(b){
+            if(user.getParameters().has("advice")){
+                var options = new JsonParser().parse(user.getParameters().get("advice")).getAsJsonObject();
+                var update = options.get("update").getAsBoolean();
+                if(update){
                     Message m = new Message();
                     m.setFromId(user.getId());
                     m.setPeerId(user.getId());
@@ -60,7 +63,6 @@ public class Advice implements Script {
                 }
             }
         });
-        return;
     }
 
     @Override
@@ -76,34 +78,28 @@ public class Advice implements Script {
                 case 0:
                     User user = UsersTable.find(message.getFromId());
                     keyboard.setInline(true);
-                    if(user.getParameters().has("adviceupdate")){
-                        if(Boolean.parseBoolean(user.getParameters().get("adviceupdate"))){
-                            buttons.add(List.of(
-                                    new KeyboardButton()
-                                            .setColor(KeyboardButtonColor.NEGATIVE)
-                                            .setAction(new KeyboardButtonAction().setPayload(
-                                                    new Payload()
-                                                            .put("script", getClass().getName())
-                                                            .put("step", 3)
-                                                            .toString()
-                                            ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Отписаться"))
-                            ));
-                        }else{
-                            buttons.add(List.of(
-                                    new KeyboardButton()
-                                            .setColor(KeyboardButtonColor.POSITIVE)
-                                            .setAction(new KeyboardButtonAction().setPayload(
-                                                    new Payload()
-                                                            .put("script", getClass().getName())
-                                                            .put("step", 2)
-                                                            .toString()
-                                            ).setType(KeyboardButtonActionType.TEXT)
-                                                    .setLabel("Подписаться"))
-                            ));
-                        }
+                    if(user.getParameters().has("advice")){
+                        var options = new JsonParser().parse(user.getParameters().get("advice")).getAsJsonObject();
+                        var update = options.get("update").getAsBoolean();
+                        buttons.add(List.of(
+                                new KeyboardButton()
+                                        .setColor(update
+                                                ? KeyboardButtonColor.NEGATIVE
+                                                : KeyboardButtonColor.POSITIVE)
+                                        .setAction(new KeyboardButtonAction().setPayload(
+                                                new Payload()
+                                                        .put("script", getClass().getName())
+                                                        .put("step", 2)
+                                                        .toString()
+                                        ).setType(KeyboardButtonActionType.TEXT)
+                                                .setLabel(update
+                                                        ? "Отписаться"
+                                                        : "Подписаться"))
+                        ));
                     }else{
-                        user.getParameters().put("adviceupdate", false);
+                        JsonObject object = new JsonObject();
+                        object.addProperty("update", false);
+                        user.getParameters().put("advice", object);
                         UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                         send(message, 0);
                         return;
@@ -148,29 +144,22 @@ public class Advice implements Script {
                     break;
                 case 2:
                     user = UsersTable.find(message.getFromId());
-                    user.getParameters().put("adviceupdate", "true");
+                    var options = new JsonParser().parse(user.getParameters().get("advice")).getAsJsonObject();
+                    var update = options.get("update").getAsBoolean();
+                    options.addProperty("update", !update);
+                    user.getParameters().put("advice", options);
                     UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message("Подписка активирована.")
+                            .message(update
+                                    ? "Подписка деактивирована."
+                                    : "Подписка активирована.")
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
                     break;
-                case 3:
-                    user = UsersTable.find(message.getFromId());
-                    user.getParameters().put("adviceupdate", "false");
-                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                    new Messages(Config.VK())
-                            .send(Config.GROUP)
-                            .message("Подписка деактивирована.")
-                            .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
-                            .execute();
-                    send(message, 0);
-                    break;
-                case 4:
+                /*case 4:
                     user = UsersTable.find(message.getFromId());
                     user.getParameters().put("advicecensored", "true");
                     UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
@@ -193,6 +182,8 @@ public class Advice implements Script {
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
+                    break;*/
+                default:
                     break;
             }
         }catch (ApiException | ClientException | IOException e){

@@ -43,8 +43,8 @@ public class ScriptList implements Script {
     }
 
     @Override
-    public void update() {
-        return;
+    public void update(){
+
     }
 
     @Override

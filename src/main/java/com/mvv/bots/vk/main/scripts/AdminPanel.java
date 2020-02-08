@@ -63,7 +63,6 @@ public class AdminPanel implements Script {
 
     @Override
     public void update() {
-        return;
     }
 
     @Override

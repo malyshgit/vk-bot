@@ -45,6 +45,7 @@ public class Donation implements Script {
 
     }
 
+
     @Override
     public void send(Message message, Integer step) {
         try {

@@ -24,6 +24,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +52,7 @@ public class Weather implements Script {
 
     @Override
     public void update() {
+        if(LocalDateTime.now().getMinute() >= 30) return;
         UsersTable.findAll().forEach(user -> {
             if(user.getParameters().has("weather")){
                 var options = new JsonParser().parse(user.getParameters().get("weather")).getAsJsonObject();
@@ -64,7 +66,6 @@ public class Weather implements Script {
             }
         });
     }
-
     @Override
     public void send(Message message, Integer step) {
         try {
