@@ -41,7 +41,7 @@ public class Weather implements Script {
 
     @Override
     public String description(){
-        return smile()+"["+ key()+"] - прогноз погоды.";
+        return smile()+"["+ key()+"] - прогноз погоды. (Powered by Dark Sky)";
     }
 
     @Override
@@ -52,9 +52,10 @@ public class Weather implements Script {
     @Override
     public void update() {
         UsersTable.findAll().forEach(user -> {
-            if(user.getParameters().has("weatherupdate")){
-                boolean b = Boolean.parseBoolean(user.getParameters().get("weatherupdate"));
-                if(b){
+            if(user.getParameters().has("weather")){
+                var options = new JsonParser().parse(user.getParameters().get("weather")).getAsJsonObject();
+                var update = options.get("update").getAsBoolean();
+                if(update){
                     Message m = new Message();
                     m.setFromId(user.getId());
                     m.setPeerId(user.getId());
@@ -112,7 +113,11 @@ public class Weather implements Script {
                         JsonObject currently = jobject.get("currently").getAsJsonObject();
                         String summary = currently.get("summary").getAsString();
                         int temperature = (int)currently.get("temperature").getAsFloat();
-                        String info = summary+"\n"+temperature+"˚C";
+                        String info = summary
+                                +"\n"
+                                +temperature+"˚C"
+                                +"\n"
+                                +"@https://darksky.net/poweredby/ (Powered by Dark Sky)";
                         keyboard.setInline(true);
                         buttons.add(List.of(
                                 new KeyboardButton()
@@ -123,34 +128,45 @@ public class Weather implements Script {
                                                         .toString()
                                         ).setType(KeyboardButtonActionType.LOCATION))
                         ));
-                        if(user.getParameters().has("weatherupdate")){
-                            if(Boolean.parseBoolean(user.getParameters().get("weatherupdate"))){
-                                buttons.add(List.of(
-                                        new KeyboardButton()
-                                                .setColor(KeyboardButtonColor.NEGATIVE)
-                                                .setAction(new KeyboardButtonAction().setPayload(
-                                                        new Payload()
-                                                                .put("script", getClass().getName())
-                                                                .put("step", 22)
-                                                                .toString()
-                                                ).setType(KeyboardButtonActionType.TEXT)
-                                                        .setLabel("Отписаться"))
-                                ));
-                            }else{
-                                buttons.add(List.of(
-                                        new KeyboardButton()
-                                                .setColor(KeyboardButtonColor.POSITIVE)
-                                                .setAction(new KeyboardButtonAction().setPayload(
-                                                        new Payload()
-                                                                .put("script", getClass().getName())
-                                                                .put("step", 21)
-                                                                .toString()
-                                                ).setType(KeyboardButtonActionType.TEXT)
-                                                        .setLabel("Подписаться"))
-                                ));
-                            }
+                        if(user.getParameters().has("weather")){
+                            var options = new JsonParser().parse(user.getParameters().get("weather")).getAsJsonObject();
+                            var update = options.get("update").getAsBoolean();
+                            var full = options.get("full").getAsBoolean();
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(full
+                                                    ? KeyboardButtonColor.NEGATIVE
+                                                    : KeyboardButtonColor.POSITIVE)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    new Payload()
+                                                            .put("script", getClass().getName())
+                                                            .put("step", 3)
+                                                            .toString()
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel(full
+                                                            ? "Кратко"
+                                                            : "Подробно"))
+                            ));
+                            buttons.add(List.of(
+                                    new KeyboardButton()
+                                            .setColor(update
+                                                    ? KeyboardButtonColor.NEGATIVE
+                                                    : KeyboardButtonColor.POSITIVE)
+                                            .setAction(new KeyboardButtonAction().setPayload(
+                                                    new Payload()
+                                                            .put("script", getClass().getName())
+                                                            .put("step", 2)
+                                                            .toString()
+                                            ).setType(KeyboardButtonActionType.TEXT)
+                                                    .setLabel(update
+                                                            ? "Отписаться"
+                                                            : "Подписаться"))
+                            ));
                         }else{
-                            user.getParameters().put("weatherupdate", false);
+                            JsonObject object = new JsonObject();
+                            object.addProperty("update", false);
+                            object.addProperty("full", false);
+                            user.getParameters().put("weather", object);
                             UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                             send(message, 0);
                             return;
@@ -195,25 +211,33 @@ public class Weather implements Script {
                             .execute();
                     send(message, 0);
                     break;
-                case 21:
+                case 2:
                     user = UsersTable.find(message.getFromId());
-                    user.getParameters().put("weatherupdate", "true");
+                    var options = new JsonParser().parse(user.getParameters().get("weather")).getAsJsonObject();
+                    var update = options.get("update").getAsBoolean();
+                    options.addProperty("update", !update);
                     UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message("Подписка активирована.")
+                            .message(update
+                                    ? "Подписка деактивирована."
+                                    : "Подписка активирована.")
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
                     break;
-                case 22:
+                case 3:
                     user = UsersTable.find(message.getFromId());
-                    user.getParameters().put("weatherupdate", "false");
+                    options = new JsonParser().parse(user.getParameters().get("weather")).getAsJsonObject();
+                    var full = options.get("full").getAsBoolean();
+                    options.addProperty("full", !full);
                     UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message("Подписка деактивирована.")
+                            .message(full
+                                    ? "Кратко."
+                                    : "Подробно.")
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
