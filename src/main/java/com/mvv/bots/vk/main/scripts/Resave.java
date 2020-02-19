@@ -164,7 +164,7 @@ public class Resave implements Script {
                 case 10:
                     var getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
                     var url = getByIdResponse.getItems().get(0).getText();
-                    if(url == null || url.isEmpty() || !url.matches("https://vk.com/album-?\\d+_\\d+")){
+                    if(url == null || url.isEmpty() || !url.matches("https://vk.com/album-?\\d+_-?\\d+")){
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Отправьте ссылку на альбом и нажмите \"Добавить\"")
@@ -193,9 +193,11 @@ public class Resave implements Script {
 
                     var albumDesc = "";
                     if(albumInfo[0].startsWith("-")){
-                        if(albumInfo[1].matches("0")){
+                        if(albumInfo[1].matches("(0|-6)")){
+                            albumInfo[1] = "-6";
                             albumDesc = "Фотографии страницы";
-                        }else if(albumInfo[1].matches("00")){
+                        }else if(albumInfo[1].matches("(00|-7)")){
+                            albumInfo[1] = "-7";
                             albumDesc = "Фотографии со стены";
                         }else{
                             var album = new Photos(Config.VK()).getAlbums(userActor)
@@ -204,11 +206,14 @@ public class Resave implements Script {
                             albumDesc = album.getItems().get(0).getTitle();
                         }
                     }else{
-                        if(albumInfo[1].matches("0")){
+                        if(albumInfo[1].matches("(0|-6)")){
+                            albumInfo[1] = "-6";
                             albumDesc = "Фотографии страницы";
-                        }else if(albumInfo[1].matches("00")){
+                        }else if(albumInfo[1].matches("(00|-7)")){
+                            albumInfo[1] = "-7";
                             albumDesc = "Фотографии со стены";
-                        }else if(albumInfo[1].matches("000")){
+                        }else if(albumInfo[1].matches("(000|-15)")){
+                            albumInfo[1] = "-15";
                             albumDesc = "Сохраненные фотографии";
                         }else{
                             var album = new Photos(Config.VK()).getAlbums(userActor)
@@ -242,7 +247,7 @@ public class Resave implements Script {
                     var tempList = new HashSet<String>();
                     var list = userAlbums.getItems()
                             .stream()
-                            .filter(album -> album.getDescription().matches("-?\\d+_\\d+_show_(on|off)"))
+                            .filter(album -> album.getDescription().matches("-?\\d+_-?\\d+_show_(on|off)"))
                             .filter(album -> {
                                 if(tempList.contains(album.getDescription())) return false;
                                 tempList.add(album.getDescription());
@@ -456,7 +461,7 @@ public class Resave implements Script {
             HashMap<String, Integer> albumsSizes = new HashMap<>();
             var filteredUserAlbums = userAlbums.getItems()
                     .stream()
-                    .filter(album -> album.getDescription().matches("-?\\d+_\\d+_show_on"))
+                    .filter(album -> album.getDescription().matches("-?\\d+_-?\\d+_show_on"))
                     .peek(album -> {
                         if (albumsSizes.containsKey(album.getDescription())) {
                             albumsSizes.put(album.getDescription(), albumsSizes.get(album.getDescription()) + album.getSize());
@@ -468,13 +473,6 @@ public class Resave implements Script {
             for (var filteredUserAlbum : filteredUserAlbums) {
                 String ownerId = filteredUserAlbum.getDescription().split("_")[0];
                 String ownerAlbumId = filteredUserAlbum.getDescription().split("_")[1];
-                if (ownerAlbumId.matches("0")) {
-                    ownerAlbumId = "profile";
-                } else if (ownerAlbumId.matches("00")) {
-                    ownerAlbumId = "wall";
-                } else if (ownerAlbumId.matches("000")) {
-                    ownerAlbumId = "saved";
-                }
                 Integer size = albumsSizes.get(filteredUserAlbum.getDescription());
                 if (filteredUserAlbum.getSize() == 10000 && size == 10000) {
                     filteredUserAlbum = new Photos(Config.VK())
