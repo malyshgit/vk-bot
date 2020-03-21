@@ -481,7 +481,7 @@ public class Resave implements Script {
                             .privacyView("only_me")
                             .execute();
                 } else if (filteredUserAlbum.getSize() == 10000 && size > 10000) {
-                    return;
+                    continue;//return;
                 }
                 HashSet<String> photoTextList = new HashSet<>();
                 for (var userAlbum : userAlbums.getItems()) {
