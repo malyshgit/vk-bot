@@ -612,7 +612,7 @@ public class Resave implements Script {
                         upload = uploadQuery.execute();
                     }
                     if (uploadsCount >= 500) {
-                        break;
+                        return;
                     }
                     long startTime = System.currentTimeMillis();
                     HttpURLConnection connection = null;
