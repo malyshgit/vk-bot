@@ -589,11 +589,23 @@ public class Resave implements Script {
                         }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                 for (var e : photosMap.entrySet()) {
                     if (filteredUserAlbum.getSize() + uploadsCount >= 10000) {
-                        filteredUserAlbum = new Photos(Config.VK())
-                                .createAlbum(userActor, filteredUserAlbum.getTitle())
-                                .description(filteredUserAlbum.getDescription())
-                                .privacyView("only_me")
-                                .execute();
+                        if(filteredUserAlbums.stream()
+                                .filter(a-> a.getDescription().equals(desc)).count() == 1){
+                            filteredUserAlbum = new Photos(Config.VK())
+                                    .createAlbum(userActor, filteredUserAlbum.getTitle())
+                                    .description(filteredUserAlbum.getDescription())
+                                    .privacyView("only_me")
+                                    .execute();
+                        }else{
+                            var oldA = filteredUserAlbum;
+                            filteredUserAlbum = filteredUserAlbums.stream()
+                                    .filter(newA-> newA.getSize() < 10000 && !newA.equals(oldA)).findFirst()
+                                    .orElse(new Photos(Config.VK())
+                                            .createAlbum(userActor, filteredUserAlbum.getTitle())
+                                            .description(filteredUserAlbum.getDescription())
+                                            .privacyView("only_me")
+                                            .execute());
+                        }
                         uploadQuery = new Photos(Config.VK())
                                 .getUploadServer(userActor)
                                 .albumId(filteredUserAlbum.getId());
