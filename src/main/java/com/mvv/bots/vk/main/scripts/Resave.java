@@ -459,6 +459,7 @@ public class Resave implements Script {
             var userActor = new UserActor(user.getId(), user.getToken());
             var userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute();
             HashMap<String, Integer> albumsSizes = new HashMap<>();
+
             var filteredUserAlbums = userAlbums.getItems()
                     .stream()
                     .filter(album -> album.getDescription().matches("-?\\d+_-?\\d+_show_on"))
@@ -474,15 +475,22 @@ public class Resave implements Script {
                 String ownerId = filteredUserAlbum.getDescription().split("_")[0];
                 String ownerAlbumId = filteredUserAlbum.getDescription().split("_")[1];
                 Integer size = albumsSizes.get(filteredUserAlbum.getDescription());
-                if (filteredUserAlbum.getSize() == 10000 && size == 10000) {
-                    filteredUserAlbum = new Photos(Config.VK())
-                            .createAlbum(userActor, filteredUserAlbum.getTitle())
-                            .description(filteredUserAlbum.getDescription())
-                            .privacyView("only_me")
-                            .execute();
-                } else if (filteredUserAlbum.getSize() == 10000 && size > 10000) {
-                    continue;//return;
+                String desc = filteredUserAlbum.getDescription();
+
+                if (filteredUserAlbum.getSize() >= 10000){
+                    if(filteredUserAlbums.stream()
+                            .filter(a-> a.getDescription().equals(desc)).count() == 1){
+                        filteredUserAlbum = new Photos(Config.VK())
+                                .createAlbum(userActor, filteredUserAlbum.getTitle())
+                                .description(filteredUserAlbum.getDescription())
+                                .privacyView("only_me")
+                                .execute();
+                    }else{
+                        continue;
+                    }
                 }
+
+
                 HashSet<String> photoTextList = new HashSet<>();
                 for (var userAlbum : userAlbums.getItems()) {
                     if (!userAlbum.getDescription().matches(filteredUserAlbum.getDescription())) continue;
