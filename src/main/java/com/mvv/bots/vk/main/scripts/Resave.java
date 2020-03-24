@@ -469,7 +469,9 @@ public class Resave implements Script {
                         } else {
                             albumsSizes.put(album.getDescription(), album.getSize());
                         }
-                    }).collect(Collectors.toList());
+                    })
+                    .sorted((o1, o2) -> Integer.compare(o2.getSize(), o1.getSize()))
+                    .collect(Collectors.toList());
             int uploadsCount = 0;
             int tempUploadsCount = 0;
             for (var filteredUserAlbum : filteredUserAlbums) {
