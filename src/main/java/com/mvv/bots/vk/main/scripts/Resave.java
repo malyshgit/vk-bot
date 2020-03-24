@@ -471,6 +471,7 @@ public class Resave implements Script {
                         }
                     }).collect(Collectors.toList());
             int uploadsCount = 0;
+            int tempUploadsCount = 0;
             for (var filteredUserAlbum : filteredUserAlbums) {
                 String ownerId = filteredUserAlbum.getDescription().split("_")[0];
                 String ownerAlbumId = filteredUserAlbum.getDescription().split("_")[1];
@@ -588,7 +589,8 @@ public class Resave implements Script {
                             return Map.entry(photo.getId(), sizes);
                         }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                 for (var e : photosMap.entrySet()) {
-                    if (filteredUserAlbum.getSize() + uploadsCount >= 10000) {
+                    if (filteredUserAlbum.getSize() + tempUploadsCount >= 10000) {
+                        filteredUserAlbum.setSize(filteredUserAlbum.getSize()+tempUploadsCount);
                         if(filteredUserAlbums.stream()
                                 .filter(a-> a.getDescription().equals(desc)).count() == 1){
                             filteredUserAlbum = new Photos(Config.VK())
@@ -598,6 +600,7 @@ public class Resave implements Script {
                                     .execute();
                         }else{
                             var oldA = filteredUserAlbum;
+                            tempUploadsCount = 0;
                             filteredUserAlbum = filteredUserAlbums.stream()
                                     .filter(newA-> newA.getSize() < 10000 && !newA.equals(oldA)).findFirst()
                                     .orElse(new Photos(Config.VK())
@@ -612,7 +615,7 @@ public class Resave implements Script {
                         upload = uploadQuery.execute();
                     }
                     if (uploadsCount >= 500) {
-                        return;
+                        break;
                     }
                     long startTime = System.currentTimeMillis();
                     HttpURLConnection connection = null;
@@ -628,7 +631,7 @@ public class Resave implements Script {
                         break;
                     }
                     if (connection == null) {
-                        return;
+                        continue;
                     }
                     File img = new File(message.getPeerId() + ".jpg");
                     FileUtils.copyURLToFile(connection.getURL(), img);
@@ -643,6 +646,7 @@ public class Resave implements Script {
                     saveQuery.execute();
                     img.delete();
                     uploadsCount++;
+                    tempUploadsCount++;
                     long endTime = System.currentTimeMillis();
                     long deltaTime = endTime - startTime;
                     if (deltaTime > 0 && deltaTime < 1000) {
