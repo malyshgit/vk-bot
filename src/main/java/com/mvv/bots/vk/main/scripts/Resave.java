@@ -481,6 +481,11 @@ public class Resave implements Script {
                 String desc = filteredUserAlbum.getDescription();
 
                 if (filteredUserAlbum.getSize() >= 10000){
+                    LOG.error("DEBUG\n" +
+                            "==========================================");
+                    LOG.error("Step 1 - Count of albums");
+                    LOG.error(filteredUserAlbums.stream()
+                            .filter(a-> a.getDescription().equals(desc)).count());
                     if(filteredUserAlbums.stream()
                             .filter(a-> a.getDescription().equals(desc)).count() == 1){
                         filteredUserAlbum = new Photos(Config.VK())
@@ -542,6 +547,7 @@ public class Resave implements Script {
                 if (ownerAlbum == null) return;
                 if (size >= ownerAlbum.getCount()) return;
                 List<AbstractQueryBuilder> queryList = new ArrayList<>();
+
                 var i = 0;
                 while (i < ownerAlbum.getCount()) {
                     if (queryList.size() >= 5) {
@@ -593,6 +599,11 @@ public class Resave implements Script {
                 for (var e : photosMap.entrySet()) {
                     if (filteredUserAlbum.getSize() + tempUploadsCount >= 10000) {
                         filteredUserAlbum.setSize(filteredUserAlbum.getSize()+tempUploadsCount);
+                        LOG.error("DEBUG\n" +
+                                "==========================================");
+                        LOG.error("Step 2 - Count of albums");
+                        LOG.error(filteredUserAlbums.stream()
+                                .filter(a-> a.getDescription().equals(desc)).count());
                         if(filteredUserAlbums.stream()
                                 .filter(a-> a.getDescription().equals(desc)).count() == 1){
                             filteredUserAlbum = new Photos(Config.VK())
@@ -603,8 +614,17 @@ public class Resave implements Script {
                         }else{
                             var oldA = filteredUserAlbum;
                             tempUploadsCount = 0;
+                            LOG.error("DEBUG\n" +
+                                    "==========================================");
+                            LOG.error("Step 3 - Get next album");
+                            LOG.error(filteredUserAlbums.stream()
+                                    .filter(newA-> newA.getSize() < 10000
+                                            && !newA.equals(oldA)
+                                            && oldA.getDescription().equals(newA.getDescription())).findFirst().get().toPrettyString());
                             filteredUserAlbum = filteredUserAlbums.stream()
-                                    .filter(newA-> newA.getSize() < 10000 && !newA.equals(oldA)).findFirst()
+                                    .filter(newA-> newA.getSize() < 10000
+                                            && !newA.equals(oldA)
+                                            && oldA.getDescription().equals(newA.getDescription())).findFirst()
                                     .orElse(new Photos(Config.VK())
                                             .createAlbum(userActor, filteredUserAlbum.getTitle())
                                             .description(filteredUserAlbum.getDescription())
@@ -645,6 +665,7 @@ public class Resave implements Script {
                             .photosList(uplresponse.getPhotosList())
                             .server(uplresponse.getServer())
                             .caption(String.valueOf(e.getKey()));
+                    photoTextList.add(String.valueOf(e.getKey()));
                     saveQuery.execute();
                     img.delete();
                     uploadsCount++;
