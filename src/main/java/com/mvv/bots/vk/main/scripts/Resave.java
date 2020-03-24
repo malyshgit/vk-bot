@@ -612,19 +612,19 @@ public class Resave implements Script {
                                     .privacyView("only_me")
                                     .execute();
                         }else{
-                            var oldA = filteredUserAlbum;
                             tempUploadsCount = 0;
                             LOG.error("DEBUG\n" +
                                     "==========================================");
                             LOG.error("Step 3 - Get next album");
                             LOG.error(filteredUserAlbums.stream()
+                                    .anyMatch(newA-> newA.getSize() < 10000
+                                            && desc.equals(newA.getDescription())));
+                            LOG.error(filteredUserAlbums.stream()
                                     .filter(newA-> newA.getSize() < 10000
-                                            && !newA.equals(oldA)
-                                            && oldA.getDescription().equals(newA.getDescription())).findFirst().get().toPrettyString());
+                                            && desc.equals(newA.getDescription())).map(PhotoAlbumFull::getSize).collect(Collectors.toList()));
                             filteredUserAlbum = filteredUserAlbums.stream()
                                     .filter(newA-> newA.getSize() < 10000
-                                            && !newA.equals(oldA)
-                                            && oldA.getDescription().equals(newA.getDescription())).findFirst()
+                                            && desc.equals(newA.getDescription())).findFirst()
                                     .orElse(new Photos(Config.VK())
                                             .createAlbum(userActor, filteredUserAlbum.getTitle())
                                             .description(filteredUserAlbum.getDescription())
