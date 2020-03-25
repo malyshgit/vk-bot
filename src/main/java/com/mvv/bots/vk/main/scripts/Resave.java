@@ -457,40 +457,27 @@ public class Resave implements Script {
         try {
             var user = UsersTable.find(message.getFromId());
             var userActor = new UserActor(user.getId(), user.getToken());
-            var userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute();
-            HashMap<String, Integer> albumsSizes = new HashMap<>();
-
-            var filteredUserAlbums = userAlbums.getItems()
+            var userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute()
+                    .getItems()
                     .stream()
                     .filter(album -> album.getDescription().matches("-?\\d+_-?\\d+_show_on"))
-                    .peek(album -> {
-                        if (albumsSizes.containsKey(album.getDescription())) {
-                            albumsSizes.put(album.getDescription(), albumsSizes.get(album.getDescription()) + album.getSize());
-                        } else {
-                            albumsSizes.put(album.getDescription(), album.getSize());
-                        }
-                    })
                     .sorted((o1, o2) -> Integer.compare(o2.getSize(), o1.getSize()))
                     .collect(Collectors.toList());
+
             int uploadsCount = 0;
             int tempUploadsCount = 0;
-            for (var filteredUserAlbum : filteredUserAlbums) {
-                String ownerId = filteredUserAlbum.getDescription().split("_")[0];
-                String ownerAlbumId = filteredUserAlbum.getDescription().split("_")[1];
-                Integer size = albumsSizes.get(filteredUserAlbum.getDescription());
-                String desc = filteredUserAlbum.getDescription();
 
-                if (filteredUserAlbum.getSize() >= 10000){
-                    LOG.error("DEBUG\n" +
-                            "==========================================");
-                    LOG.error("Step 1 - Count of albums");
-                    LOG.error(filteredUserAlbums.stream()
-                            .filter(a-> a.getDescription().equals(desc)).count());
-                    if(filteredUserAlbums.stream()
-                            .filter(a-> a.getDescription().equals(desc)).count() == 1){
-                        filteredUserAlbum = new Photos(Config.VK())
-                                .createAlbum(userActor, filteredUserAlbum.getTitle())
-                                .description(filteredUserAlbum.getDescription())
+            for (var userAlbum : userAlbums) {
+                String ownerId = userAlbum.getDescription().split("_")[0];
+                String ownerAlbumId = userAlbum.getDescription().split("_")[1];
+                String albumDesc = userAlbum.getDescription();
+
+                if (userAlbum.getSize() >= 10000){
+                    if(userAlbums.stream().filter(a-> a.getDescription().equals(albumDesc)).count() == 1
+                    || userAlbums.stream().noneMatch(a -> a.getDescription().equals(albumDesc) && a.getSize() < 10000)){
+                        userAlbum = new Photos(Config.VK())
+                                .createAlbum(userActor, userAlbum.getTitle())
+                                .description(userAlbum.getDescription())
                                 .privacyView("only_me")
                                 .execute();
                     }else{
@@ -499,53 +486,62 @@ public class Resave implements Script {
                 }
 
 
-                HashSet<String> photoTextList = new HashSet<>();
-                for (var userAlbum : userAlbums.getItems()) {
-                    if (!userAlbum.getDescription().matches(filteredUserAlbum.getDescription())) continue;
-                    var userAlbumPhotos = new Photos(Config.VK()).get(userActor)
-                            .ownerId(user.getId()).albumId(String.valueOf(userAlbum.getId())).count(1).offset(0).execute();
-                    var i = 0;
-                    List<AbstractQueryBuilder> queryList = new ArrayList<>();
-                    while (i < userAlbumPhotos.getCount()) {
-                        if (queryList.size() >= 5) {
+                HashSet<String> uploadedPhotoIds = new HashSet<>();
+                userAlbums.stream()
+                        .filter(a -> a.getDescription().matches(a.getDescription()))
+                        .forEachOrdered(a -> {
+                    try {
+                        var userAlbumPhotos = new Photos(Config.VK()).get(userActor)
+                                .ownerId(user.getId()).albumId(String.valueOf(a.getId())).count(1).offset(0).execute();
+                        var i = 0;
+                        List<AbstractQueryBuilder> queryList = new ArrayList<>();
+                        while (i < userAlbumPhotos.getCount()) {
+                            if (queryList.size() >= 5) {
+                                var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
+                                var array = json.getAsJsonArray();
+                                array.forEach(e -> {
+                                    var resp = new Gson().fromJson(e, GetResponse.class);
+                                    resp.getItems().forEach(photo -> {
+                                        uploadedPhotoIds.add(photo.getText());
+                                    });
+                                });
+                                queryList.clear();
+                            }
+                            var batch = new Photos(Config.VK()).get(userActor)
+                                    .ownerId(user.getId())
+                                    .albumId(String.valueOf(a.getId()))
+                                    .offset(i)
+                                    .count(1000);
+                            queryList.add(batch);
+                            Thread.sleep(1500);
+                            i += 1000;
+                        }
+                        if (!queryList.isEmpty()) {
                             var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
                             var array = json.getAsJsonArray();
                             array.forEach(e -> {
                                 var resp = new Gson().fromJson(e, GetResponse.class);
                                 resp.getItems().forEach(photo -> {
-                                    photoTextList.add(photo.getText());
+                                    uploadedPhotoIds.add(photo.getText());
                                 });
                             });
                             queryList.clear();
                         }
-                        var batch = new Photos(Config.VK()).get(userActor)
-                                .ownerId(user.getId())
-                                .albumId(String.valueOf(userAlbum.getId()))
-                                .offset(i)
-                                .count(1000);
-                        queryList.add(batch);
-                        Thread.sleep(1500);
-                        i += 1000;
+                    }catch (ApiException | ClientException | InterruptedException e){
+                        e.printStackTrace();
                     }
-                    if (!queryList.isEmpty()) {
-                        var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
-                        var array = json.getAsJsonArray();
-                        array.forEach(e -> {
-                            var resp = new Gson().fromJson(e, GetResponse.class);
-                            resp.getItems().forEach(photo -> {
-                                photoTextList.add(photo.getText());
-                            });
-                        });
-                        queryList.clear();
-                    }
-                }
+                });
 
-                HashSet<Photo> photoList = new HashSet<>();
+
+                HashSet<Photo> ownerAlbumPhotoList = new HashSet<>();
 
                 var ownerAlbum = new Photos(Config.VK()).get(userActor)
                         .ownerId(Integer.valueOf(ownerId)).albumId(ownerAlbumId).photoSizes(true).count(1).offset(0).execute();
                 if (ownerAlbum == null) return;
-                if (size >= ownerAlbum.getCount()) return;
+                if (userAlbums.stream()
+                        .filter(a->a.getDescription().equals(albumDesc))
+                        .map(PhotoAlbumFull::getSize)
+                        .reduce(0, Integer::sum) >= ownerAlbum.getCount()) return;
                 List<AbstractQueryBuilder> queryList = new ArrayList<>();
 
                 var i = 0;
@@ -555,7 +551,7 @@ public class Resave implements Script {
                         var array = json.getAsJsonArray();
                         array.forEach(e -> {
                             var resp = new Gson().fromJson(e, GetResponse.class);
-                            photoList.addAll(resp.getItems());
+                            ownerAlbumPhotoList.addAll(resp.getItems());
                         });
                         queryList.clear();
                     }
@@ -574,16 +570,16 @@ public class Resave implements Script {
                     var array = json.getAsJsonArray();
                     array.forEach(e -> {
                         var resp = new Gson().fromJson(e, GetResponse.class);
-                        photoList.addAll(resp.getItems());
+                        ownerAlbumPhotoList.addAll(resp.getItems());
                     });
                     queryList.clear();
                 }
                 var uploadQuery = new Photos(Config.VK())
                         .getUploadServer(userActor)
-                        .albumId(filteredUserAlbum.getId());
+                        .albumId(userAlbum.getId());
                 PhotoUpload upload = uploadQuery.execute();
-                var photosMap = photoList.stream()
-                        .filter(photo -> !photoTextList.contains(String.valueOf(photo.getId())))
+                var photosMap = ownerAlbumPhotoList.stream()
+                        .filter(photo -> !uploadedPhotoIds.contains(String.valueOf(photo.getId())))
                         .map(photo -> {
                             String sizes = photo.getSizes()
                                     .stream()
@@ -597,43 +593,29 @@ public class Resave implements Script {
                             return Map.entry(photo.getId(), sizes);
                         }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                 for (var e : photosMap.entrySet()) {
-                    if (filteredUserAlbum.getSize() + tempUploadsCount >= 10000) {
-                        filteredUserAlbum.setSize(filteredUserAlbum.getSize()+tempUploadsCount);
-                        LOG.error("DEBUG\n" +
-                                "==========================================");
-                        LOG.error("Step 2 - Count of albums");
-                        LOG.error(filteredUserAlbums.stream()
-                                .filter(a-> a.getDescription().equals(desc)).count());
-                        if(filteredUserAlbums.stream()
-                                .filter(a-> a.getDescription().equals(desc)).count() == 1){
-                            filteredUserAlbum = new Photos(Config.VK())
-                                    .createAlbum(userActor, filteredUserAlbum.getTitle())
-                                    .description(filteredUserAlbum.getDescription())
+                    if (userAlbum.getSize() + tempUploadsCount >= 10000) {
+                        userAlbum.setSize(userAlbum.getSize()+tempUploadsCount);
+                        if(userAlbums.stream()
+                                .filter(a-> a.getDescription().equals(albumDesc)).count() == 1){
+                            userAlbum = new Photos(Config.VK())
+                                    .createAlbum(userActor, userAlbum.getTitle())
+                                    .description(userAlbum.getDescription())
                                     .privacyView("only_me")
                                     .execute();
                         }else{
                             tempUploadsCount = 0;
-                            LOG.error("DEBUG\n" +
-                                    "==========================================");
-                            LOG.error("Step 3 - Get next album");
-                            LOG.error(filteredUserAlbums.stream()
-                                    .anyMatch(newA-> newA.getSize() < 10000
-                                            && desc.equals(newA.getDescription())));
-                            LOG.error(filteredUserAlbums.stream()
+                            userAlbum = userAlbums.stream()
                                     .filter(newA-> newA.getSize() < 10000
-                                            && desc.equals(newA.getDescription())).map(PhotoAlbumFull::getSize).collect(Collectors.toList()));
-                            filteredUserAlbum = filteredUserAlbums.stream()
-                                    .filter(newA-> newA.getSize() < 10000
-                                            && desc.equals(newA.getDescription())).findFirst()
+                                            && albumDesc.equals(newA.getDescription())).findFirst()
                                     .orElse(new Photos(Config.VK())
-                                            .createAlbum(userActor, filteredUserAlbum.getTitle())
-                                            .description(filteredUserAlbum.getDescription())
+                                            .createAlbum(userActor, userAlbum.getTitle())
+                                            .description(userAlbum.getDescription())
                                             .privacyView("only_me")
                                             .execute());
                         }
                         uploadQuery = new Photos(Config.VK())
                                 .getUploadServer(userActor)
-                                .albumId(filteredUserAlbum.getId());
+                                .albumId(userAlbum.getId());
                         upload = uploadQuery.execute();
                     }
                     if (uploadsCount >= 500) {
@@ -665,7 +647,7 @@ public class Resave implements Script {
                             .photosList(uplresponse.getPhotosList())
                             .server(uplresponse.getServer())
                             .caption(String.valueOf(e.getKey()));
-                    photoTextList.add(String.valueOf(e.getKey()));
+                    uploadedPhotoIds.add(String.valueOf(e.getKey()));
                     saveQuery.execute();
                     img.delete();
                     uploadsCount++;
