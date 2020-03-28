@@ -537,11 +537,11 @@ public class Resave implements Script {
 
                 var ownerAlbum = new Photos(Config.VK()).get(userActor)
                         .ownerId(Integer.valueOf(ownerId)).albumId(ownerAlbumId).photoSizes(true).count(1).offset(0).execute();
-                if (ownerAlbum == null) return;
+                if (ownerAlbum == null) continue;
                 if (userAlbums.stream()
                         .filter(a->a.getDescription().equals(albumDesc))
                         .map(PhotoAlbumFull::getSize)
-                        .reduce(0, Integer::sum) >= ownerAlbum.getCount()) return;
+                        .reduce(0, Integer::sum) >= ownerAlbum.getCount()) continue;
                 List<AbstractQueryBuilder> queryList = new ArrayList<>();
 
                 var i = 0;
