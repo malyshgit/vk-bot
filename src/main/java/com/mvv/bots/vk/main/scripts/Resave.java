@@ -467,7 +467,6 @@ public class Resave implements Script {
 
             var userAlbumsDescriptions = userAlbums.stream().map(PhotoAlbumFull::getDescription).distinct().collect(Collectors.toList());
             int uploadsCount = 0;
-            int tempUploadsCount = 0;
             for(var userAlbumsDescription : userAlbumsDescriptions){
                 String ownerId = userAlbumsDescription.split("_")[0];
                 String ownerAlbumId = userAlbumsDescription.split("_")[1];
@@ -545,7 +544,7 @@ public class Resave implements Script {
                         .getUploadServer(userActor)
                         .albumId(albumToUpload.getId());
                 PhotoUpload upload = uploadQuery.execute();
-
+                int tempUploadsCount = 0;
                 for (var photo : ownerAlbumPhotoList.stream()
                         .filter(p -> !userAlbumPhotoIds.contains(p.getId()))
                         .collect(Collectors.toList())) {
