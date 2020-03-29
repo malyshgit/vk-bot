@@ -466,178 +466,176 @@ public class Resave implements Script {
                     .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
 
             var userAlbumsDescriptions = userAlbums.stream().map(PhotoAlbumFull::getDescription).distinct().collect(Collectors.toList());
+            int uploadsCount = 0;
+            int tempUploadsCount = 0;
+            for(var userAlbumsDescription : userAlbumsDescriptions){
+                String ownerId = userAlbumsDescription.split("_")[0];
+                String ownerAlbumId = userAlbumsDescription.split("_")[1];
 
-            userAlbumsDescriptions.forEach(userAlbumsDescription -> {
-                try {
-                    String ownerId = userAlbumsDescription.split("_")[0];
-                    String ownerAlbumId = userAlbumsDescription.split("_")[1];
+                var ownerAlbum = new Photos(Config.VK()).get(userActor)
+                        .ownerId(Integer.valueOf(ownerId)).albumId(ownerAlbumId).photoSizes(true).count(1).offset(0).execute();
+                if (ownerAlbum == null) return;
+                if (userAlbums.stream()
+                        .filter(a -> a.getDescription().equals(userAlbumsDescription))
+                        .map(PhotoAlbumFull::getSize)
+                        .reduce(0, Integer::sum) >= ownerAlbum.getCount()) return;
 
-                    var ownerAlbum = new Photos(Config.VK()).get(userActor)
-                            .ownerId(Integer.valueOf(ownerId)).albumId(ownerAlbumId).photoSizes(true).count(1).offset(0).execute();
-                    if (ownerAlbum == null) return;
-                    if (userAlbums.stream()
-                            .filter(a -> a.getDescription().equals(userAlbumsDescription))
-                            .map(PhotoAlbumFull::getSize)
-                            .reduce(0, Integer::sum) >= ownerAlbum.getCount()) return;
-
-                    HashSet<Integer> userAlbumPhotoIds = new HashSet<>();
-                    userAlbums.stream()
-                            .filter(a -> a.getDescription().matches(a.getDescription()))
-                            .forEachOrdered(a -> {
-                                try {
-                                    var userAlbumPhotos = new Photos(Config.VK()).get(userActor)
-                                            .ownerId(user.getId()).albumId(String.valueOf(a.getId())).count(1).offset(0).execute();
-                                    var offset = 0;
-                                    List<AbstractQueryBuilder> queryList = new ArrayList<>();
-                                    while (userAlbumPhotos.getCount() - offset > 0) {
-                                        var batch = new Photos(Config.VK()).get(userActor)
-                                                .ownerId(user.getId())
-                                                .albumId(String.valueOf(a.getId()))
-                                                .offset(offset)
-                                                .count(1000);
-                                        queryList.add(batch);
-                                        offset += 1000;
-                                        if (queryList.size() >= 5 || userAlbumPhotos.getCount() - offset <= 1000) {
-                                            var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
-                                            var array = json.getAsJsonArray();
-                                            array.forEach(e -> {
-                                                var resp = new Gson().fromJson(e, GetResponse.class);
-                                                resp.getItems().forEach(photo -> {
-                                                    userAlbumPhotoIds.add(photo.getId());
-                                                });
+                HashSet<Integer> userAlbumPhotoIds = new HashSet<>();
+                userAlbums.stream()
+                        .filter(a -> a.getDescription().matches(a.getDescription()))
+                        .forEachOrdered(a -> {
+                            try {
+                                var userAlbumPhotos = new Photos(Config.VK()).get(userActor)
+                                        .ownerId(user.getId()).albumId(String.valueOf(a.getId())).count(1).offset(0).execute();
+                                var offset = 0;
+                                List<AbstractQueryBuilder> queryList = new ArrayList<>();
+                                while (userAlbumPhotos.getCount() - offset > 0) {
+                                    var batch = new Photos(Config.VK()).get(userActor)
+                                            .ownerId(user.getId())
+                                            .albumId(String.valueOf(a.getId()))
+                                            .offset(offset)
+                                            .count(1000);
+                                    queryList.add(batch);
+                                    offset += 1000;
+                                    if (queryList.size() >= 5 || userAlbumPhotos.getCount() - offset <= 1000) {
+                                        var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
+                                        var array = json.getAsJsonArray();
+                                        array.forEach(e -> {
+                                            var resp = new Gson().fromJson(e, GetResponse.class);
+                                            resp.getItems().forEach(photo -> {
+                                                userAlbumPhotoIds.add(photo.getId());
                                             });
-                                            queryList.clear();
-                                            Thread.sleep(1500);
-                                        }
+                                        });
+                                        queryList.clear();
+                                        Thread.sleep(1500);
                                     }
-                                } catch (ApiException | ClientException | InterruptedException e) {
-                                    e.printStackTrace();
                                 }
-                            });
+                            } catch (ApiException | ClientException | InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        });
 
-                    List<Photo> ownerAlbumPhotoList = new ArrayList<>();
-                    List<AbstractQueryBuilder> queryList = new ArrayList<>();
-                    var offset = 0;
-                    while (ownerAlbum.getCount() - offset > 0) {
-                        var batch = new Photos(Config.VK()).get(userActor)
-                                .ownerId(Integer.valueOf(ownerId))
-                                .albumId(ownerAlbumId)
-                                .photoSizes(true)
-                                .offset(offset)
-                                .count(1000);
-                        queryList.add(batch);
-                        offset += 1000;
-                        if (queryList.size() >= 5 || ownerAlbum.getCount() - offset <= 1000) {
-                            var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
-                            var array = json.getAsJsonArray();
-                            array.forEach(e -> {
-                                var resp = new Gson().fromJson(e, GetResponse.class);
-                                ownerAlbumPhotoList.addAll(resp.getItems());
-                            });
-                            queryList.clear();
-                            Thread.sleep(1500);
-                        }
+                List<Photo> ownerAlbumPhotoList = new ArrayList<>();
+                List<AbstractQueryBuilder> queryList = new ArrayList<>();
+                var offset = 0;
+                while (ownerAlbum.getCount() - offset > 0) {
+                    var batch = new Photos(Config.VK()).get(userActor)
+                            .ownerId(Integer.valueOf(ownerId))
+                            .albumId(ownerAlbumId)
+                            .photoSizes(true)
+                            .offset(offset)
+                            .count(1000);
+                    queryList.add(batch);
+                    offset += 1000;
+                    if (queryList.size() >= 5 || ownerAlbum.getCount() - offset <= 1000) {
+                        var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
+                        var array = json.getAsJsonArray();
+                        array.forEach(e -> {
+                            var resp = new Gson().fromJson(e, GetResponse.class);
+                            ownerAlbumPhotoList.addAll(resp.getItems());
+                        });
+                        queryList.clear();
+                        Thread.sleep(1500);
+                    }
+                }
+
+                var albumToUpload = userAlbums.stream()
+                        .filter(a-> userAlbumsDescription.equals(a.getDescription())).findFirst().orElse(null);
+                var uploadQuery = new Photos(Config.VK())
+                        .getUploadServer(userActor)
+                        .albumId(albumToUpload.getId());
+                PhotoUpload upload = uploadQuery.execute();
+
+                for (var photo : ownerAlbumPhotoList.stream()
+                        .filter(p -> !userAlbumPhotoIds.contains(p.getId()))
+                        .collect(Collectors.toList())) {
+
+                    if (uploadsCount >= 500) {
+                        break;
                     }
 
-                    var albumToUpload = userAlbums.stream()
-                            .filter(a-> userAlbumsDescription.equals(a.getDescription())).findFirst().orElse(null);
-                    var uploadQuery = new Photos(Config.VK())
-                            .getUploadServer(userActor)
-                            .albumId(albumToUpload.getId());
-                    PhotoUpload upload = uploadQuery.execute();
-                    int uploadsCount = 0;
-                    int tempUploadsCount = 0;
-                    for (var photo : ownerAlbumPhotoList.stream()
-                            .filter(p -> !userAlbumPhotoIds.contains(p.getId()))
+                    if (albumToUpload.getSize() + tempUploadsCount >= 10000) {
+                        albumToUpload.setSize(albumToUpload.getSize()+tempUploadsCount);
+                        if(userAlbums.stream().noneMatch(a -> a.getDescription().equals(userAlbumsDescription) && a.getSize() < 10000)){
+                            userAlbums.add(albumToUpload = new Photos(Config.VK())
+                                    .createAlbum(userActor, albumToUpload.getTitle())
+                                    .description(albumToUpload.getDescription())
+                                    .privacyView("only_me")
+                                    .execute());
+                        }else{
+                            tempUploadsCount = 0;
+                            albumToUpload = userAlbums.stream()
+                                    .filter(a-> a.getSize() < 10000
+                                            && userAlbumsDescription.equals(a.getDescription())).findFirst()
+                                    .orElse(new Photos(Config.VK())
+                                            .createAlbum(userActor, albumToUpload.getTitle())
+                                            .description(albumToUpload.getDescription())
+                                            .privacyView("only_me")
+                                            .execute());
+                        }
+                        uploadQuery = new Photos(Config.VK())
+                                .getUploadServer(userActor)
+                                .albumId(albumToUpload.getId());
+                        upload = uploadQuery.execute();
+                    }
+
+                    long startTime = System.currentTimeMillis();
+                    HttpURLConnection connection = null;
+                    for (String src : photo.getSizes().stream()
+                            .sorted((o1, o2) ->
+                                    Integer.compare(
+                                            o2.getWidth() * o2.getHeight(),
+                                            o1.getWidth() * o1.getHeight()
+                                    )
+                            )
+                            .map(Image::getUrl)
                             .collect(Collectors.toList())) {
-
-                        if (uploadsCount >= 500) {
-                            break;
-                        }
-
-                        if (albumToUpload.getSize() + tempUploadsCount >= 10000) {
-                            albumToUpload.setSize(albumToUpload.getSize()+tempUploadsCount);
-                            if(userAlbums.stream().noneMatch(a -> a.getDescription().equals(userAlbumsDescription) && a.getSize() < 10000)){
-                                userAlbums.add(albumToUpload = new Photos(Config.VK())
-                                        .createAlbum(userActor, albumToUpload.getTitle())
-                                        .description(albumToUpload.getDescription())
-                                        .privacyView("only_me")
-                                        .execute());
-                            }else{
-                                tempUploadsCount = 0;
-                                albumToUpload = userAlbums.stream()
-                                        .filter(a-> a.getSize() < 10000
-                                                && userAlbumsDescription.equals(a.getDescription())).findFirst()
-                                        .orElse(new Photos(Config.VK())
-                                                .createAlbum(userActor, albumToUpload.getTitle())
-                                                .description(albumToUpload.getDescription())
-                                                .privacyView("only_me")
-                                                .execute());
-                            }
-                            uploadQuery = new Photos(Config.VK())
-                                    .getUploadServer(userActor)
-                                    .albumId(albumToUpload.getId());
-                            upload = uploadQuery.execute();
-                        }
-
-                        long startTime = System.currentTimeMillis();
-                        HttpURLConnection connection = null;
-                        for (String src : photo.getSizes().stream()
-                                .sorted((o1, o2) ->
-                                        Integer.compare(
-                                                o2.getWidth() * o2.getHeight(),
-                                                o1.getWidth() * o1.getHeight()
-                                        )
-                                )
-                                .map(Image::getUrl)
-                                .collect(Collectors.toList())) {
-                            var url = new URL(src);
-                            connection = (HttpURLConnection) url.openConnection();
-                            if (connection == null) {
-                                LOG.debug("Connection: unknown, photo: " + src);
-                                continue;
-                            }
-                            var code = connection.getResponseCode();
-                            if (code != 200) {
-                                LOG.debug("Response code: " + code + ", photo: " + src);
-                                connection.disconnect();
-                                continue;
-                            }
-                            break;
-                        }
+                        var url = new URL(src);
+                        connection = (HttpURLConnection) url.openConnection();
                         if (connection == null) {
+                            LOG.debug("Connection: unknown, photo: " + src);
                             continue;
                         }
-                        File img = new File(message.getPeerId() + ".jpg");
-                        FileUtils.copyURLToFile(connection.getURL(), img);
-                        connection.disconnect();
-                        PhotoUploadResponse resp = new Upload(Config.VK()).photo(upload.getUploadUrl(), img).execute();
-                        var saveQuery = new Photos(Config.VK()).save(userActor)
-                                .albumId(resp.getAid())
-                                .hash(resp.getHash())
-                                .photosList(resp.getPhotosList())
-                                .server(resp.getServer())
-                                .caption(String.valueOf(photo.getId()));
-                        saveQuery.execute();
-                        img.delete();
-                        uploadsCount++;
-                        tempUploadsCount++;
-                        long endTime = System.currentTimeMillis();
-                        long deltaTime = endTime - startTime;
-                        if (deltaTime > 0 && deltaTime < 1000) {
-                            Thread.sleep(deltaTime);
+                        var code = connection.getResponseCode();
+                        if (code != 200) {
+                            LOG.debug("Response code: " + code + ", photo: " + src);
+                            connection.disconnect();
+                            continue;
                         }
+                        break;
                     }
-                    var object = new JsonObject();
-                    object.addProperty("date", System.currentTimeMillis());
-                    user.getParameters().put("resave", object);
-                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
-                } catch (InterruptedException | ClientException | ApiException | IOException e) {
-                    e.printStackTrace();
+                    if (connection == null) {
+                        continue;
+                    }
+                    File img = new File(message.getPeerId() + ".jpg");
+                    FileUtils.copyURLToFile(connection.getURL(), img);
+                    connection.disconnect();
+                    PhotoUploadResponse resp = new Upload(Config.VK()).photo(upload.getUploadUrl(), img).execute();
+                    var saveQuery = new Photos(Config.VK()).save(userActor)
+                            .albumId(resp.getAid())
+                            .hash(resp.getHash())
+                            .photosList(resp.getPhotosList())
+                            .server(resp.getServer())
+                            .caption(String.valueOf(photo.getId()));
+                    saveQuery.execute();
+                    img.delete();
+                    uploadsCount++;
+                    tempUploadsCount++;
+                    long endTime = System.currentTimeMillis();
+                    long deltaTime = endTime - startTime;
+                    if (deltaTime > 0 && deltaTime < 1000) {
+                        Thread.sleep(deltaTime);
+                    }
                 }
-            });
-
-        }catch (ApiException | ClientException e){
+                if (uploadsCount >= 500) {
+                    break;
+                }
+            }
+            var object = new JsonObject();
+            object.addProperty("date", System.currentTimeMillis());
+            user.getParameters().put("resave", object);
+            UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+        }catch (ApiException | ClientException | InterruptedException | IOException e){
             e.printStackTrace();
         }
     }
