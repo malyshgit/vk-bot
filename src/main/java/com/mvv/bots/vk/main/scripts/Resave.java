@@ -510,7 +510,7 @@ public class Resave implements Script {
                                     }
                                 }
                             } catch (ApiException | ClientException | InterruptedException e) {
-                                e.printStackTrace();
+                                LOG.error(e);
                             }
                         });
 
@@ -635,7 +635,7 @@ public class Resave implements Script {
             user.getParameters().put("resave", object);
             UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
         }catch (ApiException | ClientException | InterruptedException | IOException e){
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 }
