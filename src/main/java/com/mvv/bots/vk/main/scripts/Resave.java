@@ -65,7 +65,7 @@ public class Resave implements Script {
                     var options = new JsonParser().parse(user.getParameters().get("resave")).getAsJsonObject();
                     var date = options.get("date").getAsLong();
                     var dt = System.currentTimeMillis() - date;
-                    if(dt >= DateUtils.MILLIS_PER_HOUR){
+                    if(dt >= DateUtils.MILLIS_PER_MINUTE*55){
                         Message message = new Message();
                         message.setFromId(user.getId());
                         message.setPeerId(user.getId());
@@ -539,7 +539,7 @@ public class Resave implements Script {
                 }
 
                 var albumToUpload = userAlbums.stream()
-                        .filter(a-> userAlbumsDescription.equals(a.getDescription())).findFirst().orElse(null);
+                        .filter(a-> userAlbumsDescription.equals(a.getDescription())).findFirst().get();
                 var uploadQuery = new Photos(Config.VK())
                         .getUploadServer(userActor)
                         .albumId(albumToUpload.getId());
@@ -554,8 +554,7 @@ public class Resave implements Script {
                     }
 
                     if (albumToUpload.getSize() + tempUploadsCount >= 10000) {
-                        userAlbums.stream().filter(a -> a.equals(albumToUpload)).findFirst().get().setSize(albumToUpload.getSize()+tempUploadsCount);
-                        //albumToUpload.setSize(albumToUpload.getSize()+tempUploadsCount);
+                        albumToUpload.setSize(albumToUpload.getSize()+tempUploadsCount);
                         if(userAlbums.stream().noneMatch(a -> a.getDescription().equals(userAlbumsDescription) && a.getSize() < 10000)){
                             albumToUpload = new Photos(Config.VK())
                                     .createAlbum(userActor, albumToUpload.getTitle())
@@ -566,12 +565,7 @@ public class Resave implements Script {
                             tempUploadsCount = 0;
                             albumToUpload = userAlbums.stream()
                                     .filter(a-> a.getSize() < 10000
-                                            && userAlbumsDescription.equals(a.getDescription())).findFirst().get();
-                                    /*.orElse(new Photos(Config.VK())
-                                            .createAlbum(userActor, albumToUpload.getTitle())
-                                            .description(albumToUpload.getDescription())
-                                            .privacyView("only_me")
-                                            .execute());*/
+                                            && a.getDescription().equals(userAlbumsDescription)).findFirst().get();
                         }
                         userAlbums.add(albumToUpload);
                         uploadQuery = new Photos(Config.VK())
