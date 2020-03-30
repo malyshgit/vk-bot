@@ -433,12 +433,12 @@ public class Resave implements Script {
                                     .description(String.join("_", newDesc))
                                     .execute();
                         } catch (ApiException | ClientException e) {
-                            e.printStackTrace();
+                            LOG.error(e);
                         }
                         try {
                             Thread.sleep(1000);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            LOG.error(e);
                         }
                     });
                     send(message, 1);
@@ -506,10 +506,9 @@ public class Resave implements Script {
                                             });
                                         });
                                         queryList.clear();
-                                        Thread.sleep(1500);
                                     }
                                 }
-                            } catch (ApiException | ClientException | InterruptedException e) {
+                            } catch (ApiException | ClientException e) {
                                 LOG.error(e);
                             }
                         });
@@ -534,7 +533,6 @@ public class Resave implements Script {
                             ownerAlbumPhotoList.addAll(resp.getItems());
                         });
                         queryList.clear();
-                        Thread.sleep(1500);
                     }
                 }
 
@@ -588,18 +586,19 @@ public class Resave implements Script {
                         var url = new URL(src);
                         connection = (HttpURLConnection) url.openConnection();
                         if (connection == null) {
-                            LOG.debug("Connection: unknown, photo: " + src);
+                            LOG.warn("Connection: unknown, photo: " + src);
                             continue;
                         }
                         var code = connection.getResponseCode();
                         if (code != 200) {
-                            LOG.debug("Response code: " + code + ", photo: " + src);
+                            LOG.warn("Response code: " + code + ", photo: " + src);
                             connection.disconnect();
                             continue;
                         }
                         break;
                     }
                     if (connection == null) {
+                        LOG.warn("Connection: unknown, photo: " + photo);
                         continue;
                     }
                     File img = new File(message.getPeerId() + ".jpg");
