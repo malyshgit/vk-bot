@@ -560,11 +560,11 @@ public class Resave implements Script {
                                     .privacyView("only_me")
                                     .execute();
                         }else{
-                            tempUploadsCount = 0;
                             albumToUpload = userAlbums.stream()
                                     .filter(a-> a.getSize() < 10000
                                             && a.getDescription().equals(userAlbumsDescription)).findFirst().get();
                         }
+                        tempUploadsCount = 0;
                         userAlbums.add(albumToUpload);
                         uploadQuery = new Photos(Config.VK())
                                 .getUploadServer(userActor)
