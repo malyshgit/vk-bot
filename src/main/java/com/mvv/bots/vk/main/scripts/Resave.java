@@ -538,6 +538,19 @@ public class Resave implements Script {
 
                 var albumToUpload = userAlbums.stream()
                         .filter(a-> userAlbumsDescription.equals(a.getDescription())).findFirst().get();
+                    if (albumToUpload.getSize() >= 10000) {
+                        if(userAlbums.stream().noneMatch(a -> a.getDescription().equals(userAlbumsDescription) && a.getSize() < 10000)){
+                            albumToUpload = new Photos(Config.VK())
+                                    .createAlbum(userActor, albumToUpload.getTitle())
+                                    .description(albumToUpload.getDescription())
+                                    .privacyView("only_me")
+                                    .execute();
+                        }else{
+                            albumToUpload = userAlbums.stream()
+                                    .filter(a-> a.getSize() < 10000
+                                            && a.getDescription().equals(userAlbumsDescription)).findFirst().get();
+                        }
+                    }
                 var uploadQuery = new Photos(Config.VK())
                         .getUploadServer(userActor)
                         .albumId(albumToUpload.getId());
