@@ -502,7 +502,7 @@ public class Resave implements Script {
                                         array.forEach(e -> {
                                             var resp = new Gson().fromJson(e, GetResponse.class);
                                             resp.getItems().forEach(photo -> {
-                                                userAlbumPhotoIds.add(photo.getId());
+                                                userAlbumPhotoIds.add(Integer.valueOf(photo.getText()));
                                             });
                                         });
                                         queryList.clear();
