@@ -554,24 +554,26 @@ public class Resave implements Script {
                     }
 
                     if (albumToUpload.getSize() + tempUploadsCount >= 10000) {
-                        albumToUpload.setSize(albumToUpload.getSize()+tempUploadsCount);
+                        userAlbums.stream().filter(a -> a.equals(albumToUpload)).findFirst().get().setSize(albumToUpload.getSize()+tempUploadsCount);
+                        //albumToUpload.setSize(albumToUpload.getSize()+tempUploadsCount);
                         if(userAlbums.stream().noneMatch(a -> a.getDescription().equals(userAlbumsDescription) && a.getSize() < 10000)){
-                            userAlbums.add(albumToUpload = new Photos(Config.VK())
+                            albumToUpload = new Photos(Config.VK())
                                     .createAlbum(userActor, albumToUpload.getTitle())
                                     .description(albumToUpload.getDescription())
                                     .privacyView("only_me")
-                                    .execute());
+                                    .execute();
                         }else{
                             tempUploadsCount = 0;
                             albumToUpload = userAlbums.stream()
                                     .filter(a-> a.getSize() < 10000
-                                            && userAlbumsDescription.equals(a.getDescription())).findFirst()
-                                    .orElse(new Photos(Config.VK())
+                                            && userAlbumsDescription.equals(a.getDescription())).findFirst().get();
+                                    /*.orElse(new Photos(Config.VK())
                                             .createAlbum(userActor, albumToUpload.getTitle())
                                             .description(albumToUpload.getDescription())
                                             .privacyView("only_me")
-                                            .execute());
+                                            .execute());*/
                         }
+                        userAlbums.add(albumToUpload);
                         uploadQuery = new Photos(Config.VK())
                                 .getUploadServer(userActor)
                                 .albumId(albumToUpload.getId());
