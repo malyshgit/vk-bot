@@ -254,24 +254,24 @@ public class Resave implements Script {
                     break;
                 case 112:
                     TelegramBot bot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
-                    LOG.error("+++++++++++++++++++++++++++++++++++++++++");
-                    LOG.error(bot);
                     user = UsersTable.findById(message.getFromId());
                     var options = user.getParameters().get("resave");
-                    var updates = bot.execute(new GetUpdates().offset(0)).updates();
-                    LOG.error(updates);
-                    for(var update : updates){
-                        var confirmKey = update.message().text();
-                        long chatId = update.message().chat().id();
-                        if(Resave.confirmKeys.containsKey(confirmKey)){
-                            options.addProperty("tgchatid", chatId);
-                            user.getParameters().put("resave", options);
-                            UsersTable.update(user);
-                            Resave.confirmKeys.remove(confirmKey);
-                        }
+                    var updates = bot.execute(new GetUpdates().offset(0).limit(50)).updates();
+                    while(updates.size() > 0){
+                        LOG.error("+++++++++++++++++++++++++++++++++++++++++");
+                        LOG.error(updates);
+                        updates.forEach(update -> {
+                            var confirmKey = update.message().text();
+                            long chatId = update.message().chat().id();
+                            if(Resave.confirmKeys.containsKey(confirmKey)){
+                                options.addProperty("tgchatid", chatId);
+                                user.getParameters().put("resave", options);
+                                UsersTable.update(user);
+                                Resave.confirmKeys.remove(confirmKey);
+                            }
+                        });
+                        updates = bot.execute(new GetUpdates().offset(updates.get(updates.size()-1).updateId()+1).limit(50)).updates();
                     }
-                    bot.execute(new GetUpdates().offset(updates.get(updates.size()-1).updateId())).updates();
-
                     if(!options.has("tgchatid")){
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
