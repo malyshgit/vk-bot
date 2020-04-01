@@ -66,6 +66,7 @@ public class User {
     }
 
     public Parameters getParameters() {
+        if(parameters == null) parametersMap = new Parameters(this, new HashMap<>());
         var map = List.of(parameters).stream().map(e->{
             var indexOfEq = e.indexOf("=");
             var key = e.substring(0, indexOfEq);
