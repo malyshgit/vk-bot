@@ -257,7 +257,7 @@ public class Resave implements Script {
                     TelegramBot bot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
                     user = UsersTable.findById(message.getFromId());
                     var options = user.getParameters().get("resave");
-                    var updates = bot.execute(new GetUpdates().offset(0).limit(100)).updates();
+                    var updates = bot.execute(new GetUpdates()).updates();
                     
                     //while(updates.size() > 0){
                         LOG.error(updates);
@@ -277,7 +277,7 @@ public class Resave implements Script {
                                // }
                             }}
                         });
-                        updates = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId()).limit(100)).updates();
+                        updates = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId())).updates();
                         
                     //}
                     
