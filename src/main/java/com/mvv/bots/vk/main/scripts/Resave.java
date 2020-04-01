@@ -465,7 +465,7 @@ public class Resave implements Script {
                             var totg = album.get("totg").getAsBoolean();
                             elements.add(new TemplateElement()
                                     .setTitle(title)
-                                    .setDescription(String.valueOf(progress))
+                                    .setDescription("Загружено: "+progress)
                                     .setAction(new TemplateElementAction()
                                             .setType(TemplateElementActionType.OPEN_LINK)
                                             .setLink("https://vk.com/album"+ownerId+"_"+albumId)
