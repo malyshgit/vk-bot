@@ -258,8 +258,11 @@ public class Resave implements Script {
                     user = UsersTable.findById(message.getFromId());
                     var options = user.getParameters().get("resave");
                     var updates = bot.execute(new GetUpdates().offset(0).limit(50)).updates();
+                    LOG.error("startloop");
                     while(updates.size() > 0){
+                        LOG.error("inloop");
                         updates.forEach(update -> {
+                            LOG.error("insecondloop");
                             var confirmKey = update.message().text();
                             long chatId = update.message().chat().id();
                             if(Resave.confirmKeys.containsKey(confirmKey)){
