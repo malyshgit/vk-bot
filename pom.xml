@@ -41,6 +41,11 @@
           <artifactId>vk-java-sdk</artifactId>
           <version>master-0.5.11-gd5bd246-83</version>
       </dependency>
+    <dependency>
+      <groupId>com.github.pengrad</groupId>
+      <artifactId>java-telegram-bot-api</artifactId>
+      <version>4.7.0</version>
+    </dependency>
       <dependency>
           <groupId>com.sparkjava</groupId>
           <artifactId>spark-core</artifactId>
@@ -124,6 +129,18 @@
       <version>42.2.8</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.github.jasync-sql</groupId>
+      <artifactId>jasync-postgresql</artifactId>
+      <version>1.0.14</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <version>5.4.13.Final</version>
+    </dependency>
 
 
   </dependencies>

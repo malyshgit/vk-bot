@@ -7,8 +7,8 @@ package com.mvv.bots.vk.main.scripts;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mvv.bots.vk.database.tables.users.User;
-import com.mvv.bots.vk.database.tables.users.UsersTable;
+import com.mvv.bots.vk.database.models.User;
+import com.mvv.bots.vk.database.dao.UsersTable;
 import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
@@ -52,8 +52,8 @@ public class Advice implements Script {
     public void update() {
         if(LocalDateTime.now().getMinute() >= 30) return;
         UsersTable.findAll().forEach(user -> {
-            if(user.getParameters().has("advice")){
-                var options = new JsonParser().parse(user.getParameters().get("advice")).getAsJsonObject();
+            if(user.getParameters().containsKey("advice")){
+                JsonObject options = user.getParameters().get("advice");
                 var update = options.get("update").getAsBoolean();
                 if(update){
                     Message m = new Message();
@@ -76,10 +76,10 @@ public class Advice implements Script {
 
             switch (step) {
                 case 0:
-                    User user = UsersTable.find(message.getFromId());
+                    User user = UsersTable.findById(message.getFromId());
                     keyboard.setInline(true);
-                    if(user.getParameters().has("advice")){
-                        var options = new JsonParser().parse(user.getParameters().get("advice")).getAsJsonObject();
+                    if(user.getParameters().containsKey("advice")){
+                        var options = user.getParameters().get("advice");
                         var update = options.get("update").getAsBoolean();
                         buttons.add(List.of(
                                 new KeyboardButton()
@@ -97,10 +97,10 @@ public class Advice implements Script {
                                                         : "Подписаться"))
                         ));
                     }else{
-                        JsonObject object = new JsonObject();
+                        var object = new JsonObject();
                         object.addProperty("update", false);
                         user.getParameters().put("advice", object);
-                        UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                        UsersTable.update(user);
                         send(message, 0);
                         return;
                     }
@@ -143,12 +143,12 @@ public class Advice implements Script {
                             .execute();
                     break;
                 case 2:
-                    user = UsersTable.find(message.getFromId());
-                    var options = new JsonParser().parse(user.getParameters().get("advice")).getAsJsonObject();
+                    user = UsersTable.findById(message.getFromId());
+                    var options = user.getParameters().get("advice");
                     var update = options.get("update").getAsBoolean();
                     options.addProperty("update", !update);
                     user.getParameters().put("advice", options);
-                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user);
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message(update

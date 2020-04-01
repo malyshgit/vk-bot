@@ -6,10 +6,10 @@
 package com.mvv.bots.vk.main.scripts;
 
 import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.tables.settings.Option;
-import com.mvv.bots.vk.database.tables.settings.Settings;
-import com.mvv.bots.vk.database.tables.users.User;
-import com.mvv.bots.vk.database.tables.users.UsersTable;
+import com.mvv.bots.vk.database.models.Option;
+import com.mvv.bots.vk.database.dao.OptionsTable;
+import com.mvv.bots.vk.database.models.User;
+import com.mvv.bots.vk.database.dao.UsersTable;
 import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
@@ -267,7 +267,7 @@ public class AdminPanel implements Script {
                             .execute();
                     break;
                 case 1011:
-                    List<Option> options = Settings.findAll();
+                    List<Option> options = OptionsTable.findAll();
                     if(!options.isEmpty()){
                         String info = options.stream().map(Option::toString).collect(Collectors.joining("\n"));
                         new Messages(Config.VK())
@@ -279,7 +279,7 @@ public class AdminPanel implements Script {
                     }
                     break;
                 case 1012:
-                    Settings.create();
+                    OptionsTable.create();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("База данных пересоздана.")
@@ -342,7 +342,7 @@ public class AdminPanel implements Script {
                     break;
                 case 11:
                     UsersTable.create();
-                    Settings.create();
+                    OptionsTable.create();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Базы данных пересозданы.")
@@ -352,7 +352,7 @@ public class AdminPanel implements Script {
                     send(message, 0);
                     break;
                 case 2:
-                    Option debbug = Settings.find("debbug");
+                    Option debbug = OptionsTable.findByKey("debbug");
                     buttons.add(List.of(
                             new KeyboardButton()
                             .setColor(KeyboardButtonColor.NEGATIVE)
@@ -392,11 +392,11 @@ public class AdminPanel implements Script {
                         }
                     }else{
                         debbug = new Option("debbug", "false");
-                        Settings.add(debbug);
+                        OptionsTable.save(debbug);
                         send(message, 2);
                         return;
                     }
-                    Option update = Settings.find("update");
+                    Option update = OptionsTable.findByKey("update");
                     if(update != null){
                         if(Boolean.parseBoolean(update.getValue())){
                             buttons.add(List.of(
@@ -425,7 +425,7 @@ public class AdminPanel implements Script {
                         }
                     }else{
                         update = new Option("update", "false");
-                        Settings.add(update);
+                        OptionsTable.save(update);
                         send(message, 2);
                         return;
                     }
@@ -438,9 +438,9 @@ public class AdminPanel implements Script {
                             .execute();
                     break;
                 case 211:
-                    debbug = Settings.find("debbug");
+                    debbug = OptionsTable.findByKey("debbug");
                     debbug.setValue("true");
-                    Settings.update(debbug);
+                    OptionsTable.update(debbug);
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Отладка включена.")
@@ -450,9 +450,9 @@ public class AdminPanel implements Script {
                     send(message, 2);
                     break;
                 case 212:
-                    debbug = Settings.find("debbug");
+                    debbug = OptionsTable.findByKey("debbug");
                     debbug.setValue("false");
-                    Settings.update(debbug);
+                    OptionsTable.update(debbug);
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Отладка отключена.")
@@ -462,9 +462,9 @@ public class AdminPanel implements Script {
                     send(message, 2);
                     break;
                 case 221:
-                    update = Settings.find("update");
+                    update = OptionsTable.findByKey("update");
                     update.setValue("true");
-                    Settings.update(update);
+                    OptionsTable.update(update);
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Обновление включено.")
@@ -474,9 +474,9 @@ public class AdminPanel implements Script {
                     send(message, 2);
                     break;
                 case 222:
-                    update = Settings.find("update");
+                    update = OptionsTable.findByKey("update");
                     update.setValue("false");
-                    Settings.update(update);
+                    OptionsTable.update(update);
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Обновление отключено.")

@@ -9,8 +9,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.tables.users.User;
-import com.mvv.bots.vk.database.tables.users.UsersTable;
+import com.mvv.bots.vk.database.models.User;
+import com.mvv.bots.vk.database.dao.UsersTable;
 import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
@@ -54,8 +54,8 @@ public class Weather implements Script {
     public void update() {
         if(LocalDateTime.now().getMinute() >= 30) return;
         UsersTable.findAll().forEach(user -> {
-            if(user.getParameters().has("weather")){
-                var options = new JsonParser().parse(user.getParameters().get("weather")).getAsJsonObject();
+            if(user.getParameters().containsKey("weather")){
+                var options = user.getParameters().get("weather");
                 var update = options.get("update").getAsBoolean();
                 if(update){
                     Message m = new Message();
@@ -97,13 +97,11 @@ public class Weather implements Script {
                             .execute();
                     break;
                 case 0:
-                    User user = UsersTable.find(message.getFromId());
-                    if(user.getParameters().has("geo")){
-                        String geo = (String)user.getParameters().get("geo");
-                        JsonElement jelement = new JsonParser().parse(geo);
+                    User user = UsersTable.findById(message.getFromId());
+                    if(user.getParameters().containsKey("geo")){
+                        JsonElement jelement = user.getParameters().get("geo");
                         JsonObject  jobject = jelement.getAsJsonObject();
                         JsonObject coordinates = jobject.get("coordinates").getAsJsonObject();
-                        LOG.debug(geo);
                         float lat = coordinates.get("latitude").getAsFloat();
                         float lon = coordinates.get("longitude").getAsFloat();
                         String url = String
@@ -167,8 +165,8 @@ public class Weather implements Script {
                                                         .toString()
                                         ).setType(KeyboardButtonActionType.LOCATION))
                         ));
-                        if(user.getParameters().has("weather")){
-                            var options = new JsonParser().parse(user.getParameters().get("weather")).getAsJsonObject();
+                        if(user.getParameters().containsKey("weather")){
+                            var options = user.getParameters().get("weather");
                             var update = options.get("update").getAsBoolean();
                             var full = options.get("full").getAsBoolean();
                             buttons.add(List.of(
@@ -234,7 +232,7 @@ public class Weather implements Script {
                             object.addProperty("update", false);
                             object.addProperty("full", false);
                             user.getParameters().put("weather", object);
-                            UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                            UsersTable.update(user);
                             send(message, 0);
                             return;
                         }
@@ -259,10 +257,10 @@ public class Weather implements Script {
                     }
                     break;
                 case 1:
-                    String geo = message.getGeo().toString();
-                    user = UsersTable.find(message.getFromId());
-                    user.getParameters().put("geo", geo);
-                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    var geo = message.getGeo().toString();
+                    user = UsersTable.findById(message.getFromId());
+                    user.getParameters().put("geo", new JsonParser().parse(geo).getAsJsonObject());
+                    UsersTable.update(user);
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Местоположение сохранено.")
@@ -272,12 +270,12 @@ public class Weather implements Script {
                     send(message, 0);
                     break;
                 case 2:
-                    user = UsersTable.find(message.getFromId());
-                    var options = new JsonParser().parse(user.getParameters().get("weather")).getAsJsonObject();
+                    user = UsersTable.findById(message.getFromId());
+                    var options = user.getParameters().get("weather");
                     var update = options.get("update").getAsBoolean();
                     options.addProperty("update", !update);
                     user.getParameters().put("weather", options);
-                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user);
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message(update
@@ -289,12 +287,12 @@ public class Weather implements Script {
                     send(message, 0);
                     break;
                 case 3:
-                    user = UsersTable.find(message.getFromId());
-                    options = new JsonParser().parse(user.getParameters().get("weather")).getAsJsonObject();
+                    user = UsersTable.findById(message.getFromId());
+                    options = user.getParameters().get("weather");
                     var full = options.get("full").getAsBoolean();
                     options.addProperty("full", !full);
                     user.getParameters().put("weather", options);
-                    UsersTable.update(user.getId(), "PARAMETERS", user.getParameters().toString());
+                    UsersTable.update(user);
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message(full

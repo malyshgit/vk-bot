@@ -18,8 +18,9 @@ public class Config {
     public static final int GROUP_ID = Integer.parseInt(System.getenv("GROUP_ID"));
     public static final String GROUP_TOKEN = System.getenv("GROUP_TOKEN");
     public static final String ADMIN_TOKEN = System.getenv("ADMIN_TOKEN");
-    public static final String JDBC_DATABASE_URL = System.getenv("JDBC_DATABASE_URL");
+    public static String JDBC_DATABASE_URL = System.getenv("JDBC_DATABASE_URL");
     public static final String DARKSKY_API_KEY = System.getenv("DARKSKY_API_KEY");
+    public static final String TELEGRAM_BOT_TOKEN = System.getenv("TELEGRAM_BOT_TOKEN");
     public static final int APP_ID = Integer.parseInt(System.getenv("APP_ID"));
     public static final String APP_SECRET = System.getenv("APP_SECRET");
     public static final String REDIRECT_URL = System.getenv("REDIRECT_URL");

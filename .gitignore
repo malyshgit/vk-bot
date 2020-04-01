@@ -17,6 +17,7 @@ tests.*
 .idea/*
 target/*
 *.bat
+test/*
 test.java
 test.class
 tests.java

@@ -1,10 +1,10 @@
 package com.mvv.bots.vk.main;
 
 import com.google.gson.*;
-import com.mvv.bots.vk.database.tables.settings.Option;
-import com.mvv.bots.vk.database.tables.settings.Settings;
-import com.mvv.bots.vk.database.tables.users.User;
-import com.mvv.bots.vk.database.tables.users.UsersTable;
+import com.mvv.bots.vk.database.models.Option;
+import com.mvv.bots.vk.database.dao.OptionsTable;
+import com.mvv.bots.vk.database.models.User;
+import com.mvv.bots.vk.database.dao.UsersTable;
 import com.mvv.bots.vk.main.scripts.Authorization;
 import com.mvv.bots.vk.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
@@ -228,11 +228,11 @@ public class Server {
 
     private static void update() {
         try {
-            Option update = Settings.find("update");
+            Option update = OptionsTable.findByKey("update");
             if(update != null) {
                 if (Boolean.parseBoolean(update.getValue())) {
                     Config.SCRIPTS.forEach(Script::update);
-                    Option debbug = Settings.find("debbug");
+                    Option debbug = OptionsTable.findByKey("debbug");
                     if (debbug != null) {
                         if (Boolean.parseBoolean(debbug.getValue())) {
                             new Messages(Config.VK())
@@ -294,13 +294,14 @@ public class Server {
     }
 
     private static void plusUse(Message message){
-        User user = UsersTable.find(message.getFromId());
+        User user = UsersTable.findById(message.getFromId());
         if(user != null){
-            UsersTable.update(user.getId(), "USE", user.getUse()+1);
+            user.setUse(user.getUse()+1);
+            UsersTable.update(user);
         }else{
             user = new User(message.getFromId());
             user.setUse(1);
-            UsersTable.add(user);
+            UsersTable.save(user);
         }
     }
 

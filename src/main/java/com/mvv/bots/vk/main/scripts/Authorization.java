@@ -6,8 +6,8 @@
 package com.mvv.bots.vk.main.scripts;
 
 import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.tables.users.User;
-import com.mvv.bots.vk.database.tables.users.UsersTable;
+import com.mvv.bots.vk.database.models.User;
+import com.mvv.bots.vk.database.dao.UsersTable;
 import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
@@ -79,7 +79,7 @@ public class Authorization implements Script {
                             .execute();
                     break;
                 case 0:
-                    User user = UsersTable.find(message.getFromId());
+                    User user = UsersTable.findById(message.getFromId());
                     if(user.getToken() != null){
                         buttons.add(List.of(
                                 new KeyboardButton()
@@ -139,7 +139,9 @@ public class Authorization implements Script {
                     ScriptList.open(message);
                     break;
                 case 2:
-                    UsersTable.update(message.getFromId(), "TOKEN", null);
+                    user = UsersTable.findById(message.getFromId());
+                    user.setToken(null);
+                    UsersTable.update(user);
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Доступ запрещен.")
@@ -160,7 +162,9 @@ public class Authorization implements Script {
         try {
             var response = new OAuth(Config.VK()).userAuthorizationCodeFlow(Config.APP_ID, Config.APP_SECRET, Config.REDIRECT_URL, code).execute();
             if (response != null) {
-                UsersTable.update(response.getUserId(), "TOKEN", response.getAccessToken());
+                var user = UsersTable.findById(response.getUserId());
+                user.setToken(response.getAccessToken());
+                UsersTable.update(user);
                 return true;
             }
         }catch (ApiException | ClientException e) {
