@@ -11,6 +11,7 @@ import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
 import com.mvv.bots.vk.utils.Utils;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.InputMediaPhoto;
 import com.pengrad.telegrambot.request.GetMe;
 import com.pengrad.telegrambot.request.GetUpdates;
@@ -270,7 +271,7 @@ public class Resave implements Script {
                                 Resave.confirmKeys.remove(confirmKey);
                             }
                         });
-                        updates = bot.execute(new GetUpdates().offset(updates.get(updates.size()-1).updateId()+1).limit(50)).updates();
+                        updates = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId()).limit(50)).updates();
                     }
                     if(!options.has("tgchatid")){
                         new Messages(Config.VK())
@@ -522,7 +523,8 @@ public class Resave implements Script {
                     var albumId = payload.get("albumid").getAsString();
                     offset = payload.get("offset").getAsInt();
 
-                    var list = user.getParameters().get("resave").get("albums").getAsJsonArray();
+                    options = user.getParameters().get("resave");
+                    var list = options.get("albums").getAsJsonArray();
                     for(var alb : list){
                         var album = alb.getAsJsonObject();
                         if(album.get("ownerid").getAsString().equals(ownerId)
@@ -530,7 +532,7 @@ public class Resave implements Script {
                             album.addProperty("active", !active);
                         }
                     }
-                    user.getParameters().put("resave", user.getParameters().get("resave"));
+                    user.getParameters().put("resave", options);
                     UsersTable.update(user);
 
                     message.setPayload(new Payload()
