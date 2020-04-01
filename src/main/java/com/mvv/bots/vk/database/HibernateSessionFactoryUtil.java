@@ -20,7 +20,6 @@ public class HibernateSessionFactoryUtil {
         if (sessionFactory == null) {
             try {
                 var ps = Config.JDBC_DATABASE_URL;
-                LOG.error(ps);
                 var db = ps.split(":")[0].equals("postgres") ? "postgresql" : ps.split(":")[0];
                 var user = ps.split(":")[1].substring(2);
                 var pass = ps.split(":")[2].split("@")[0];
