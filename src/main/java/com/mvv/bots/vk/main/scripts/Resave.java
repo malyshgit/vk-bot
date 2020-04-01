@@ -676,7 +676,7 @@ public class Resave implements Script {
 
                 if(totg){
                     TelegramBot tgBot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
-                    var tgChatId = user.getParameters().get("resave").get("tgchatid").getAsLong();
+                    var tgChatId = album.get("tgchatid").getAsLong();
                     var tempUploadsCount = 0;
                     var urls = new HashMap<Integer, String>();
                     var lastTime = System.currentTimeMillis();
