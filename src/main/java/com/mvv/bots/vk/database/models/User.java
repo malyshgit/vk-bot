@@ -25,6 +25,7 @@ public class User {
     @Column(name = "parameters", nullable = true)
     private String[] parameters;
 
+    @Transient
     private Parameters parametersMap;
 
     public User(){
