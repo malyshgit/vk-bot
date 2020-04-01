@@ -603,8 +603,8 @@ public class Resave implements Script {
                     ownerId = payload.get("ownerid").getAsString();
                     albumId = payload.get("albumid").getAsString();
                     offset = payload.get("offset").getAsInt();
-
-                    list = user.getParameters().get("resave").get("albums").getAsJsonArray();
+                    options = user.getParameters().get("resave");
+                    list = options.get("albums").getAsJsonArray();
                     for(var alb : list){
                         var album = alb.getAsJsonObject();
                         if(album.get("ownerid").getAsString().equals(ownerId)
@@ -612,7 +612,7 @@ public class Resave implements Script {
                             album.addProperty("totg", !totg);
                         }
                     }
-                    user.getParameters().put("resave", user.getParameters().get("resave"));
+                    user.getParameters().put("resave", options);
                     UsersTable.update(user);
                     message.setPayload(new Payload()
                             .put("script", getClass().getName())
