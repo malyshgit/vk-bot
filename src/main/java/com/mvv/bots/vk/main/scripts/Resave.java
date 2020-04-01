@@ -260,8 +260,8 @@ public class Resave implements Script {
                     var updates = bot.execute(new GetUpdates().offset(0).limit(100)).updates();
                     
                     //while(updates.size() > 0){
-                        
-                        updates.forEach(update -> {
+                        LOG.error(updates);
+                        updates.forEach(update -> {LOG.error(update);
                             if(update.message() != null){
                             var confirmKey = update.message().text();
                             LOG.error("=============\n"+confirmKey);
