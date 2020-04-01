@@ -264,9 +264,9 @@ public class Resave implements Script {
                         updates.forEach(update -> {
                             if(update.message() != null){
                             var confirmKey = update.message().text();
-                            
+                            LOG.error("=============\n"+confirmKey);
                             var chatId = update.message().chat().id();
-                            
+                            LOG.error(chatId); LOG.error(confirmKeys); LOG.error(Resave.confirmKeys);
                             if(Resave.confirmKeys.containsKey(confirmKey)){
                                // if(Resave.confirmKeys.get(confirmKey) == user.getId()){
                                 LOG.error(true);
