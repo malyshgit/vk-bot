@@ -262,7 +262,7 @@ public class Resave implements Script {
                     while(updates.size() > 0){
                         LOG.error("inloop");
                         updates.forEach(update -> {
-                            LOG.error("insecondloop");
+                            LOG.error(update);
                             var confirmKey = update.message().text();
                             LOG.error(confirmKey);
                             var chatId = update.message().chat().id();
