@@ -262,20 +262,20 @@ public class Resave implements Script {
                     //while(updates.size() > 0){
                         
                         updates.forEach(update -> {
-                            if(update.message() == null) return;
+                            if(update.message() != null){
                             var confirmKey = update.message().text();
                             
                             var chatId = update.message().chat().id();
                             
                             if(Resave.confirmKeys.containsKey(confirmKey)){
-                                if(Resave.confirmKeys.get(confirmKey) == user.getId()){
+                               // if(Resave.confirmKeys.get(confirmKey) == user.getId()){
                                 LOG.error(true);
                                 options.addProperty("tgchatid", chatId);
                                 user.getParameters().put("resave", options);
                                 UsersTable.update(user);
                                 Resave.confirmKeys.remove(confirmKey);
-                                }
-                            }
+                               // }
+                            }}
                         });
                         updates = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId()).limit(100)).updates();
                         
