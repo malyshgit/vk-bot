@@ -254,9 +254,12 @@ public class Resave implements Script {
                     break;
                 case 112:
                     TelegramBot bot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
+                    LOG.error("+++++++++++++++++++++++++++++++++++++++++");
+                    LOG.error(bot);
                     user = UsersTable.findById(message.getFromId());
                     var options = user.getParameters().get("resave");
                     var updates = bot.execute(new GetUpdates().offset(0)).updates();
+                    LOG.error(updates);
                     for(var update : updates){
                         var confirmKey = update.message().text();
                         long chatId = update.message().chat().id();
