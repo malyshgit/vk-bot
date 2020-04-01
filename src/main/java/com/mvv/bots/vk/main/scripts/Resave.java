@@ -258,17 +258,15 @@ public class Resave implements Script {
                     user = UsersTable.findById(message.getFromId());
                     var options = user.getParameters().get("resave");
                     var updates = bot.execute(new GetUpdates().offset(0).limit(50)).updates();
-                    LOG.error("startloop");
+                    
                     while(updates.size() > 0){
-                        LOG.error("inloop");
+                        
                         updates.forEach(update -> {
-                            LOG.error(update);
+                            if(update.message() == null) return;
                             var confirmKey = update.message().text();
-                            LOG.error(confirmKey);
+                            
                             var chatId = update.message().chat().id();
-                            LOG.error(chatId);
-                            LOG.error(Resave.confirmKeys);
-                          
+                            
                             if(Resave.confirmKeys.containsKey(confirmKey)){
                                 if(Resave.confirmKeys.get(confirmKey) == user.getId()){
                                 LOG.error(true);
@@ -279,12 +277,12 @@ public class Resave implements Script {
                                 }
                             }
                         });
-                        var prres = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId()).limit(50));
-                        if(prres.isOk() && prres.updates() != null){updates = prres.updates();}else{break;}
+                        updates = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId()).limit(50)).updates();
+                        
                     }
-                    LOG.error("endloop");
+                    
                     if(!options.has("tgchatid")){
-                        LOG.error("hasnt");
+                        
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Повторите попытку.")
