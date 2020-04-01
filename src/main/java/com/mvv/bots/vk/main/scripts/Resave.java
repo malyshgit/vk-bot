@@ -259,21 +259,23 @@ public class Resave implements Script {
                     var options = user.getParameters().get("resave");
                     var updates = bot.execute(new GetUpdates().offset(0).limit(50)).updates();
                     while(updates.size() > 0){
-                        LOG.error("+++++++++++++++++++++++++++++++++++++++++");
-                        LOG.error(updates);
                         updates.forEach(update -> {
                             var confirmKey = update.message().text();
                             long chatId = update.message().chat().id();
                             if(Resave.confirmKeys.containsKey(confirmKey)){
+                                LOG.error(true);
                                 options.addProperty("tgchatid", chatId);
                                 user.getParameters().put("resave", options);
                                 UsersTable.update(user);
                                 Resave.confirmKeys.remove(confirmKey);
                             }
                         });
-                        updates = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId()).limit(50)).updates();
+                        var prres = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId()).limit(50));
+                        if(prres.isOk() && prres.updates() != null){updates = prres.updates();}else{break;}
                     }
+                    LOG.error("endloop");
                     if(!options.has("tgchatid")){
+                        LOG.error("hasnt");
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Повторите попытку.")
