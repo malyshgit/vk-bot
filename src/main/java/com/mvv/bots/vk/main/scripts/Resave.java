@@ -608,7 +608,7 @@ public class Resave implements Script {
                     TelegramBot tgBot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
                     var tgChatId = album.get("tgchatid").getAsLong();
                     var urls = new HashMap<Integer, String>();
-                    var lastTime = System.currentTimeMillis();
+                    var lastTime = 0l;
                     var photos = ownerAlbumPhotoList.stream()
                             .filter(p -> {
                                 boolean b = true;
@@ -621,46 +621,23 @@ public class Resave implements Script {
                                 return b;
                             })
                             .collect(Collectors.toList());
-                    for (var photo : photos) {
+                    for (var i = 0; i < photos.size(); i++) {
+                        var photo = photos.get(i);
                         if (uploadsCount >= 500) {
                             break;
                         }
-                        HttpURLConnection connection = null;
-                        for (String src : photo.getSizes().stream()
-                                .sorted((o1, o2) ->
-                                        Integer.compare(
-                                                o2.getWidth() * o2.getHeight(),
-                                                o1.getWidth() * o1.getHeight()
-                                        )
-                                )
-                                .map(Image::getUrl)
-                                .collect(Collectors.toList())) {
-                            var url = new URL(src);
-                            connection = (HttpURLConnection) url.openConnection();
-                            if (connection == null) {
-                                LOG.warn("Connection: unknown, photo: " + src);
-                                continue;
-                            }
-                            var code = connection.getResponseCode();
-                            if (code != 200) {
-                                LOG.warn("Response code: " + code + ", photo: " + src);
-                                connection.disconnect();
-                                continue;
-                            }
-                            urls.put(photo.getId(), src);
-                            break;
-                        }
-                        if (connection == null) {
-                            LOG.warn("Connection: unknown, photo: " + photo);
-                            continue;
-                        }
-                        connection.disconnect();
+                        var src = photo.getSizes().stream().max((o1, o2) ->
+                                Integer.compare(
+                                        o2.getWidth() * o2.getHeight(),
+                                        o1.getWidth() * o1.getHeight()
+                                )).get().getUrl();
+                        urls.put(photo.getId(), src);
 
-                        if(urls.size() == 10 || photos.indexOf(photo) == photos.size()-1){
+                        if(urls.size() == 10 || i == photos.size()-1){
                             var startTime = System.currentTimeMillis();
                             var dt = (lastTime - startTime)/1000;
                             if(dt < 30) dt = 30;
-                            Thread.sleep(dt*1000);
+                            if(lastTime > 0)Thread.sleep(dt*1000);
                             if(urls.size() == 1){
                                 var res = tgBot.execute(new SendPhoto(tgChatId, new ArrayList<>(urls.values()).get(0)));
                                 if(!res.isOk()){
@@ -670,9 +647,6 @@ public class Resave implements Script {
                                 uploadsCount++;
                                 var u = new ArrayList<>(urls.keySet()).get(0);
                                 if(!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
-                                user.getParameters().put("resave", options);
-                                LOG.error(options);
-                                UsersTable.update(user);
                             }else{
                                 var inputMediaGroup = urls.values().stream().map(InputMediaPhoto::new).toArray(InputMediaPhoto[]::new);
                                 var res = tgBot.execute(new SendMediaGroup(tgChatId, inputMediaGroup));
@@ -684,14 +658,13 @@ public class Resave implements Script {
                                 urls.keySet().forEach(u->{
                                     if(!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
                                 });
-                                user.getParameters().put("resave", options);
-                                LOG.error(options);
-                                UsersTable.update(user);
                             }
+                            user.getParameters().put("resave", options);
+                            LOG.error(options);
+                            UsersTable.update(user);
+                            urls.clear();
                         }
-
                         lastTime = System.currentTimeMillis();
-
                     }
                     if (uploadsCount >= 500) {
                         break;
