@@ -40,7 +40,9 @@ public class UsersTable {
     }
 
     public static User findById(int id) {
-        return HibernateSessionFactoryUtil.getSessionFactory().openSession().get(User.class, id);
+        try (Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession()) {
+            return session.get(User.class, id);
+        }
     }
 
     public static void save(User user) {
@@ -68,15 +70,9 @@ public class UsersTable {
     }
 
     public static List<User> findAll() {
-        var res = HibernateSessionFactoryUtil.getSessionFactory().openSession().createQuery("SELECT a FROM User a", User.class);
-        var i = 0;
-        while(res == null){
-            LOG.error("TRY to connect");
-            res = HibernateSessionFactoryUtil.getSessionFactory().openSession().createQuery("SELECT a FROM User a", User.class);
-            i++;
-            if(i > 3) break;
+        try (Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession()) {
+            return session.createQuery("SELECT a FROM User a", User.class).getResultList();
         }
-        return res.getResultList();
     }
 
 }

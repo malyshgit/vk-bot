@@ -29,7 +29,7 @@ public class HibernateSessionFactoryUtil {
 
                 Properties prop = new Properties();
                 prop.setProperty("hibernate.connection.url",
-                        String.format("jdbc:%s://%s:%s/%s",
+                        String.format("jdbc:%s://%s:%s/%s?autoReconnect=true",
                                 db,
                                 host,
                                 port,
@@ -41,7 +41,7 @@ public class HibernateSessionFactoryUtil {
                 prop.setProperty("hibernate.connection.password", pass);
                 prop.setProperty("hibernate.connection.driver_class", "org.postgresql.Driver");
                 prop.setProperty("hibernate.hbm2ddl.auto", "update");
-                prop.setProperty("show_sql", "true");
+                //prop.setProperty("hibernate.show_sql", "true");
                 Configuration configuration = new Configuration();
                 configuration.setProperties(prop);
                 configuration.addAnnotatedClass(User.class);
