@@ -85,17 +85,11 @@ public class Resave implements Script {
                                         .put("step", 4)
                                         .toString()
                         );
-                        JsonObject object = new JsonObject();
-                        object.addProperty("date", System.currentTimeMillis());
-                        user.getParameters().put("resave", object);
+                        options.addProperty("date", System.currentTimeMillis());
+                        user.getParameters().put("resave", options);
                         UsersTable.update(user);
                         send(message, 4);
                     }
-                }else{
-                    JsonObject object = new JsonObject();
-                    object.addProperty("date", System.currentTimeMillis());
-                    user.getParameters().put("resave", object);
-                    UsersTable.update(user);
                 }
             }
         });
@@ -258,31 +252,22 @@ public class Resave implements Script {
                     user = UsersTable.findById(message.getFromId());
                     var options = user.getParameters().get("resave");
                     var updates = bot.execute(new GetUpdates()).updates();
-                    
-                    //while(updates.size() > 0){
-                        LOG.error(updates);
-                        updates.forEach(update -> {LOG.error(update);
-                            if(update.channelPost() != null){
-                            var confirmKey = update.channelPost().text();
-                            LOG.error("=============\n"+confirmKey);
-                            var chatId = update.channelPost().chat().id();
-                            LOG.error(chatId); LOG.error(confirmKeys); LOG.error(Resave.confirmKeys);
-                            if(Resave.confirmKeys.containsKey(confirmKey)){
-                               // if(Resave.confirmKeys.get(confirmKey) == user.getId()){
-                                LOG.error(true);
+                    updates.forEach(update -> {
+                        if(update.channelPost() != null){
+                        var confirmKey = update.channelPost().text();
+                        var chatId = update.channelPost().chat().id();
+                        if(Resave.confirmKeys.containsKey(confirmKey)){
+                            if(Resave.confirmKeys.get(confirmKey) == user.getId()){
                                 options.addProperty("tgchatid", chatId);
                                 user.getParameters().put("resave", options);
                                 UsersTable.update(user);
                                 Resave.confirmKeys.remove(confirmKey);
-                               // }
-                            }}
-                        });
-                        updates = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId())).updates();
-                        
-                    //}
+                            }
+                        }}
+                    });
+                    updates = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId())).updates();
                     
                     if(!options.has("tgchatid")){
-                        
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Повторите попытку.")
@@ -568,7 +553,7 @@ public class Resave implements Script {
                                         .setColor(KeyboardButtonColor.NEGATIVE)
                                         .setAction(new KeyboardButtonAction().setPayload(
                                                 new Payload()
-                                                        .put("script", ScriptList.class.getName())
+                                                        .put("script", getClass().getName())
                                                         .put("step", 0)
                                                         .toString()
                                         ).setType(KeyboardButtonActionType.TEXT)

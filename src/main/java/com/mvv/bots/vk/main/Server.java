@@ -39,6 +39,7 @@ public class Server {
     public Server(){
         try {
             LOG.debug("Запуск сервера.");
+            Config.load();
             HttpServer server = HttpServer.create();
             server.bind(new InetSocketAddress(Integer.parseInt(System.getenv("PORT"))), 0);
             server.createContext("/callback", new CallbackHandler());

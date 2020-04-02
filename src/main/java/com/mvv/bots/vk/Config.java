@@ -11,26 +11,66 @@ import java.util.List;
 
 public class Config {
 
-    public static final Integer PORT = Integer.parseInt(System.getenv("PORT"));
+    public static Integer PORT;
 
-    public static final String CONFIRMATION_TOKEN = System.getenv("CONFIRMATION_TOKEN");
-    public static final int ADMIN_ID = Integer.parseInt(System.getenv("ADMIN_ID"));
-    public static final int GROUP_ID = Integer.parseInt(System.getenv("GROUP_ID"));
-    public static final String GROUP_TOKEN = System.getenv("GROUP_TOKEN");
-    public static final String ADMIN_TOKEN = System.getenv("ADMIN_TOKEN");
-    public static final String JDBC_DATABASE_URL = System.getenv("DATABASE_URL"); //= System.getenv("JDBC_DATABASE_URL");
-    public static final String DARKSKY_API_KEY = System.getenv("DARKSKY_API_KEY");
-    public static final String TELEGRAM_BOT_TOKEN = System.getenv("TELEGRAM_BOT_TOKEN");
-    public static final int APP_ID = Integer.parseInt(System.getenv("APP_ID"));
-    public static final String APP_SECRET = System.getenv("APP_SECRET");
-    public static final String REDIRECT_URL = System.getenv("REDIRECT_URL");
+    public static String CONFIRMATION_TOKEN;
+    public static int ADMIN_ID;
+    public static int GROUP_ID;
+    public static String GROUP_TOKEN;
+    public static String ADMIN_TOKEN;
+    public static String JDBC_DATABASE_URL; //= System.getenv("JDBC_DATABASE_URL");
+    public static String DARKSKY_API_KEY;
+    public static String TELEGRAM_BOT_TOKEN;
+    public static int APP_ID;
+    public static String APP_SECRET;
+    public static String REDIRECT_URL;
 
     //public static final VkApiClient VK = new VkApiClient(HttpTransportClient.getInstance());
-    public static final UserActor ADMIN = new UserActor(ADMIN_ID, ADMIN_TOKEN);
-    public static final GroupActor GROUP = new GroupActor(GROUP_ID, GROUP_TOKEN);
+    public static UserActor ADMIN;
+    public static GroupActor GROUP;
 
     public static VkApiClient VK(){
         return new VkApiClient(new HttpTransportClient());
+    }
+
+    public static void load(){
+        load(
+                Integer.parseInt(System.getenv("PORT")),
+                System.getenv("CONFIRMATION_TOKEN"),
+                Integer.parseInt(System.getenv("ADMIN_ID")),
+                Integer.parseInt(System.getenv("GROUP_ID")),
+                System.getenv("GROUP_TOKEN"),
+                System.getenv("ADMIN_TOKEN"),
+                System.getenv("DATABASE_URL"),
+                System.getenv("DARKSKY_API_KEY"),
+                System.getenv("TELEGRAM_BOT_TOKEN"),
+                Integer.parseInt(System.getenv("APP_ID")),
+                System.getenv("APP_SECRET"),
+                System.getenv("REDIRECT_URL")
+        );
+    }
+
+    public static void load(int PORT, String CONFIRMATION_TOKEN, int ADMIN_ID, int GROUP_ID,
+                            String GROUP_TOKEN, String ADMIN_TOKEN, String JDBC_DATABASE_URL,
+                            String DARKSKY_API_KEY, String TELEGRAM_BOT_TOKEN, int APP_ID,
+                            String APP_SECRET, String REDIRECT_URL){
+        Config.PORT = PORT;
+
+        Config.CONFIRMATION_TOKEN = CONFIRMATION_TOKEN;
+        Config.ADMIN_ID = ADMIN_ID;
+        Config.GROUP_ID = GROUP_ID;
+        Config.GROUP_TOKEN = GROUP_TOKEN;
+        Config.ADMIN_TOKEN = ADMIN_TOKEN;
+        Config.JDBC_DATABASE_URL = JDBC_DATABASE_URL; //= System.getenv("JDBC_DATABASE_URL");
+        Config.DARKSKY_API_KEY = DARKSKY_API_KEY;
+        Config.TELEGRAM_BOT_TOKEN = TELEGRAM_BOT_TOKEN;
+        Config.APP_ID = APP_ID;
+        Config.APP_SECRET = APP_SECRET;
+        Config.REDIRECT_URL = REDIRECT_URL;
+
+        //public static final VkApiClient VK = new VkApiClient(HttpTransportClient.getInstance());
+        Config.ADMIN = new UserActor(ADMIN_ID, ADMIN_TOKEN);
+        Config.GROUP = new GroupActor(GROUP_ID, GROUP_TOKEN);
     }
 
     /*Font FONT = loadFont();
