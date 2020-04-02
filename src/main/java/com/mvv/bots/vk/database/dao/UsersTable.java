@@ -68,9 +68,15 @@ public class UsersTable {
     }
 
     public static List<User> findAll() {
-        var list = HibernateSessionFactoryUtil.getSessionFactory().openSession().createQuery("SELECT a FROM User a", User.class).getResultList();
-        LOG.error("FINDALL "+list);
-        return list;
+        var res = HibernateSessionFactoryUtil.getSessionFactory().openSession().createQuery("SELECT a FROM User a", User.class);
+        var i = 0;
+        while(res == null){
+            LOG.error("TRY to connect");
+            res = HibernateSessionFactoryUtil.getSessionFactory().openSession().createQuery("SELECT a FROM User a", User.class);
+            i++;
+            if(i > 3) break;
+        }
+        return res.getResultList();
     }
 
 }
