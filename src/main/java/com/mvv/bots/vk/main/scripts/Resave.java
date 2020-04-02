@@ -485,7 +485,7 @@ public class Resave implements Script {
                             break;
                         }
                     }
-                    if(b){
+                    if(!b){
                         RandomStringGenerator generator = new RandomStringGenerator.Builder()
                                 .withinRange('0', 'z')
                                 .filteredBy(CharacterPredicates.DIGITS, CharacterPredicates.LETTERS)
