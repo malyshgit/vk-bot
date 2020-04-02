@@ -613,7 +613,9 @@ public class Resave implements Script {
                             .filter(p -> !photoIds.contains(new JsonPrimitive(p.getId())))
                             .collect(Collectors.toList());
                     for (var i = 0; i < photos.size(); i++) {
+                        LOG.error(i);
                         var photo = photos.get(i);
+                        LOG.error("upcount: "+uploadsCount);
                         if (uploadsCount >= 500) {
                             break;
                         }
@@ -650,7 +652,6 @@ public class Resave implements Script {
                                 });
                             }
                             user.getParameters().put("resave", options);
-                            LOG.error(options);
                             UsersTable.update(user);
                             urls.clear();
                         }
