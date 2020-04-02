@@ -425,7 +425,19 @@ public class Resave implements Script {
                                                                     .put("albumid", albumId)
                                                                     .toString()
                                                     ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel(totg ? "Telegram" : "Вконтакте"))
+                                                            .setLabel(totg ? "Telegram" : "Вконтакте")),
+                                            new KeyboardButton()
+                                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                                    .setAction(new KeyboardButtonAction().setPayload(
+                                                            new Payload()
+                                                                    .put("script", getClass().getName())
+                                                                    .put("step", 7)
+                                                                    .put("offset", offset)
+                                                                    .put("ownerid", ownerId)
+                                                                    .put("albumid", albumId)
+                                                                    .toString()
+                                                    ).setType(KeyboardButtonActionType.TEXT)
+                                                            .setLabel("Удалить"))
                                     ))
                             );
                             nextOffset++;
@@ -549,6 +561,52 @@ public class Resave implements Script {
                             .put("step", 1)
                             .put("offset", offset)
                             .toString());
+                    send(message, 1);
+                    break;
+                case 7:
+                    payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+                    keyboard.setInline(true);
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            new Payload(payload)
+                                                    .put("step", 71)
+                                                    .toString()
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Удалить"))
+                    ));
+                    new Messages(Config.VK())
+                            .send(Config.GROUP)
+                            .message("Подтвердите удаление")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
+                    break;
+                case 71:
+                    user = UsersTable.findById(message.getFromId());
+                    payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+                    ownerId = payload.get("ownerid").getAsString();
+                    albumId = payload.get("albumid").getAsString();
+                    options = user.getParameters().get("resave");
+                    albums = options.get("albums").getAsJsonArray();
+                    for(var albumEl : albums){
+                        var album = albumEl.getAsJsonObject();
+                        if(album.get("ownerid").getAsString().equals(ownerId)
+                                &&album.get("albumid").getAsString().equals(albumId)){
+                            albums.remove(albumEl);
+                            break;
+                        }
+                    }
+                    user.getParameters().put("resave", options);
+                    UsersTable.update(user);
+                    new Messages(Config.VK())
+                            .send(Config.GROUP)
+                            .message("Удалено")
+                            .peerId(message.getPeerId())
+                            .randomId(Utils.getRandomInt32())
+                            .execute();
                     send(message, 1);
                     break;
                 case 4:
