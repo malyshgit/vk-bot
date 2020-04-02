@@ -12,6 +12,7 @@ import com.mvv.bots.vk.database.models.User;
 import com.mvv.bots.vk.database.dao.UsersTable;
 import com.mvv.bots.vk.main.AccessMode;
 import com.mvv.bots.vk.main.Script;
+import com.mvv.bots.vk.main.Server;
 import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.*;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -497,13 +498,35 @@ public class AdminPanel implements Script {
                             .execute();*/
                     break;
                 case 4:
-                    drawCover();
+                    keyboard.setInline(true);
+                    buttons.add(List.of(
+                            /*new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.PRIMARY)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            "{\"script\":\""+getClass().getName()+"\"," +
+                                                    "\"step\":"+3+"}"
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Авторизация")),*/
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.PRIMARY)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 41)
+                                                    .toString()
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Запуск"))
+                    ));
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message("Обложка перерисована.")
+                            .message("Обновление")
+                            .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
+                    break;
+                case 41:
+                    new Thread(()->Config.SCRIPTS.forEach(Script::update));
                     break;
                 case 56:
                     /*getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
