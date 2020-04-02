@@ -148,85 +148,6 @@ public class Resave implements Script {
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Назад"))
                     ));
-                    /*if(Config.TELEGRAM_BOT_TOKEN != null){
-                        user = UsersTable.findById(message.getFromId());
-                        UserActor userActor = new UserActor(user.getId(), user.getToken());
-                        if(user.getParameters().containsKey("resave")) {
-                            var options = user.getParameters().get("resave");
-                            if(options.has("resavetotg")){
-                                var resavetotg = options.get("resavetotg").getAsBoolean();
-                                if(resavetotg){
-                                    if(!options.has("tgchatid")){
-                                        RandomStringGenerator generator = new RandomStringGenerator.Builder()
-                                                .withinRange('0', 'z')
-                                                .filteredBy(CharacterPredicates.DIGITS, CharacterPredicates.LETTERS)
-                                                .build();
-                                        var key = generator.generate(32);
-                                        TelegramBot bot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
-                                        var botName = bot.execute(new GetMe()).user().username();
-                                        confirmKeys.put(key, user.getId());
-                                        buttons.add(List.of(
-                                                new KeyboardButton()
-                                                        .setColor(KeyboardButtonColor.DEFAULT)
-                                                        .setAction(new KeyboardButtonAction().setPayload(
-                                                                new Payload()
-                                                                        .put("script", getClass().getName())
-                                                                        .put("step", 112)
-                                                                        .toString()
-                                                        ).setType(KeyboardButtonActionType.TEXT)
-                                                                .setLabel("Проверить"))
-                                        ));
-                                        new Messages(Config.VK())
-                                                .send(Config.GROUP)
-                                                .message("1. Приглосите в частную группу телеграм бота @"+botName+"\n" +
-                                                        "2. Обязательно выдайте права на публикацию сообщений. Другие права необязательны.\n" +
-                                                        "3. Отправьте в частную группу в телеграме сообщение \""+key+"\"\n" +
-                                                        "4. Нажмите \"Проверить\"")
-                                                .keyboard(keyboard)
-                                                .peerId(message.getPeerId())
-                                                .randomId(Utils.getRandomInt32())
-                                                .execute();
-                                        break;
-                                    }
-                                    buttons.add(List.of(
-                                            new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 111)
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel("Сохраняется в ТГ"))
-                                    ));
-                                }else{
-                                    buttons.add(List.of(
-                                            new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 111)
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel("Сохраняется в ВК"))
-                                    ));
-                                }
-                            }else{
-                                options.addProperty("resavetotg", false);
-                                user.getParameters().put("resave", options);
-                                UsersTable.update(user);
-                                send(message, 0);
-                                break;
-                            }
-                        }else{
-                            JsonObject object = new JsonObject();
-                            user.getParameters().put("resave", object);
-                            UsersTable.update(user);
-                            send(message, 0);
-                            break;
-                        }
-                    }*/
                     buttons.add(List.of(
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.DEFAULT)
@@ -251,23 +172,36 @@ public class Resave implements Script {
                     TelegramBot bot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
                     user = UsersTable.findById(message.getFromId());
                     var options = user.getParameters().get("resave");
+                    var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+                    var ownerId = payload.get("ownerid").getAsString();
+                    var albumId = payload.get("albumid").getAsString();
+                    JsonObject tgalbum = null;
+                    for(var albumEl : options.get("albums").getAsJsonArray()){
+                        var a = albumEl.getAsJsonObject();
+                        if(a.get("ownerid").getAsString().equals(ownerId)
+                        && a.get("albumid").getAsString().equals(albumId)){
+                            tgalbum = albumEl.getAsJsonObject();
+                            break;
+                        }
+                    }
+                    if(tgalbum == null) break;
                     var updates = bot.execute(new GetUpdates()).updates();
-                    updates.forEach(update -> {
+                    for(var update : updates){
                         if(update.channelPost() != null){
                         var confirmKey = update.channelPost().text();
                         var chatId = update.channelPost().chat().id();
                         if(Resave.confirmKeys.containsKey(confirmKey)){
                             if(Resave.confirmKeys.get(confirmKey) == user.getId()){
-                                options.addProperty("tgchatid", chatId);
+                                tgalbum.addProperty("tgchatid", chatId);
                                 user.getParameters().put("resave", options);
                                 UsersTable.update(user);
                                 Resave.confirmKeys.remove(confirmKey);
                             }
                         }}
-                    });
+                    }
                     updates = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId())).updates();
                     
-                    if(!options.has("tgchatid")){
+                    if(!tgalbum.has("tgchatid")){
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Повторите попытку.")
@@ -381,7 +315,7 @@ public class Resave implements Script {
 
                     List<TemplateElement> elements = new ArrayList<>();
                     template.setElements(elements);
-                    var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+                    payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     var offset = payload.has("offset") ? payload.get("offset").getAsInt() : 0;
 
                     var nextOffset = offset;
@@ -455,8 +389,8 @@ public class Resave implements Script {
                         } else {
                             var album = albums.get(offset + i).getAsJsonObject();
                             var title = album.get("title").getAsString();
-                            var ownerId = album.get("ownerid").getAsString();
-                            var albumId = album.get("albumid").getAsString();
+                            ownerId = album.get("ownerid").getAsString();
+                            albumId = album.get("albumid").getAsString();
                             var progress = album.get("photoids").getAsJsonArray().size();
                             var hide = album.get("hide").getAsBoolean();
                             var active = album.get("active").getAsBoolean();
@@ -513,8 +447,8 @@ public class Resave implements Script {
                     userActor = new UserActor(user.getId(), user.getToken());
                     payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     var active = payload.get("active").getAsBoolean();
-                    var ownerId = payload.get("ownerid").getAsString();
-                    var albumId = payload.get("albumid").getAsString();
+                    ownerId = payload.get("ownerid").getAsString();
+                    albumId = payload.get("albumid").getAsString();
                     offset = payload.get("offset").getAsInt();
 
                     options = user.getParameters().get("resave");
@@ -538,8 +472,20 @@ public class Resave implements Script {
                     break;
                 case 3:
                     user = UsersTable.findById(message.getFromId());
+                    payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+                    ownerId = payload.get("ownerid").getAsString();
+                    albumId = payload.get("albumid").getAsString();
                     if(Config.TELEGRAM_BOT_TOKEN == null) break;
-                    if(!user.getParameters().get("resave").has("tgchatid")){
+                    var b = false;
+                    for(var albumEl : user.getParameters().get("resave").get("albums").getAsJsonArray()){
+                        var album = albumEl.getAsJsonObject();
+                        if(album.get("ownerid").getAsString().equals(ownerId)
+                        &&album.get("albumid").getAsString().equals(albumId)){
+                            b = album.has("tgchatid");
+                            break;
+                        }
+                    }
+                    if(b){
                         RandomStringGenerator generator = new RandomStringGenerator.Builder()
                                 .withinRange('0', 'z')
                                 .filteredBy(CharacterPredicates.DIGITS, CharacterPredicates.LETTERS)
@@ -565,6 +511,8 @@ public class Resave implements Script {
                                         .setAction(new KeyboardButtonAction().setPayload(
                                                 new Payload()
                                                         .put("script", getClass().getName())
+                                                        .put("ownerid", ownerId)
+                                                        .put("albumid", albumId)
                                                         .put("step", 112)
                                                         .toString()
                                         ).setType(KeyboardButtonActionType.TEXT)
