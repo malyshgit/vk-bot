@@ -610,7 +610,6 @@ public class Resave implements Script {
                 if(totg){
                     TelegramBot tgBot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
                     var tgChatId = album.get("tgchatid").getAsLong();
-                    var tempUploadsCount = 0;
                     var urls = new HashMap<Integer, String>();
                     var lastTime = System.currentTimeMillis();
                     var photos = ownerAlbumPhotoList.stream()
@@ -658,12 +657,13 @@ public class Resave implements Script {
                             LOG.warn("Connection: unknown, photo: " + photo);
                             continue;
                         }
+                        connection.disconnect();
 
                         if(urls.size() == 10 || photos.indexOf(photo) == photos.size()-1){
                             var startTime = System.currentTimeMillis();
                             var dt = (lastTime - startTime)/1000;
                             if(dt < 30) dt = 30;
-                            Thread.sleep(dt);
+                            Thread.sleep(dt*1000);
                             if(urls.size() == 1){
                                 var res = tgBot.execute(new SendPhoto(tgChatId, new ArrayList<>(urls.values()).get(0)));
                                 if(!res.isOk()){
@@ -671,9 +671,9 @@ public class Resave implements Script {
                                     continue;
                                 }
                                 uploadsCount++;
-                                tempUploadsCount++;
                                 photoIds.add(new ArrayList<>(urls.keySet()).get(0));
                                 user.getParameters().put("resave", options);
+                                LOG.error(options);
                                 UsersTable.update(user);
                             }else{
                                 var inputMediaGroup = urls.values().stream().map(InputMediaPhoto::new).toArray(InputMediaPhoto[]::new);
@@ -683,9 +683,9 @@ public class Resave implements Script {
                                     continue;
                                 }
                                 uploadsCount+=10;
-                                tempUploadsCount+=10;
                                 urls.keySet().forEach(photoIds::add);
                                 user.getParameters().put("resave", options);
+                                LOG.error(options);
                                 UsersTable.update(user);
                             }
                         }
