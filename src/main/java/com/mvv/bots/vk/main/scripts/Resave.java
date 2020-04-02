@@ -1,9 +1,6 @@
 package com.mvv.bots.vk.main.scripts;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.mvv.bots.vk.Config;
 import com.mvv.bots.vk.database.models.User;
 import com.mvv.bots.vk.database.dao.UsersTable;
@@ -570,7 +567,7 @@ public class Resave implements Script {
             var user = UsersTable.findById(message.getFromId());
             var userActor = new UserActor(user.getId(), user.getToken());
             var options = user.getParameters().get("resave");
-            var albums = user.getParameters().get("resave").get("albums").getAsJsonArray();
+            var albums = options.get("albums").getAsJsonArray();
             var uploadsCount = 0;
             for (var albumObject : albums) {
                 var album = albumObject.getAsJsonObject();
@@ -671,7 +668,8 @@ public class Resave implements Script {
                                     continue;
                                 }
                                 uploadsCount++;
-                                photoIds.add(new ArrayList<>(urls.keySet()).get(0));
+                                var u = new ArrayList<>(urls.keySet()).get(0);
+                                if(!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
                                 user.getParameters().put("resave", options);
                                 LOG.error(options);
                                 UsersTable.update(user);
@@ -683,7 +681,9 @@ public class Resave implements Script {
                                     continue;
                                 }
                                 uploadsCount+=10;
-                                urls.keySet().forEach(photoIds::add);
+                                urls.keySet().forEach(u->{
+                                    if(!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
+                                });
                                 user.getParameters().put("resave", options);
                                 LOG.error(options);
                                 UsersTable.update(user);
