@@ -526,7 +526,7 @@ public class AdminPanel implements Script {
                             .execute();
                     break;
                 case 41:
-                    new Thread(()->Config.SCRIPTS.forEach(Script::update));
+                    new Thread(()->Config.SCRIPTS.forEach(Script::update)).start();
                     break;
                 case 56:
                     /*getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
