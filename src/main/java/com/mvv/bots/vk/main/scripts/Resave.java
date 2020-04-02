@@ -608,29 +608,19 @@ public class Resave implements Script {
                     TelegramBot tgBot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
                     var tgChatId = album.get("tgchatid").getAsLong();
                     var urls = new HashMap<Integer, String>();
-                    var lastTime = 0l;
+                    var lastTime = 0L;
                     var photos = ownerAlbumPhotoList.stream()
-                            .filter(p -> {
-                                boolean b = true;
-                                for(var id : photoIds){
-                                    if(id.getAsInt() == (p.getId())){
-                                        b = false;
-                                        break;
-                                    }
-                                }
-                                return b;
-                            })
+                            .filter(p -> !photoIds.contains(new JsonPrimitive(p.getId())))
                             .collect(Collectors.toList());
                     for (var i = 0; i < photos.size(); i++) {
                         var photo = photos.get(i);
                         if (uploadsCount >= 500) {
                             break;
                         }
-                        var src = photo.getSizes().stream().max((o1, o2) ->
-                                Integer.compare(
-                                        o2.getWidth() * o2.getHeight(),
-                                        o1.getWidth() * o1.getHeight()
-                                )).get().getUrl();
+                        var src = photo.getSizes()
+                                .stream()
+                                .max(Comparator.comparingInt(o -> o.getWidth() * o.getHeight()))
+                                .get().getUrl();
                         urls.put(photo.getId(), src);
 
                         if(urls.size() == 10 || i == photos.size()-1){
@@ -690,16 +680,7 @@ public class Resave implements Script {
                     PhotoUpload upload = uploadQuery.execute();
                     int tempUploadsCount = 0;
                     for (var photo : ownerAlbumPhotoList.stream()
-                            .filter(p -> {
-                                boolean b = true;
-                                for(var id : photoIds){
-                                    if(id.getAsInt() == (p.getId())){
-                                        b = false;
-                                        break;
-                                    }
-                                }
-                                return b;
-                            })
+                            .filter(p -> !photoIds.contains(new JsonPrimitive(p.getId())))
                             .collect(Collectors.toList())) {
 
                         if (uploadsCount >= 500) {
@@ -786,11 +767,7 @@ public class Resave implements Script {
                     }
                 }
             }
-        }catch (ApiException | ClientException | MalformedURLException e){
-            LOG.error(e);
-        } catch (InterruptedException e) {
-            LOG.error(e);
-        } catch (IOException e) {
+        } catch (ApiException | ClientException | InterruptedException | IOException e){
             LOG.error(e);
         }
     }

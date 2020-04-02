@@ -8,6 +8,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -67,7 +68,7 @@ public class UsersTable {
     }
 
     public static List<User> findAll() {
-        return HibernateSessionFactoryUtil.getSessionFactory().openSession().createQuery("From User", User.class).list();
+        return HibernateSessionFactoryUtil.getSessionFactory().openSession().createQuery("SELECT a FROM User a", User.class).getResultList();
     }
 
 }
