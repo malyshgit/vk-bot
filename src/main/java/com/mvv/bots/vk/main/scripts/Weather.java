@@ -54,8 +54,8 @@ public class Weather implements Script {
     public void update() {
         if(LocalDateTime.now().getMinute() >= 30) return;
         UsersTable.findAll().forEach(user -> {
-            if(user.getParameters().containsKey("weather")){
-                var options = user.getParameters().get("weather");
+            if(user.getFields().containsKey("weather")){
+                var options = user.getFields().get("weather").getAsJsonObject();
                 var update = options.get("update").getAsBoolean();
                 if(update){
                     Message m = new Message();
@@ -98,18 +98,16 @@ public class Weather implements Script {
                     break;
                 case 0:
                     User user = UsersTable.findById(message.getFromId());
-                    if(user.getParameters().containsKey("geo")){
-                        JsonElement jelement = user.getParameters().get("geo");
-                        JsonObject  jobject = jelement.getAsJsonObject();
-                        JsonObject coordinates = jobject.get("coordinates").getAsJsonObject();
+                    if(user.getFields().containsKey("geo")){
+                        JsonObject jelement = user.getFields().get("geo").getAsJsonObject();
+                        JsonObject coordinates = jelement.get("coordinates").getAsJsonObject();
                         float lat = coordinates.get("latitude").getAsFloat();
                         float lon = coordinates.get("longitude").getAsFloat();
                         String url = String
                                 .format("https://api.darksky.net/forecast/%s/%f,%f?lang=ru&units=si", Config.DARKSKY_API_KEY, lat, lon);
                         String weather = IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
-                        jelement = new JsonParser().parse(weather);
-                        jobject = jelement.getAsJsonObject();
-                        JsonObject currently = jobject.get("currently").getAsJsonObject();
+                        jelement = new JsonParser().parse(weather).getAsJsonObject();
+                        JsonObject currently = jelement.get("currently").getAsJsonObject();
                         String summary = currently.get("summary").getAsString();
                         var icon = "";
                         switch (currently.get("icon").getAsString()){
@@ -165,8 +163,8 @@ public class Weather implements Script {
                                                         .toString()
                                         ).setType(KeyboardButtonActionType.LOCATION))
                         ));
-                        if(user.getParameters().containsKey("weather")){
-                            var options = user.getParameters().get("weather");
+                        if(user.getFields().containsKey("weather")){
+                            var options = user.getFields().get("weather").getAsJsonObject();
                             var update = options.get("update").getAsBoolean();
                             var full = options.get("full").getAsBoolean();
                             buttons.add(List.of(
@@ -231,8 +229,8 @@ public class Weather implements Script {
                             JsonObject object = new JsonObject();
                             object.addProperty("update", false);
                             object.addProperty("full", false);
-                            user.getParameters().put("weather", object);
-                            UsersTable.update(user);
+                            user.getFields().put("weather", object);
+                            user.update();
                             send(message, 0);
                             return;
                         }
@@ -259,8 +257,8 @@ public class Weather implements Script {
                 case 1:
                     var geo = message.getGeo().toString();
                     user = UsersTable.findById(message.getFromId());
-                    user.getParameters().put("geo", new JsonParser().parse(geo).getAsJsonObject());
-                    UsersTable.update(user);
+                    user.getFields().put("geo", new JsonParser().parse(geo).getAsJsonObject());
+                    user.update();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Местоположение сохранено.")
@@ -271,11 +269,10 @@ public class Weather implements Script {
                     break;
                 case 2:
                     user = UsersTable.findById(message.getFromId());
-                    var options = user.getParameters().get("weather");
+                    var options = user.getFields().get("weather").getAsJsonObject();
                     var update = options.get("update").getAsBoolean();
                     options.addProperty("update", !update);
-                    user.getParameters().put("weather", options);
-                    UsersTable.update(user);
+                    user.update();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message(update
@@ -288,11 +285,10 @@ public class Weather implements Script {
                     break;
                 case 3:
                     user = UsersTable.findById(message.getFromId());
-                    options = user.getParameters().get("weather");
+                    options = user.getFields().get("weather").getAsJsonObject();
                     var full = options.get("full").getAsBoolean();
                     options.addProperty("full", !full);
-                    user.getParameters().put("weather", options);
-                    UsersTable.update(user);
+                    user.update();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message(full

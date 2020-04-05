@@ -141,7 +141,7 @@ public class Authorization implements Script {
                 case 2:
                     user = UsersTable.findById(message.getFromId());
                     user.setToken(null);
-                    UsersTable.update(user);
+                    user.update();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Доступ запрещен.")
@@ -164,7 +164,7 @@ public class Authorization implements Script {
             if (response != null) {
                 var user = UsersTable.findById(response.getUserId());
                 user.setToken(response.getAccessToken());
-                UsersTable.update(user);
+                user.update();
                 return true;
             }
         }catch (ApiException | ClientException e) {

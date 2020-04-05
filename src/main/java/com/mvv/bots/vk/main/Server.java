@@ -270,39 +270,24 @@ public class Server {
                 if(jobject.has("command")){
                     String command = jobject.get("command").getAsString();
                     if(command.equals("start")){
+                        if(UsersTable.findById(message.getPeerId()) == null) UsersTable.save(new User(message.getPeerId()));
                         new ScriptList().send(message, 0);
-                        plusUse(message);
                     }
                 }else if(jobject.has("script") && jobject.has("step")){
                     Script script = Script.getByName(jobject.get("script").getAsString());
                     int step = jobject.get("step").getAsInt();
-                    if(step == 0){
-                        plusUse(message);
-                    }
                     script.send(message, step);
                 }
             }else if(!message.getText().isEmpty() && Script.containsByKey(message.getText())){
+                if(UsersTable.findById(message.getPeerId()) == null) UsersTable.save(new User(message.getPeerId()));
                 Script script = Script.getByKey(message.getText());
                 script.send(message, 0);
-                plusUse(message);
             }else{
 
             }
 
         }catch (PatternSyntaxException | ClientException | ApiException e){
             LOG.error(e);
-        }
-    }
-
-    private static void plusUse(Message message){
-        User user = UsersTable.findById(message.getFromId());
-        if(user != null){
-            user.setUse(user.getUse()+1);
-            UsersTable.update(user);
-        }else{
-            user = new User(message.getFromId());
-            user.setUse(1);
-            UsersTable.save(user);
         }
     }
 

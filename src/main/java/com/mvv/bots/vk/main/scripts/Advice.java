@@ -52,8 +52,8 @@ public class Advice implements Script {
     public void update() {
         if(LocalDateTime.now().getMinute() >= 30) return;
         UsersTable.findAll().forEach(user -> {
-            if(user.getParameters().containsKey("advice")){
-                JsonObject options = user.getParameters().get("advice");
+            if(user.getFields().containsKey("advice")){
+                JsonObject options = user.getFields().get("advice").getAsJsonObject();
                 var update = options.get("update").getAsBoolean();
                 if(update){
                     Message m = new Message();
@@ -78,8 +78,8 @@ public class Advice implements Script {
                 case 0:
                     User user = UsersTable.findById(message.getFromId());
                     keyboard.setInline(true);
-                    if(user.getParameters().containsKey("advice")){
-                        var options = user.getParameters().get("advice");
+                    if(user.getFields().containsKey("advice")){
+                        var options = user.getFields().get("advice").getAsJsonObject();
                         var update = options.get("update").getAsBoolean();
                         buttons.add(List.of(
                                 new KeyboardButton()
@@ -99,8 +99,8 @@ public class Advice implements Script {
                     }else{
                         var object = new JsonObject();
                         object.addProperty("update", false);
-                        user.getParameters().put("advice", object);
-                        UsersTable.update(user);
+                        user.getFields().put("advice", object);
+                        user.update();
                         send(message, 0);
                         return;
                     }
@@ -144,11 +144,10 @@ public class Advice implements Script {
                     break;
                 case 2:
                     user = UsersTable.findById(message.getFromId());
-                    var options = user.getParameters().get("advice");
+                    var options = user.getFields().get("advice").getAsJsonObject();
                     var update = options.get("update").getAsBoolean();
                     options.addProperty("update", !update);
-                    user.getParameters().put("advice", options);
-                    UsersTable.update(user);
+                    user.update();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message(update

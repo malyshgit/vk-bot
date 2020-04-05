@@ -41,7 +41,7 @@ public class Config {
                 Integer.parseInt(System.getenv("GROUP_ID")),
                 System.getenv("GROUP_TOKEN"),
                 System.getenv("ADMIN_TOKEN"),
-                System.getenv("DATABASE_URL"),
+                System.getenv("JDBC_DATABASE_URL"), //= System.getenv("JDBC_DATABASE_URL");
                 System.getenv("DARKSKY_API_KEY"),
                 System.getenv("TELEGRAM_BOT_TOKEN"),
                 Integer.parseInt(System.getenv("APP_ID")),

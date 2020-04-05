@@ -2,6 +2,7 @@ package com.mvv.bots.vk.main.scripts;
 
 import com.google.gson.*;
 import com.mvv.bots.vk.Config;
+import com.mvv.bots.vk.database.PostgreSQL;
 import com.mvv.bots.vk.database.models.User;
 import com.mvv.bots.vk.database.dao.UsersTable;
 import com.mvv.bots.vk.main.AccessMode;
@@ -38,6 +39,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -68,8 +71,8 @@ public class Resave implements Script {
     public void update() {
         UsersTable.findAll().forEach(user -> {
             if(user.getToken() != null){
-                if(user.getParameters().containsKey("resave")){
-                    var options = user.getParameters().get("resave");
+                if(user.getFields().containsKey("resave")){
+                    var options = user.getFields().get("resave").getAsJsonObject();
                     var date = options.get("date").getAsLong();
                     var dt = System.currentTimeMillis() - date;
                     if(dt >= DateUtils.MILLIS_PER_MINUTE*55){
@@ -83,8 +86,7 @@ public class Resave implements Script {
                                         .toString()
                         );
                         options.addProperty("date", System.currentTimeMillis());
-                        user.getParameters().put("resave", options);
-                        UsersTable.update(user);
+                        user.update();
                         send(message, 4);
                     }
                 }
@@ -168,7 +170,7 @@ public class Resave implements Script {
                 case 112:
                     TelegramBot bot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
                     user = UsersTable.findById(message.getFromId());
-                    var options = user.getParameters().get("resave");
+                    var options = user.getFields().get("resave").getAsJsonObject();
                     var payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     var ownerId = payload.get("ownerid").getAsString();
                     var albumId = payload.get("albumid").getAsString();
@@ -190,13 +192,12 @@ public class Resave implements Script {
                         if(Resave.confirmKeys.containsKey(confirmKey)){
                             if(Resave.confirmKeys.get(confirmKey) == user.getId()){
                                 tgalbum.addProperty("tgchatid", chatId);
-                                user.getParameters().put("resave", options);
-                                UsersTable.update(user);
+                                user.update();
                                 Resave.confirmKeys.remove(confirmKey);
                             }
                         }}
                     }
-                    updates = bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId())).updates();
+                    bot.execute(new GetUpdates().offset(updates.stream().max(Comparator.comparingInt(Update::updateId)).get().updateId())).updates();
                     
                     if(!tgalbum.has("tgchatid")){
                         new Messages(Config.VK())
@@ -269,8 +270,8 @@ public class Resave implements Script {
                     JsonObject object = new JsonObject();
                     JsonArray albums = new JsonArray();
 
-                    if(user.getParameters().containsKey("resave")){
-                        object = user.getParameters().get("resave");
+                    if(user.getFields().containsKey("resave")){
+                        object = user.getFields().get("resave").getAsJsonObject();
                         if(object.has("albums")) albums = object.get("albums").getAsJsonArray();
                     }
 
@@ -281,13 +282,11 @@ public class Resave implements Script {
                     newAlbum.addProperty("hide", false);
                     newAlbum.addProperty("active", true);
                     newAlbum.addProperty("totg", false);
-                    newAlbum.add("photoids", new JsonArray());
                     albums.add(newAlbum);
                     object.add("albums", albums);
 
                     object.addProperty("date", System.currentTimeMillis());
-                    user.getParameters().put("resave", object);
-                    UsersTable.update(user);
+                    user.update();
                     new Messages(Config.VK())
                         .send(Config.GROUP)
                         .message("Альбом в очереди.")
@@ -298,8 +297,7 @@ public class Resave implements Script {
                     break;
                 case 1:
                     user = UsersTable.findById(message.getFromId());
-                    userActor = new UserActor(user.getId(), user.getToken());
-                    if(!user.getParameters().containsKey("resave")){
+                    if(!user.getFields().containsKey("resave")){
                         new Messages(Config.VK())
                                 .send(Config.GROUP)
                                 .message("Отправьте ссылку на альбом и нажмите \"Добавить\"")
@@ -308,7 +306,7 @@ public class Resave implements Script {
                                 .execute();
                         return;
                     }
-                    albums = user.getParameters().get("resave").get("albums").getAsJsonArray();
+                    albums = user.getFields().get("resave").getAsJsonObject().get("albums").getAsJsonArray();
 
                     List<TemplateElement> elements = new ArrayList<>();
                     template.setElements(elements);
@@ -388,13 +386,13 @@ public class Resave implements Script {
                             var title = album.get("title").getAsString();
                             ownerId = album.get("ownerid").getAsString();
                             albumId = album.get("albumid").getAsString();
-                            var progress = album.get("photoids").getAsJsonArray().size();
                             var hide = album.get("hide").getAsBoolean();
                             var active = album.get("active").getAsBoolean();
                             var totg = album.get("totg").getAsBoolean();
+                            var photoIdsCount = getAlbumPhotoIdsCount(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(albumId));
                             elements.add(new TemplateElement()
                                     .setTitle(title)
-                                    .setDescription("Загружено: "+progress)
+                                    .setDescription("Загружено: "+photoIdsCount)
                                     .setAction(new TemplateElementAction()
                                             .setType(TemplateElementActionType.OPEN_LINK)
                                             .setLink("https://vk.com/album"+ownerId+"_"+albumId)
@@ -453,14 +451,13 @@ public class Resave implements Script {
                     break;
                 case 2:
                     user = UsersTable.findById(message.getFromId());
-                    userActor = new UserActor(user.getId(), user.getToken());
                     payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     var active = payload.get("active").getAsBoolean();
                     ownerId = payload.get("ownerid").getAsString();
                     albumId = payload.get("albumid").getAsString();
                     offset = payload.get("offset").getAsInt();
 
-                    options = user.getParameters().get("resave");
+                    options = user.getFields().get("resave").getAsJsonObject();
                     var list = options.get("albums").getAsJsonArray();
                     for(var alb : list){
                         var album = alb.getAsJsonObject();
@@ -469,8 +466,7 @@ public class Resave implements Script {
                             album.addProperty("active", !active);
                         }
                     }
-                    user.getParameters().put("resave", options);
-                    UsersTable.update(user);
+                    user.update();
 
                     message.setPayload(new Payload()
                             .put("script", getClass().getName())
@@ -486,7 +482,7 @@ public class Resave implements Script {
                     albumId = payload.get("albumid").getAsString();
                     if(Config.TELEGRAM_BOT_TOKEN == null) break;
                     var b = false;
-                    for(var albumEl : user.getParameters().get("resave").get("albums").getAsJsonArray()){
+                    for(var albumEl : user.getFields().get("resave").getAsJsonObject().get("albums").getAsJsonArray()){
                         var album = albumEl.getAsJsonObject();
                         if(album.get("ownerid").getAsString().equals(ownerId)
                         &&album.get("albumid").getAsString().equals(albumId)){
@@ -539,13 +535,12 @@ public class Resave implements Script {
                                 .execute();
                         break;
                     }
-                    userActor = new UserActor(user.getId(), user.getToken());
                     payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     var totg = payload.get("totg").getAsBoolean();
                     ownerId = payload.get("ownerid").getAsString();
                     albumId = payload.get("albumid").getAsString();
                     offset = payload.get("offset").getAsInt();
-                    options = user.getParameters().get("resave");
+                    options = user.getFields().get("resave").getAsJsonObject();
                     list = options.get("albums").getAsJsonArray();
                     for(var alb : list){
                         var album = alb.getAsJsonObject();
@@ -554,8 +549,7 @@ public class Resave implements Script {
                             album.addProperty("totg", !totg);
                         }
                     }
-                    user.getParameters().put("resave", options);
-                    UsersTable.update(user);
+                    user.update();
                     message.setPayload(new Payload()
                             .put("script", getClass().getName())
                             .put("step", 1)
@@ -589,7 +583,7 @@ public class Resave implements Script {
                     payload = new JsonParser().parse(message.getPayload()).getAsJsonObject();
                     ownerId = payload.get("ownerid").getAsString();
                     albumId = payload.get("albumid").getAsString();
-                    options = user.getParameters().get("resave");
+                    options = user.getFields().get("resave").getAsJsonObject();
                     albums = options.get("albums").getAsJsonArray();
                     for(var albumEl : albums){
                         var album = albumEl.getAsJsonObject();
@@ -599,8 +593,7 @@ public class Resave implements Script {
                             break;
                         }
                     }
-                    user.getParameters().put("resave", options);
-                    UsersTable.update(user);
+                    user.update();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Удалено")
@@ -624,7 +617,7 @@ public class Resave implements Script {
         try {
             var user = UsersTable.findById(message.getFromId());
             var userActor = new UserActor(user.getId(), user.getToken());
-            var options = user.getParameters().get("resave");
+            var options = user.getFields().get("resave").getAsJsonObject();
             var albums = options.get("albums").getAsJsonArray();
             var uploadsCount = 0;
             for (var albumObject : albums) {
@@ -633,12 +626,17 @@ public class Resave implements Script {
                 var title = album.get("title").getAsString();
                 var ownerId = album.get("ownerid").getAsString();
                 var ownerAlbumId = album.get("albumid").getAsString();
-                var photoIds = album.get("photoids").getAsJsonArray();
                 var totg = album.get("totg").getAsBoolean();
+                var tmp = getAlbumsByUserId(user.getId());
+                var tmpOwnerId = ownerId.startsWith("-") ? "n"+ownerId.substring(1) : "p"+ownerId;
+                var tmpOwnerAlbumId = ownerAlbumId.startsWith("-") ? "n"+ownerAlbumId.substring(1) : "p"+ownerAlbumId;
+                var tmpAlbum = "album"+tmpOwnerId+"and"+tmpOwnerAlbumId;
+                var photoIds = tmp.has(tmpAlbum) ? tmp.get(tmpAlbum).getAsJsonObject().get("photoids").getAsJsonArray() : new JsonArray();
+                var photoIdsCount = photoIds.size();
                 var ownerAlbum = new Photos(Config.VK()).get(userActor)
-                        .ownerId(Integer.valueOf(ownerId)).albumId(ownerAlbumId).count(0).offset(0).execute();
+                        .ownerId(Integer.parseInt(ownerId)).albumId(ownerAlbumId).count(0).offset(0).execute();
                 if (ownerAlbum == null) continue;
-                if (photoIds.size() >= ownerAlbum.getCount()) continue;
+                if (photoIdsCount >= ownerAlbum.getCount()) continue;
                 List<Photo> ownerAlbumPhotoList = new ArrayList<>();
                 List<AbstractQueryBuilder> queryList = new ArrayList<>();
                 var offset = 0;
@@ -695,6 +693,7 @@ public class Resave implements Script {
                                 uploadsCount++;
                                 var u = new ArrayList<>(urls.keySet()).get(0);
                                 if(!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
+                                addPhotoIds(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId), u);
                             }else{
                                 var inputMediaGroup = urls.values().stream().map(InputMediaPhoto::new).toArray(InputMediaPhoto[]::new);
                                 var res = tgBot.execute(new SendMediaGroup(tgChatId, inputMediaGroup));
@@ -706,9 +705,8 @@ public class Resave implements Script {
                                 urls.keySet().forEach(u->{
                                     if(!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
                                 });
+                                addPhotoIds(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId), urls.keySet().toArray(new Integer[0]));
                             }
-                            user.getParameters().put("resave", options);
-                            UsersTable.update(user);
                             urls.clear();
                         }
                         lastTime = System.currentTimeMillis();
@@ -808,8 +806,8 @@ public class Resave implements Script {
                         img.delete();
 
                         photoIds.add(photo.getId());
-                        user.getParameters().put("resave", options);
-                        UsersTable.update(user);
+
+                        addPhotoIds(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId), photo.getId());
 
                         uploadsCount++;
                         tempUploadsCount++;
@@ -829,195 +827,133 @@ public class Resave implements Script {
         }
     }
 
-    private static void uploadToVK(Message message){
+    private static final String name = "RESAVE";
+
+    public final static String tableSQL = "CREATE TABLE "+name+" " +
+            "(USERID INT PRIMARY KEY     NOT NULL," +
+            " ALBUMS         JSONB DEFAULT '{}'::jsonb);";
+
+    public static void create(){
         try {
-            var user = UsersTable.findById(message.getFromId());
-            var userActor = new UserActor(user.getId(), user.getToken());
-            var userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute()
-                    .getItems()
-                    .stream()
-                    .filter(album -> album.getDescription().matches("-?\\d+_-?\\d+_show_on"))
-                    .sorted((o1, o2) -> Integer.compare(o2.getSize(), o1.getSize()))
-                    .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
+            var statement = PostgreSQL.getConnection().createStatement();
+            statement.execute(tableSQL);
+            statement.close();
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
+    }
 
-            var userAlbumsDescriptions = userAlbums.stream().map(PhotoAlbumFull::getDescription).distinct().collect(Collectors.toList());
-            int uploadsCount = 0;
-            for(var userAlbumsDescription : userAlbumsDescriptions){
-                String ownerId = userAlbumsDescription.split("_")[0];
-                String ownerAlbumId = userAlbumsDescription.split("_")[1];
+    public static void drop(){
+        try {
+            var statement = PostgreSQL.getConnection().createStatement();
+            statement.execute("DROP TABLE IF EXISTS "+name+";");
+            statement.close();
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
+    }
 
-                var ownerAlbum = new Photos(Config.VK()).get(userActor)
-                        .ownerId(Integer.valueOf(ownerId)).albumId(ownerAlbumId).photoSizes(true).count(1).offset(0).execute();
-                if (ownerAlbum == null) continue;
-                if (userAlbums.stream()
-                        .filter(a -> a.getDescription().equals(userAlbumsDescription))
-                        .map(PhotoAlbumFull::getSize)
-                        .reduce(0, Integer::sum) >= ownerAlbum.getCount()) continue;
-
-                HashSet<Integer> userAlbumPhotoIds = new HashSet<>();
-                userAlbums.stream()
-                        .filter(a -> a.getDescription().matches(a.getDescription()))
-                        .forEachOrdered(a -> {
-                            try {
-                                var userAlbumPhotos = new Photos(Config.VK()).get(userActor)
-                                        .ownerId(user.getId()).albumId(String.valueOf(a.getId())).count(1).offset(0).execute();
-                                var offset = 0;
-                                List<AbstractQueryBuilder> queryList = new ArrayList<>();
-                                while (userAlbumPhotos.getCount() - offset > 0) {
-                                    var batch = new Photos(Config.VK()).get(userActor)
-                                            .ownerId(user.getId())
-                                            .albumId(String.valueOf(a.getId()))
-                                            .offset(offset)
-                                            .count(1000);
-                                    queryList.add(batch);
-                                    offset += 1000;
-                                    if (queryList.size() >= 5 || userAlbumPhotos.getCount() - offset <= 1000) {
-                                        var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
-                                        var array = json.getAsJsonArray();
-                                        array.forEach(e -> {
-                                            var resp = new Gson().fromJson(e, GetResponse.class);
-                                            resp.getItems().forEach(photo -> {
-                                                userAlbumPhotoIds.add(Integer.valueOf(photo.getText()));
-                                            });
-                                        });
-                                        queryList.clear();
-                                    }
-                                }
-                            } catch (ApiException | ClientException e) {
-                                LOG.error(e);
-                            }
-                        });
-
-                List<Photo> ownerAlbumPhotoList = new ArrayList<>();
-                List<AbstractQueryBuilder> queryList = new ArrayList<>();
-                var offset = 0;
-                while (ownerAlbum.getCount() - offset > 0) {
-                    var batch = new Photos(Config.VK()).get(userActor)
-                            .ownerId(Integer.valueOf(ownerId))
-                            .albumId(ownerAlbumId)
-                            .photoSizes(true)
-                            .offset(offset)
-                            .count(1000);
-                    queryList.add(batch);
-                    offset += 1000;
-                    if (queryList.size() >= 5 || ownerAlbum.getCount() - offset <= 1000) {
-                        var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
-                        var array = json.getAsJsonArray();
-                        array.forEach(e -> {
-                            var resp = new Gson().fromJson(e, GetResponse.class);
-                            ownerAlbumPhotoList.addAll(resp.getItems());
-                        });
-                        queryList.clear();
-                    }
-                }
-
-                var albumToUpload = userAlbums.stream()
-                        .filter(a-> userAlbumsDescription.equals(a.getDescription())).findFirst().get();
-                if (albumToUpload.getSize() >= 10000) {
-                    if(userAlbums.stream().noneMatch(a -> a.getDescription().equals(userAlbumsDescription) && a.getSize() < 10000)){
-                        albumToUpload = new Photos(Config.VK())
-                                .createAlbum(userActor, albumToUpload.getTitle())
-                                .description(albumToUpload.getDescription())
-                                .privacyView("only_me")
-                                .execute();
-                    }else{
-                        albumToUpload = userAlbums.stream()
-                                .filter(a-> a.getSize() < 10000
-                                        && a.getDescription().equals(userAlbumsDescription)).findFirst().get();
-                    }
-                }
-                var uploadQuery = new Photos(Config.VK())
-                        .getUploadServer(userActor)
-                        .albumId(albumToUpload.getId());
-                PhotoUpload upload = uploadQuery.execute();
-                int tempUploadsCount = 0;
-                for (var photo : ownerAlbumPhotoList.stream()
-                        .filter(p -> !userAlbumPhotoIds.contains(p.getId()))
-                        .collect(Collectors.toList())) {
-
-                    if (uploadsCount >= 500) {
-                        break;
-                    }
-
-                    if (albumToUpload.getSize() + tempUploadsCount >= 10000) {
-                        albumToUpload.setSize(albumToUpload.getSize()+tempUploadsCount);
-                        if(userAlbums.stream().noneMatch(a -> a.getDescription().equals(userAlbumsDescription) && a.getSize() < 10000)){
-                            albumToUpload = new Photos(Config.VK())
-                                    .createAlbum(userActor, albumToUpload.getTitle())
-                                    .description(albumToUpload.getDescription())
-                                    .privacyView("only_me")
-                                    .execute();
-                        }else{
-                            albumToUpload = userAlbums.stream()
-                                    .filter(a-> a.getSize() < 10000
-                                            && a.getDescription().equals(userAlbumsDescription)).findFirst().get();
-                        }
-                        tempUploadsCount = 0;
-                        userAlbums.add(albumToUpload);
-                        uploadQuery = new Photos(Config.VK())
-                                .getUploadServer(userActor)
-                                .albumId(albumToUpload.getId());
-                        upload = uploadQuery.execute();
-                    }
-
-                    long startTime = System.currentTimeMillis();
-                    HttpURLConnection connection = null;
-                    for (String src : photo.getSizes().stream()
-                            .sorted((o1, o2) ->
-                                    Integer.compare(
-                                            o2.getWidth() * o2.getHeight(),
-                                            o1.getWidth() * o1.getHeight()
-                                    )
-                            )
-                            .map(Image::getUrl)
-                            .collect(Collectors.toList())) {
-                        var url = new URL(src);
-                        connection = (HttpURLConnection) url.openConnection();
-                        if (connection == null) {
-                            LOG.warn("Connection: unknown, photo: " + src);
-                            continue;
-                        }
-                        var code = connection.getResponseCode();
-                        if (code != 200) {
-                            LOG.warn("Response code: " + code + ", photo: " + src);
-                            connection.disconnect();
-                            continue;
-                        }
-                        break;
-                    }
-                    if (connection == null) {
-                        LOG.warn("Connection: unknown, photo: " + photo);
-                        continue;
-                    }
-                    File img = new File(message.getPeerId() + ".jpg");
-                    FileUtils.copyURLToFile(connection.getURL(), img);
-                    connection.disconnect();
-                    PhotoUploadResponse resp = new Upload(Config.VK()).photo(upload.getUploadUrl(), img).execute();
-                    var saveQuery = new Photos(Config.VK()).save(userActor)
-                            .albumId(resp.getAid())
-                            .hash(resp.getHash())
-                            .photosList(resp.getPhotosList())
-                            .server(resp.getServer())
-                            .caption(String.valueOf(photo.getId()));
-                    saveQuery.execute();
-                    img.delete();
-                    uploadsCount++;
-                    tempUploadsCount++;
-                    long endTime = System.currentTimeMillis();
-                    long deltaTime = endTime - startTime;
-                    if (deltaTime > 0 && deltaTime < 1000) {
-                        Thread.sleep(deltaTime);
-                    }
-                }
-                if (uploadsCount >= 500) {
-                    break;
-                }
+    public static Integer getAlbumPhotoIdsCount(int userId, int ownerId, int ownerAlbumId){
+        try {
+            var mOwnerId = ownerId < 0 ? "n"+Math.abs(ownerId) : "p"+ownerId;
+            var mOwnerAlbumId = ownerAlbumId < 0 ? "n"+Math.abs(ownerAlbumId) : "p"+ownerAlbumId;
+            String sql =
+                    "SELECT count(keys) as photoCount " +
+                    "FROM "+name+", " +
+                    "LATERAL jsonb_array_elements(albums #> '{album"+mOwnerId+"and"+mOwnerAlbumId+", photoids}') keys " +
+                    "WHERE resave.userid = "+userId+";";
+            var statement = PostgreSQL.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(sql);
+            if (rs.next()) {
+                return rs.getInt("photoCount");
             }
-            var object = new JsonObject();
-            object.addProperty("date", System.currentTimeMillis());
-            user.getParameters().put("resave", object);
-            UsersTable.update(user);
-        }catch (ApiException | ClientException | InterruptedException | IOException e){
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
+        return -1;
+    }
+
+    /*public static void setChatId(int userId, int ownerId, int ownerAlbumId, long chatId){
+        var mOwnerId = ownerId < 0 ? "n"+Math.abs(ownerId) : "p"+ownerId;
+        var mOwnerAlbumId = ownerAlbumId < 0 ? "n"+Math.abs(ownerAlbumId) : "p"+ownerAlbumId;
+        var mChatId = chatId < 0 ? "n"+Math.abs(chatId) : "p"+chatId;
+
+        if(!containsUser(userId)){
+            insert(userId);
+        }
+        if(!containsAlbum(userId, ownerId, ownerAlbumId)){
+            PostgreSQL.jsonbSet(name, "albums", "userid", String.valueOf(userId),
+                    "album"+mOwnerId+"and"+mOwnerAlbumId+", chatid", mChatId);
+        }
+        PostgreSQL.appendIntoJsonArray(name, "albums", "userid", String.valueOf(userId),
+                "album"+mOwnerId+"and"+mOwnerAlbumId+", chatid", mChatId);
+    }*/
+
+    public static void addPhotoIds(int userId, int ownerId, int ownerAlbumId, Integer... photoIds){
+        var mOwnerId = ownerId < 0 ? "n"+Math.abs(ownerId) : "p"+ownerId;
+        var mOwnerAlbumId = ownerAlbumId < 0 ? "n"+Math.abs(ownerAlbumId) : "p"+ownerAlbumId;
+
+        if(!containsUser(userId)){
+            insert(userId);
+        }
+        if(!containsAlbum(userId, ownerId, ownerAlbumId)){
+            PostgreSQL.jsonbSet(name, "albums", "userid", String.valueOf(userId),
+                    "album"+mOwnerId+"and"+mOwnerAlbumId+", photoids", "[]");
+        }
+        PostgreSQL.appendIntoJsonArray(name, "albums", "userid", String.valueOf(userId),
+                "album"+mOwnerId+"and"+mOwnerAlbumId+", photoids", photoIds);
+    }
+
+    public static JsonObject getAlbumsByUserId(int userId) {
+        try {
+            String sql = "SELECT * from "+name+" WHERE USERID="+userId;
+            var statement = PostgreSQL.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(sql);
+            if (rs.next()) {
+                return new JsonParser().parse(rs.getString("ALBUMS")).getAsJsonObject();
+            }
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
+        return new JsonObject();
+    }
+
+    private static boolean containsUser(int userId) {
+        try {
+            String sql = "SELECT USERID from "+name+" WHERE USERID = "+userId+";";
+            var statement = PostgreSQL.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(sql);
+            return rs.next();
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
+        return false;
+    }
+
+    public static boolean containsAlbum(int userId, int ownerId, int ownerAlbumId) {
+        try {
+            var mOwnerId = ownerId < 0 ? "n"+Math.abs(ownerId) : "p"+ownerId;
+            var mOwnerAlbumId = ownerAlbumId < 0 ? "n"+Math.abs(ownerAlbumId) : "p"+ownerAlbumId;
+
+            String sql = "SELECT ALBUMS FROM "+name+" WHERE ((ALBUMS::jsonb->>'album"+mOwnerId+"and"+mOwnerAlbumId+"') IS NOT NULL) AND USERID = "+userId+";";
+            var statement = PostgreSQL.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(sql);
+            return rs.next();
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
+        return false;
+    }
+
+    public static void insert(int userId) {
+        try {
+            String sql = "INSERT INTO "+name
+                    + "(USERID) " + "VALUES"
+                    + "("+userId+")";
+            var statement = PostgreSQL.getConnection().createStatement();
+            statement.execute(sql);
+            statement.close();
+        } catch (SQLException e) {
             LOG.error(e);
         }
     }

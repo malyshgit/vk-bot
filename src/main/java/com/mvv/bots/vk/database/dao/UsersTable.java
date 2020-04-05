@@ -1,78 +1,144 @@
 package com.mvv.bots.vk.database.dao;
 
-import com.mvv.bots.vk.database.HibernateSessionFactoryUtil;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.mvv.bots.vk.database.PostgreSQL;
 import com.mvv.bots.vk.database.models.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class UsersTable {
     private static final Logger LOG = LogManager.getLogger(UsersTable.class);
     private static final String name = "USERS";
 
-    public final static String tableString = "CREATE TABLE "+name+" " +
+    public final static String tableSQL = "CREATE TABLE "+name+" " +
             "(ID INT PRIMARY KEY     NOT NULL," +
-            " JOB            INT     DEFAULT 0," +
-            " USE            INT     DEFAULT 0," +
             " TOKEN          TEXT," +
-            " PARAMETERS     TEXT[]);";
+            " FIELDS         JSONB DEFAULT '[]'::jsonb);";
 
     public static void create(){
-        Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        String sql = "DROP TABLE IF EXISTS "+name+";";
-        session.createSQLQuery(sql).executeUpdate();
-        session.getTransaction().commit();
-        session.close();
+        try {
+            var statement = PostgreSQL.getConnection().createStatement();
+            statement.execute(tableSQL);
+            statement.close();
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
+    }
 
-        session = HibernateSessionFactoryUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        sql = tableString;
-        session.createSQLQuery(sql).executeUpdate();
-        session.getTransaction().commit();
-        session.close();
+    public static void drop(){
+        try {
+            var statement = PostgreSQL.getConnection().createStatement();
+            statement.execute("DROP TABLE IF EXISTS "+name+";");
+            statement.close();
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
     }
 
     public static User findById(int id) {
-        try (Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession()) {
-            return session.get(User.class, id);
+        try {
+            String sql = "SELECT * from "+name+" WHERE ID="+id;
+            var statement = PostgreSQL.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(sql);
+            if (rs.next()) {
+                Integer userId = rs.getInt("ID");
+                String userToken = rs.getString("TOKEN");
+                var userFields = new JsonParser().parse(rs.getString("FIELDS")).getAsJsonArray();
+                var user = new User(userId);
+                user.setToken(userToken);
+                var fields = new HashMap<String, JsonElement>();
+                for(var e : userFields){
+                    fields.putAll(e.getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+                }
+                user.setFields(fields);
+                return user;
+            }
+        } catch (SQLException e) {
+            LOG.error(e);
         }
+        return null;
     }
 
     public static void save(User user) {
-        Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession();
-        Transaction tx1 = session.beginTransaction();
-        session.save(user);
-        tx1.commit();
-        session.close();
+        try {
+            var array = new JsonArray();
+            user.getFields().forEach((k, v)->{
+                JsonObject object = new JsonObject();
+                object.add(k, v);
+                array.add(object);
+            });
+            String sql = "INSERT INTO "+name
+                            + "(ID, TOKEN, FIELDS) " + "VALUES"
+                            + "("+user.getId()+", '"+user.getToken()+"', '"+array.toString()+"')";
+            var statement = PostgreSQL.getConnection().createStatement();
+            statement.execute(sql);
+            statement.close();
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
     }
 
     public static void update(User user) {
-        Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession();
-        Transaction tx1 = session.beginTransaction();
-        session.update(user);
-        tx1.commit();
-        session.close();
+        try {
+            JsonArray array = new JsonArray();
+            user.getFields().forEach((k, v)->{
+                JsonObject object = new JsonObject();
+                object.add(k, v);
+                array.add(object);
+            });
+            String sql = "UPDATE "+name+" SET token = '"+user.getToken()+"', fields = '"+array.toString()+"' WHERE id = "+user.getId()+";";
+            var statement = PostgreSQL.getConnection().createStatement();
+            statement.execute(sql);
+            statement.close();
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
     }
 
     public static void delete(User user) {
-        Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession();
-        Transaction tx1 = session.beginTransaction();
-        session.delete(user);
-        tx1.commit();
-        session.close();
+        try {
+            String sql = "DELETE "+name+" WHERE ID = "+user.getId()+";";
+            var statement = PostgreSQL.getConnection().createStatement();
+            statement.execute(sql);
+            statement.close();
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
     }
 
     public static List<User> findAll() {
-        try (Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession()) {
-            return session.createQuery("SELECT a FROM User a", User.class).getResultList();
+        List<User> users = new ArrayList<>();
+        try {
+            String sql = "SELECT * from "+name+";";
+            var statement = PostgreSQL.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(sql);
+            while (rs.next()) {
+                Integer userId = rs.getInt("ID");
+                String userToken = rs.getString("TOKEN");
+                var userFields = new JsonParser().parse(rs.getString("FIELDS")).getAsJsonArray();
+                var user = new User(userId);
+                user.setToken(userToken);
+                var fields = new HashMap<String, JsonElement>();
+                for(var e : userFields){
+                    fields.putAll(e.getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+                }
+                user.setFields(fields);
+                users.add(user);
+            }
+            return users;
+        } catch (SQLException e) {
+            LOG.error(e);
         }
+        return users;
     }
 
 }
