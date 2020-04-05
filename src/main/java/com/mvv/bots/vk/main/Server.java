@@ -1,6 +1,7 @@
 package com.mvv.bots.vk.main;
 
 import com.google.gson.*;
+import com.mvv.bots.vk.database.dao.ResaveTable;
 import com.mvv.bots.vk.database.models.Option;
 import com.mvv.bots.vk.database.dao.OptionsTable;
 import com.mvv.bots.vk.database.models.User;
@@ -63,7 +64,7 @@ public class Server {
     public static void main(String[] args) {
             Config.load();
             UsersTable.create();
-            Resave.create();
+            ResaveTable.create();
         if(args.length > 0){
             for(var arg : args){
                 switch (arg){
