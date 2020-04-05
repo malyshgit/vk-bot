@@ -632,11 +632,9 @@ public class Resave implements Script {
             var options = user.getFields().get("resave").getAsJsonObject();
             var date = options.get("date").getAsLong();
             var lastUploadTime = System.currentTimeMillis() - date;
-            if(lastUploadTime >= DateUtils.MILLIS_PER_MINUTE*55){
-                options.addProperty("date", System.currentTimeMillis());
-                user.update();
-            }
-
+            
+            if(lastUploadTime < DateUtils.MILLIS_PER_MINUTE*30) return;
+                    
             var albums = options.get("albums").getAsJsonArray();
             var uploadsCount = 0;
             for (var albumObject : albums) {
@@ -685,6 +683,8 @@ public class Resave implements Script {
 
                 if(totg){
                     if(lastUploadTime < DateUtils.MILLIS_PER_MINUTE*30) continue;
+                    options.addProperty("date", System.currentTimeMillis());
+                    user.update();
                     TelegramBot tgBot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
                     var tgChatId = album.get("tgchatid").getAsLong();
                     var urls = new HashMap<Integer, String>();
@@ -740,6 +740,8 @@ public class Resave implements Script {
                     }
                 }else{
                     if(lastUploadTime < DateUtils.MILLIS_PER_HOUR) continue;
+                    options.addProperty("date", System.currentTimeMillis());
+                    user.update();
                     var userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute()
                             .getItems()
                             .stream()
@@ -847,6 +849,8 @@ public class Resave implements Script {
                     }
                 }
             }
+            options.addProperty("date", System.currentTimeMillis());
+            user.update();
         } catch (ApiException | ClientException | InterruptedException | IOException e){
             LOG.error(e);
         }
