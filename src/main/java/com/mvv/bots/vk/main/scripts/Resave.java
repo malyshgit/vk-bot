@@ -649,7 +649,7 @@ public class Resave implements Script {
                             .count(1000);
                     queryList.add(batch);
                     offset += 1000;
-                    if (queryList.size() >= 5 || ownerAlbum.getCount() - offset <= 1000) {
+                    if (queryList.size() >= 3 || ownerAlbum.getCount() - offset <= 1000) {
                         var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
                         var array = json.getAsJsonArray();
                         array.forEach(e -> {
