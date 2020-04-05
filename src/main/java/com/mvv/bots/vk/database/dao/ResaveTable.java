@@ -74,7 +74,7 @@ public class ResaveTable {
 
     public static int getAlbumPhotosCount(int userId, int ownerId, int ownerAlbumId) {
         try {
-            String sql = "SELECT array_length(uniq(photoids), 1)::int FROM "+name+" WHERE USERID = "+userId+" AND OWNERID = "+ownerId+" AND ALBUMID = "+ownerAlbumId+";";
+            String sql = "SELECT array_length(ARRAY(SELECT DISTINCT unnest (photoids)), 1)::int FROM "+name+" WHERE USERID = "+userId+" AND OWNERID = "+ownerId+" AND ALBUMID = "+ownerAlbumId+";";
             var statement = PostgreSQL.getConnection().createStatement();
             ResultSet rs = statement.executeQuery(sql);
             if (rs.next()){
