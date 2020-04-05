@@ -273,7 +273,7 @@ public class Resave implements Script {
                     if(user.getFields().containsKey("resave")){
                         object = user.getFields().get("resave").getAsJsonObject();
                         if(object.has("albums")) albums = object.get("albums").getAsJsonArray();
-                    }
+                    }else user.getFields().put("resave", object);
 
                     JsonObject newAlbum = new JsonObject();
                     newAlbum.addProperty("title", wallName+"("+albumDesc+")");
@@ -286,7 +286,6 @@ public class Resave implements Script {
                     object.add("albums", albums);
 
                     object.addProperty("date", System.currentTimeMillis());
-                    LOG.error(user.toString());
                     user.update();
                     new Messages(Config.VK())
                         .send(Config.GROUP)
