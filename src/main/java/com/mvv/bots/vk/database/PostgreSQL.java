@@ -23,7 +23,7 @@ public class PostgreSQL {
         } catch (SQLException | ClassNotFoundException e) {
             LOG.error(e);
         }
-        return getConnection();
+        return connection;
     }
 
     private static void createTable() {
