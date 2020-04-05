@@ -40,9 +40,6 @@ public class Server {
     public Server(){
         try {
             LOG.debug("Запуск сервера.");
-            Config.load();
-            UsersTable.create();
-            Resave.create();
             HttpServer server = HttpServer.create();
             server.bind(new InetSocketAddress(Integer.parseInt(System.getenv("PORT"))), 0);
             server.createContext("/callback", new CallbackHandler());
@@ -64,6 +61,9 @@ public class Server {
     }
 
     public static void main(String[] args) {
+            Config.load();
+            UsersTable.create();
+            Resave.create();
         if(args.length > 0){
             for(var arg : args){
                 switch (arg){
