@@ -17,7 +17,8 @@ public class PostgreSQL {
 
     public static Connection getConnection() {
         try {
-            if(connection != null && !connection.isClosed()) return connection;
+            if(connection != null) return connection;
+            System.out.println(Config.JDBC_DATABASE_URL);
             Class.forName("org.postgresql.Driver");
             return connection = DriverManager.getConnection(Config.JDBC_DATABASE_URL);
         } catch (SQLException | ClassNotFoundException e) {
