@@ -80,7 +80,7 @@ public class Authorization implements Script {
                     break;
                 case 0:
                     User user = UsersTable.findById(message.getFromId());
-                    if(user.getToken() != null){
+                    if(user.getToken() != null && !user.getToken().isEmpty()){
                         buttons.add(List.of(
                                 new KeyboardButton()
                                         .setColor(KeyboardButtonColor.NEGATIVE)
