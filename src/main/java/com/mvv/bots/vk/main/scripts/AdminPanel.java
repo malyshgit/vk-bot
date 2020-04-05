@@ -333,6 +333,7 @@ public class AdminPanel implements Script {
                     }
                     break;
                 case 1022:
+                    UsersTable.drop();
                     UsersTable.create();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
@@ -342,6 +343,7 @@ public class AdminPanel implements Script {
                             .execute();
                     break;
                 case 11:
+                    UsersTable.drop();
                     UsersTable.create();
                     OptionsTable.create();
                     new Messages(Config.VK())

@@ -19,7 +19,7 @@ public class UsersTable {
     private static final Logger LOG = LogManager.getLogger(UsersTable.class);
     private static final String name = "USERS";
 
-    public final static String tableSQL = "CREATE TABLE "+name+" " +
+    public final static String tableSQL = "CREATE TABLE IF NOT EXISTS "+name+" " +
             "(ID INT PRIMARY KEY     NOT NULL," +
             " TOKEN          TEXT," +
             " FIELDS         JSONB DEFAULT '[]'::jsonb);";

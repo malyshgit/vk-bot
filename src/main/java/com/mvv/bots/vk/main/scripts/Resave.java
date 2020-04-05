@@ -829,7 +829,7 @@ public class Resave implements Script {
 
     private static final String name = "RESAVE";
 
-    public final static String tableSQL = "CREATE TABLE "+name+" " +
+    public final static String tableSQL = "CREATE TABLE IF NOT EXISTS "+name+" " +
             "(USERID INT PRIMARY KEY     NOT NULL," +
             " ALBUMS         JSONB DEFAULT '{}'::jsonb);";
 

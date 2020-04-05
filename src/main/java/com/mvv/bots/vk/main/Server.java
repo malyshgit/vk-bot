@@ -6,6 +6,7 @@ import com.mvv.bots.vk.database.dao.OptionsTable;
 import com.mvv.bots.vk.database.models.User;
 import com.mvv.bots.vk.database.dao.UsersTable;
 import com.mvv.bots.vk.main.scripts.Authorization;
+import com.mvv.bots.vk.main.scripts.Resave;
 import com.mvv.bots.vk.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -40,6 +41,8 @@ public class Server {
         try {
             LOG.debug("Запуск сервера.");
             Config.load();
+            UsersTable.create();
+            Resave.create();
             HttpServer server = HttpServer.create();
             server.bind(new InetSocketAddress(Integer.parseInt(System.getenv("PORT"))), 0);
             server.createContext("/callback", new CallbackHandler());
