@@ -286,6 +286,7 @@ public class Resave implements Script {
                     object.add("albums", albums);
 
                     object.addProperty("date", System.currentTimeMillis());
+                    LOG.error(user.toString());
                     user.update();
                     new Messages(Config.VK())
                         .send(Config.GROUP)
