@@ -630,6 +630,13 @@ public class Resave implements Script {
             var user = UsersTable.findById(message.getFromId());
             var userActor = new UserActor(user.getId(), user.getToken());
             var options = user.getFields().get("resave").getAsJsonObject();
+            var date = options.get("date").getAsLong();
+            var lastUploadTime = System.currentTimeMillis() - date;
+            if(lastUploadTime >= DateUtils.MILLIS_PER_MINUTE*55){
+                options.addProperty("date", System.currentTimeMillis());
+                user.update();
+            }
+
             var albums = options.get("albums").getAsJsonArray();
             var uploadsCount = 0;
             for (var albumObject : albums) {
@@ -677,6 +684,7 @@ public class Resave implements Script {
                 }
 
                 if(totg){
+                    if(lastUploadTime < DateUtils.MILLIS_PER_MINUTE*30) continue;
                     TelegramBot tgBot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
                     var tgChatId = album.get("tgchatid").getAsLong();
                     var urls = new HashMap<Integer, String>();
@@ -731,6 +739,7 @@ public class Resave implements Script {
                         break;
                     }
                 }else{
+                    if(lastUploadTime < DateUtils.MILLIS_PER_HOUR) continue;
                     var userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute()
                             .getItems()
                             .stream()
