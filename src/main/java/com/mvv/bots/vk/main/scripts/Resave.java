@@ -712,6 +712,7 @@ public class Resave implements Script {
                                 var res = tgBot.execute(new SendPhoto(tgChatId, new ArrayList<>(urls.values()).get(0)));
                                 if(!res.isOk()){
                                     lastTime = System.currentTimeMillis();
+                                    urls.clear();
                                     continue;
                                 }
                                 uploadsCount++;
@@ -723,6 +724,7 @@ public class Resave implements Script {
                                 var res = tgBot.execute(new SendMediaGroup(tgChatId, inputMediaGroup));
                                 if(!res.isOk()){
                                     lastTime = System.currentTimeMillis();
+                                    urls.clear();
                                     continue;
                                 }
                                 uploadsCount+=10;
