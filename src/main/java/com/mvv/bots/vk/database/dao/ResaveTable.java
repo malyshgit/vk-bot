@@ -88,10 +88,6 @@ public class ResaveTable {
     }
 
     public static void addPhotoIds(int userId, int ownerId, int ownerAlbumId, Integer... photoIds){
-        if(!containsUser(userId)){
-            insert(userId, ownerId, ownerAlbumId, photoIds);
-            return;
-        }
         if(!containsAlbum(userId, ownerId, ownerAlbumId)){
             insert(userId, ownerId, ownerAlbumId, photoIds);
             return;
@@ -109,6 +105,19 @@ public class ResaveTable {
         }
     }
 
+    public static void remove(int userId, int ownerId, int ownerAlbumId){
+        try {
+            String sql = "DELETE FROM "+name+" WHERE USERID = "+userId +
+                    " AND OWNERID = "+ownerId+
+                    " AND ALBUMID = "+ownerAlbumId+";";
+            var statement = PostgreSQL.getConnection().createStatement();
+            statement.execute(sql);
+            statement.close();
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
+    }
+/*
     public static boolean containsUser(int userId) {
         try {
             String sql = "SELECT * FROM "+name+" WHERE USERID = "+userId+";";
@@ -119,7 +128,7 @@ public class ResaveTable {
             LOG.error(e);
         }
         return false;
-    }
+    }*/
 
     public static boolean containsAlbum(int userId, int ownerId, int ownerAlbumId) {
         try {

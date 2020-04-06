@@ -106,7 +106,7 @@ public class UsersTable {
 
     public static void delete(User user) {
         try {
-            String sql = "DELETE "+name+" WHERE ID = "+user.getId()+";";
+            String sql = "DELETE FROM "+name+" WHERE ID = "+user.getId()+";";
             var statement = PostgreSQL.getConnection().createStatement();
             statement.execute(sql);
             statement.close();

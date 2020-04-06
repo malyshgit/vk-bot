@@ -601,6 +601,7 @@ public class Resave implements Script {
                         var album = albumEl.getAsJsonObject();
                         if(album.get("ownerid").getAsString().equals(ownerId)
                                 &&album.get("albumid").getAsString().equals(albumId)){
+                            ResaveTable.remove(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(albumId));
                             albums.remove(albumEl);
                             break;
                         }
@@ -632,8 +633,6 @@ public class Resave implements Script {
             var options = user.getFields().get("resave").getAsJsonObject();
             var date = options.get("date").getAsLong();
             var lastUploadTime = System.currentTimeMillis() - date;
-            
-            if(lastUploadTime < DateUtils.MILLIS_PER_MINUTE*30) return;
                     
             var albums = options.get("albums").getAsJsonArray();
             var uploadsCount = 0;
@@ -644,6 +643,10 @@ public class Resave implements Script {
                 var ownerId = album.get("ownerid").getAsString();
                 var ownerAlbumId = album.get("albumid").getAsString();
                 var totg = album.get("totg").getAsBoolean();
+
+                if(lastUploadTime < DateUtils.MILLIS_PER_MINUTE*30 && totg) continue;
+                if(lastUploadTime < DateUtils.MILLIS_PER_HOUR && !totg) continue;
+
                 var tmp = ResaveTable.getAlbumsByUserId(user.getId());
                 var tmpOwnerId = ownerId.startsWith("-") ? "n"+ownerId.substring(1) : "p"+ownerId;
                 var tmpOwnerAlbumId = ownerAlbumId.startsWith("-") ? "n"+ownerAlbumId.substring(1) : "p"+ownerAlbumId;
@@ -682,7 +685,6 @@ public class Resave implements Script {
                 }
 
                 if(totg){
-                    if(lastUploadTime < DateUtils.MILLIS_PER_MINUTE*30) continue;
                     options.addProperty("date", System.currentTimeMillis());
                     user.update();
                     TelegramBot tgBot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
@@ -741,7 +743,6 @@ public class Resave implements Script {
                         break;
                     }
                 }else{
-                    if(lastUploadTime < DateUtils.MILLIS_PER_HOUR) continue;
                     options.addProperty("date", System.currentTimeMillis());
                     user.update();
                     var userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute()
