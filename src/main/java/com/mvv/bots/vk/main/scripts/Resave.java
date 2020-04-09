@@ -687,7 +687,7 @@ public class Resave implements Script {
                 }
 
                 LOG.error("owneralbum");
-                LOG.error(ownerAlbumPhotoList);
+                LOG.error(ownerAlbumPhotoList.size());
                 if(totg){
                     options.addProperty("date", System.currentTimeMillis());
                     user.update();
