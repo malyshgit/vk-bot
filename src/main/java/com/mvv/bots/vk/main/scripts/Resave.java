@@ -656,8 +656,6 @@ public class Resave implements Script {
                                 && j.get("albumid").getAsString().equals(ownerAlbumId))
                         .map(j->j.get("photoids").getAsJsonArray())
                         .findFirst().orElse(new JsonArray());
-                LOG.error("photoids");
-                LOG.error(photoIds);
                 var photoIdsCount = photoIds.size();
                 var ownerAlbum = new Photos(Config.VK()).get(userActor)
                         .ownerId(Integer.parseInt(ownerId)).albumId(ownerAlbumId).count(0).offset(0).execute();
@@ -686,8 +684,6 @@ public class Resave implements Script {
                     }
                 }
 
-                LOG.error("owneralbum");
-                LOG.error(ownerAlbumPhotoList.size());
                 if(totg){
                     options.addProperty("date", System.currentTimeMillis());
                     user.update();
@@ -698,8 +694,6 @@ public class Resave implements Script {
                     var photos = ownerAlbumPhotoList.stream()
                             .filter(p -> !photoIds.contains(new JsonPrimitive(p.getId())))
                             .collect(Collectors.toList());
-                    LOG.error("photos");
-                    LOG.error(photos);
                     for (var i = 0; i < photos.size(); i++) {
                         var photo = photos.get(i);
                         if (uploadsCount >= 500) {
