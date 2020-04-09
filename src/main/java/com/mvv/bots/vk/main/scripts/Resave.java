@@ -644,7 +644,7 @@ public class Resave implements Script {
                 var ownerAlbumId = album.get("albumid").getAsString();
                 var totg = album.get("totg").getAsBoolean();
 
-               // if(lastUploadTime < DateUtils.MILLIS_PER_MINUTE*30 && totg) continue;
+                if(lastUploadTime < DateUtils.MILLIS_PER_MINUTE*30 && totg) continue;
                 if(lastUploadTime < DateUtils.MILLIS_PER_HOUR && !totg) continue;
 
                 var tmp = ResaveTable.getAlbumsByUserId(user.getId());
