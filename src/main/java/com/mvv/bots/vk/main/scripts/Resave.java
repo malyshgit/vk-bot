@@ -686,6 +686,8 @@ public class Resave implements Script {
                     }
                 }
 
+                LOG.error("owneralbum");
+                LOG.error(ownerAlbumPhotoList);
                 if(totg){
                     options.addProperty("date", System.currentTimeMillis());
                     user.update();
@@ -696,6 +698,8 @@ public class Resave implements Script {
                     var photos = ownerAlbumPhotoList.stream()
                             .filter(p -> !photoIds.contains(new JsonPrimitive(p.getId())))
                             .collect(Collectors.toList());
+                    LOG.error("photos");
+                    LOG.error(photos);
                     for (var i = 0; i < photos.size(); i++) {
                         var photo = photos.get(i);
                         if (uploadsCount >= 500) {
