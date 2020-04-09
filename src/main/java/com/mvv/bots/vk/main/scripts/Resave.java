@@ -656,6 +656,8 @@ public class Resave implements Script {
                                 && j.get("albumid").getAsString().equals(ownerAlbumId))
                         .map(j->j.get("photoids").getAsJsonArray())
                         .findFirst().orElse(new JsonArray());
+                LOG.error("photoids");
+                LOG.error(photoIds);
                 var photoIdsCount = photoIds.size();
                 var ownerAlbum = new Photos(Config.VK()).get(userActor)
                         .ownerId(Integer.parseInt(ownerId)).albumId(ownerAlbumId).count(0).offset(0).execute();
