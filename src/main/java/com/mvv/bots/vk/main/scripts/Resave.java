@@ -683,7 +683,6 @@ public class Resave implements Script {
                         }
                     }
                     if(split) splitOffset = (splitOffset+offset);
-                    if(split) continue;
                     if (totg) {
                         options.addProperty("date", System.currentTimeMillis());
                         user.update();
