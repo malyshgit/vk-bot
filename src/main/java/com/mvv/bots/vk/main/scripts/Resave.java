@@ -659,7 +659,7 @@ public class Resave implements Script {
                 while(split) {
                     if(splitOffset >= ownerAlbum.getCount()) break;
                     split = ownerAlbum.getCount() > 9000;
-                    HashSet<Photo> ownerAlbumPhotoList = new HashSet<>();
+                    List<Photo> ownerAlbumPhotoList = new ArrayList<>();
                     List<AbstractQueryBuilder> queryList = new ArrayList<>();
                     var offset = 0;
                     while (ownerAlbum.getCount() - (splitOffset+offset) > 0) {
