@@ -693,10 +693,8 @@ public class Resave implements Script {
                         var photos = ownerAlbumPhotoList.stream()
                                 .filter(p -> !photoIds.contains(new JsonPrimitive(p.getId())))
                                 .collect(Collectors.toList());
-                        LOG.error(photos.size());
                         for (var i = 0; i < photos.size(); i++) {
                             var photo = photos.get(i);
-                            LOG.error(photo);
                             if (uploadsCount >= 500) {
                                 break;
                             }
@@ -716,7 +714,6 @@ public class Resave implements Script {
                                     if (!res.isOk()) {
                                         lastTime = System.currentTimeMillis();
                                         urls.clear();
-                                        LOG.error("fail");
                                         continue;
                                     }
                                     uploadsCount++;
@@ -729,7 +726,6 @@ public class Resave implements Script {
                                     if (!res.isOk()) {
                                         lastTime = System.currentTimeMillis();
                                         urls.clear();
-                                        LOG.error("fail");
                                         continue;
                                     }
                                     uploadsCount += 10;
