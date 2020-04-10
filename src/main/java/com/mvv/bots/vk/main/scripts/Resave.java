@@ -658,11 +658,12 @@ public class Resave implements Script {
                 var splitOffset = 0;
                 while(split) {
                     if(splitOffset >= ownerAlbum.getCount()) break;
-                    split = ownerAlbum.getCount() > 10000;
+                    split = ownerAlbum.getCount() > 9000;
                     List<Photo> ownerAlbumPhotoList = new ArrayList<>();
                     List<AbstractQueryBuilder> queryList = new ArrayList<>();
                     var offset = 0;
                     while (ownerAlbum.getCount() - (splitOffset+offset) > 0) {
+                        if(ownerAlbumPhotoList.size() >= 9000) break;
                         var batch = new Photos(Config.VK()).get(userActor)
                                 .ownerId(Integer.valueOf(ownerId))
                                 .albumId(ownerAlbumId)
