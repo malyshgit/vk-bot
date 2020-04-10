@@ -659,7 +659,7 @@ public class Resave implements Script {
                 while(split) {
                     if(splitOffset >= ownerAlbum.getCount()) break;
                     split = ownerAlbum.getCount() > 9000;
-                    List<Photo> ownerAlbumPhotoList = new ArrayList<>();
+                    HashSet<Photo> ownerAlbumPhotoList = new HashSet<>();
                     List<AbstractQueryBuilder> queryList = new ArrayList<>();
                     var offset = 0;
                     while (ownerAlbum.getCount() - (splitOffset+offset) > 0) {
@@ -668,7 +668,7 @@ public class Resave implements Script {
                                 .ownerId(Integer.valueOf(ownerId))
                                 .albumId(ownerAlbumId)
                                 .photoSizes(true)
-                                .offset((splitOffset+offset))
+                                .offset(splitOffset+offset)
                                 .count(1000);
                         queryList.add(batch);
                         offset += 1000;
@@ -682,7 +682,8 @@ public class Resave implements Script {
                             queryList.clear();
                         }
                     }
-                    if(split) splitOffset += ownerAlbumPhotoList.size();
+                    if(split) splitOffset = (splitOffset+offset);
+                    if(split) continue;
                     if (totg) {
                         options.addProperty("date", System.currentTimeMillis());
                         user.update();
