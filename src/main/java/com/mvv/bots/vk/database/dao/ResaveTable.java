@@ -72,6 +72,30 @@ public class ResaveTable {
         return new ArrayList<>();
     }
 
+    public static JsonObject getAlbum(int userId, int ownerId, int ownerAlbumId) {
+        try {
+            String sql = "SELECT * FROM "+name+" WHERE USERID = "+userId+" AND OWNERID = "+ownerId+" AND ALBUMID = "+ownerAlbumId+";";
+            var statement = PostgreSQL.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(sql);
+            if (rs.next()) {
+                var object = new JsonObject();
+                object.addProperty("ownerid", rs.getInt("ownerid"));
+                object.addProperty("albumid", rs.getInt("albumid"));
+                var photoids = (Integer[])rs.getArray("photoids").getArray();
+                JsonArray array = new JsonArray();
+                for(var pid : photoids){
+                    array.add(pid);
+                }
+                object.add("photoids", array);
+                return object;
+            }
+            return new JsonObject();
+        } catch (SQLException e) {
+            LOG.error(e);
+        }
+        return new JsonObject();
+    }
+
     public static int getAlbumPhotosCount(int userId, int ownerId, int ownerAlbumId) {
         try {
             String sql = "SELECT array_length(ARRAY(SELECT DISTINCT unnest (photoids)), 1)::int FROM "+name+" WHERE USERID = "+userId+" AND OWNERID = "+ownerId+" AND ALBUMID = "+ownerAlbumId+";";

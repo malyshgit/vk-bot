@@ -647,208 +647,207 @@ public class Resave implements Script {
                 if(lastUploadTime < DateUtils.MILLIS_PER_MINUTE*30 && totg) continue;
                 if(lastUploadTime < DateUtils.MILLIS_PER_HOUR && !totg) continue;
 
-                var tmp = ResaveTable.getAlbumsByUserId(user.getId());
-                var tmpOwnerId = ownerId.startsWith("-") ? "n"+ownerId.substring(1) : "p"+ownerId;
-                var tmpOwnerAlbumId = ownerAlbumId.startsWith("-") ? "n"+ownerAlbumId.substring(1) : "p"+ownerAlbumId;
-                var tmpAlbum = "album"+tmpOwnerId+"and"+tmpOwnerAlbumId;
-                var photoIds = tmp.stream()
-                        .filter(j->j.get("ownerid").getAsString().equals(ownerId)
-                                && j.get("albumid").getAsString().equals(ownerAlbumId))
-                        .map(j->j.get("photoids").getAsJsonArray())
-                        .findFirst().orElse(new JsonArray());
+                var tmp = ResaveTable.getAlbum(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId));
+                var photoIds = tmp.isJsonNull() ? new JsonArray() : tmp.get("photoids").getAsJsonArray();
                 var photoIdsCount = photoIds.size();
                 var ownerAlbum = new Photos(Config.VK()).get(userActor)
                         .ownerId(Integer.parseInt(ownerId)).albumId(ownerAlbumId).count(0).offset(0).execute();
                 if (ownerAlbum == null) continue;
                 if (photoIdsCount >= ownerAlbum.getCount()) continue;
-                List<Photo> ownerAlbumPhotoList = new ArrayList<>();
-                List<AbstractQueryBuilder> queryList = new ArrayList<>();
-                var offset = 0;
-                while (ownerAlbum.getCount() - offset > 0) {
-                    var batch = new Photos(Config.VK()).get(userActor)
-                            .ownerId(Integer.valueOf(ownerId))
-                            .albumId(ownerAlbumId)
-                            .photoSizes(true)
-                            .offset(offset)
-                            .count(1000);
-                    queryList.add(batch);
-                    offset += 1000;
-                    if (queryList.size() >= 3 || ownerAlbum.getCount() - offset <= 1000) {
-                        var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
-                        var array = json.getAsJsonArray();
-                        array.forEach(e -> {
-                            var resp = new Gson().fromJson(e, GetResponse.class);
-                            ownerAlbumPhotoList.addAll(resp.getItems());
-                        });
-                        queryList.clear();
+                var split = true;
+                var splitOffset = 0;
+                while(split) {
+                    if(splitOffset >= ownerAlbum.getCount()) break;
+                    split = ownerAlbum.getCount() > 10000;
+                    List<Photo> ownerAlbumPhotoList = new ArrayList<>();
+                    List<AbstractQueryBuilder> queryList = new ArrayList<>();
+                    var offset = 0;
+                    while (ownerAlbum.getCount() - (splitOffset+offset) > 0) {
+                        var batch = new Photos(Config.VK()).get(userActor)
+                                .ownerId(Integer.valueOf(ownerId))
+                                .albumId(ownerAlbumId)
+                                .photoSizes(true)
+                                .offset((splitOffset+offset))
+                                .count(1000);
+                        queryList.add(batch);
+                        offset += 1000;
+                        if (queryList.size() >= 3 || ownerAlbum.getCount() - (splitOffset+offset) <= 1000) {
+                            var json = new Execute(Config.VK()).batch(userActor, queryList).execute();
+                            var array = json.getAsJsonArray();
+                            array.forEach(e -> {
+                                var resp = new Gson().fromJson(e, GetResponse.class);
+                                ownerAlbumPhotoList.addAll(resp.getItems());
+                            });
+                            queryList.clear();
+                        }
                     }
-                }
+                    if(split) splitOffset += ownerAlbumPhotoList.size();
+                    if (totg) {
+                        options.addProperty("date", System.currentTimeMillis());
+                        user.update();
+                        TelegramBot tgBot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
+                        var tgChatId = album.get("tgchatid").getAsLong();
+                        var urls = new HashMap<Integer, String>();
+                        var lastTime = 0L;
+                        var photos = ownerAlbumPhotoList.stream()
+                                .filter(p -> !photoIds.contains(new JsonPrimitive(p.getId())))
+                                .collect(Collectors.toList());
+                        for (var i = 0; i < photos.size(); i++) {
+                            var photo = photos.get(i);
+                            if (uploadsCount >= 500) {
+                                break;
+                            }
+                            var src = photo.getSizes()
+                                    .stream()
+                                    .max(Comparator.comparingInt(o -> o.getWidth() * o.getHeight()))
+                                    .get().getUrl();
+                            urls.put(photo.getId(), src);
 
-                if(totg){
-                    options.addProperty("date", System.currentTimeMillis());
-                    user.update();
-                    TelegramBot tgBot = new TelegramBot(Config.TELEGRAM_BOT_TOKEN);
-                    var tgChatId = album.get("tgchatid").getAsLong();
-                    var urls = new HashMap<Integer, String>();
-                    var lastTime = 0L;
-                    var photos = ownerAlbumPhotoList.stream()
-                            .filter(p -> !photoIds.contains(new JsonPrimitive(p.getId())))
-                            .collect(Collectors.toList());
-                    for (var i = 0; i < photos.size(); i++) {
-                        var photo = photos.get(i);
+                            if (urls.size() == 10 || i == photos.size() - 1) {
+                                var startTime = System.currentTimeMillis();
+                                var dt = (lastTime - startTime) / 1000;
+                                if (dt < 30) dt = 30;
+                                if (lastTime > 0) Thread.sleep(dt * 1000);
+                                if (urls.size() == 1) {
+                                    var res = tgBot.execute(new SendPhoto(tgChatId, new ArrayList<>(urls.values()).get(0)));
+                                    if (!res.isOk()) {
+                                        lastTime = System.currentTimeMillis();
+                                        urls.clear();
+                                        continue;
+                                    }
+                                    uploadsCount++;
+                                    var u = new ArrayList<>(urls.keySet()).get(0);
+                                    if (!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
+                                    ResaveTable.addPhotoIds(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId), u);
+                                } else {
+                                    var inputMediaGroup = urls.values().stream().map(InputMediaPhoto::new).toArray(InputMediaPhoto[]::new);
+                                    var res = tgBot.execute(new SendMediaGroup(tgChatId, inputMediaGroup));
+                                    if (!res.isOk()) {
+                                        lastTime = System.currentTimeMillis();
+                                        urls.clear();
+                                        continue;
+                                    }
+                                    uploadsCount += 10;
+                                    urls.keySet().forEach(u -> {
+                                        if (!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
+                                    });
+                                    ResaveTable.addPhotoIds(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId), urls.keySet().toArray(new Integer[0]));
+                                }
+                                urls.clear();
+                            }
+                            lastTime = System.currentTimeMillis();
+                        }
                         if (uploadsCount >= 500) {
                             break;
                         }
-                        var src = photo.getSizes()
+                    } else {
+                        options.addProperty("date", System.currentTimeMillis());
+                        user.update();
+                        var userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute()
+                                .getItems()
                                 .stream()
-                                .max(Comparator.comparingInt(o -> o.getWidth() * o.getHeight()))
-                                .get().getUrl();
-                        urls.put(photo.getId(), src);
+                                .filter(a -> a.getDescription().matches(ownerId + "_" + ownerAlbumId))
+                                .sorted((o1, o2) -> Integer.compare(o2.getSize(), o1.getSize()))
+                                .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
+                        var albumToUpload = userAlbums.stream()
+                                .filter(a -> (ownerId + "_" + ownerAlbumId).equals(a.getDescription()) && a.getSize() < 10000).findFirst()
+                                .orElse(new Photos(Config.VK())
+                                        .createAlbum(userActor, title)
+                                        .description(ownerId + "_" + ownerAlbumId)
+                                        .privacyView("only_me")
+                                        .execute());
+                        if (!userAlbums.contains(albumToUpload)) userAlbums.add(albumToUpload);
+                        var uploadQuery = new Photos(Config.VK())
+                                .getUploadServer(userActor)
+                                .albumId(albumToUpload.getId());
+                        PhotoUpload upload = uploadQuery.execute();
+                        int tempUploadsCount = 0;
+                        for (var photo : ownerAlbumPhotoList.stream()
+                                .filter(p -> !photoIds.contains(new JsonPrimitive(p.getId())))
+                                .collect(Collectors.toList())) {
 
-                        if(urls.size() == 10 || i == photos.size()-1){
-                            var startTime = System.currentTimeMillis();
-                            var dt = (lastTime - startTime)/1000;
-                            if(dt < 30) dt = 30;
-                            if(lastTime > 0)Thread.sleep(dt*1000);
-                            if(urls.size() == 1){
-                                var res = tgBot.execute(new SendPhoto(tgChatId, new ArrayList<>(urls.values()).get(0)));
-                                if(!res.isOk()){
-                                    lastTime = System.currentTimeMillis();
-                                    urls.clear();
-                                    continue;
-                                }
-                                uploadsCount++;
-                                var u = new ArrayList<>(urls.keySet()).get(0);
-                                if(!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
-                                ResaveTable.addPhotoIds(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId), u);
-                            }else{
-                                var inputMediaGroup = urls.values().stream().map(InputMediaPhoto::new).toArray(InputMediaPhoto[]::new);
-                                var res = tgBot.execute(new SendMediaGroup(tgChatId, inputMediaGroup));
-                                if(!res.isOk()){
-                                    lastTime = System.currentTimeMillis();
-                                    urls.clear();
-                                    continue;
-                                }
-                                uploadsCount+=10;
-                                urls.keySet().forEach(u->{
-                                    if(!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
-                                });
-                                ResaveTable.addPhotoIds(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId), urls.keySet().toArray(new Integer[0]));
+                            if (uploadsCount >= 500) {
+                                break;
                             }
-                            urls.clear();
-                        }
-                        lastTime = System.currentTimeMillis();
-                    }
-                    if (uploadsCount >= 500) {
-                        break;
-                    }
-                }else{
-                    options.addProperty("date", System.currentTimeMillis());
-                    user.update();
-                    var userAlbums = new Photos(Config.VK()).getAlbums(userActor).ownerId(user.getId()).execute()
-                            .getItems()
-                            .stream()
-                            .filter(a -> a.getDescription().matches(ownerId+"_"+ownerAlbumId))
-                            .sorted((o1, o2) -> Integer.compare(o2.getSize(), o1.getSize()))
-                            .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
-                    var albumToUpload = userAlbums.stream()
-                            .filter(a-> (ownerId+"_"+ownerAlbumId).equals(a.getDescription()) && a.getSize() < 10000).findFirst()
-                            .orElse(new Photos(Config.VK())
-                                    .createAlbum(userActor, title)
-                                    .description(ownerId+"_"+ownerAlbumId)
-                                    .privacyView("only_me")
-                                    .execute());
-                    if(!userAlbums.contains(albumToUpload)) userAlbums.add(albumToUpload);
-                    var uploadQuery = new Photos(Config.VK())
-                            .getUploadServer(userActor)
-                            .albumId(albumToUpload.getId());
-                    PhotoUpload upload = uploadQuery.execute();
-                    int tempUploadsCount = 0;
-                    for (var photo : ownerAlbumPhotoList.stream()
-                            .filter(p -> !photoIds.contains(new JsonPrimitive(p.getId())))
-                            .collect(Collectors.toList())) {
 
+                            if (albumToUpload.getSize() + tempUploadsCount >= 10000) {
+                                albumToUpload.setSize(albumToUpload.getSize() + tempUploadsCount);
+                                if (userAlbums.stream().noneMatch(a -> a.getDescription().equals(ownerId + "_" + ownerAlbumId) && a.getSize() < 10000)) {
+                                    albumToUpload = new Photos(Config.VK())
+                                            .createAlbum(userActor, albumToUpload.getTitle())
+                                            .description(albumToUpload.getDescription())
+                                            .privacyView("only_me")
+                                            .execute();
+                                } else {
+                                    albumToUpload = userAlbums.stream()
+                                            .filter(a -> a.getSize() < 10000
+                                                    && a.getDescription().equals(ownerId + "_" + ownerAlbumId)).findFirst().get();
+                                }
+                                tempUploadsCount = 0;
+                                userAlbums.add(albumToUpload);
+                                uploadQuery = new Photos(Config.VK())
+                                        .getUploadServer(userActor)
+                                        .albumId(albumToUpload.getId());
+                                upload = uploadQuery.execute();
+                            }
+
+                            long startTime = System.currentTimeMillis();
+                            HttpURLConnection connection = null;
+                            for (String src : photo.getSizes().stream()
+                                    .sorted((o1, o2) ->
+                                            Integer.compare(
+                                                    o2.getWidth() * o2.getHeight(),
+                                                    o1.getWidth() * o1.getHeight()
+                                            )
+                                    )
+                                    .map(Image::getUrl)
+                                    .collect(Collectors.toList())) {
+                                var url = new URL(src);
+                                connection = (HttpURLConnection) url.openConnection();
+                                if (connection == null) {
+                                    LOG.warn("Connection: unknown, photo: " + src);
+                                    continue;
+                                }
+                                var code = connection.getResponseCode();
+                                if (code != 200) {
+                                    LOG.warn("Response code: " + code + ", photo: " + src);
+                                    connection.disconnect();
+                                    continue;
+                                }
+                                break;
+                            }
+                            if (connection == null) {
+                                LOG.warn("Connection: unknown, photo: " + photo);
+                                continue;
+                            }
+                            File img = new File(message.getPeerId() + ".jpg");
+                            FileUtils.copyURLToFile(connection.getURL(), img);
+                            connection.disconnect();
+                            PhotoUploadResponse resp = new Upload(Config.VK()).photo(upload.getUploadUrl(), img).execute();
+                            var saveQuery = new Photos(Config.VK()).save(userActor)
+                                    .albumId(resp.getAid())
+                                    .hash(resp.getHash())
+                                    .photosList(resp.getPhotosList())
+                                    .server(resp.getServer())
+                                    .caption(String.valueOf(photo.getId()));
+                            saveQuery.execute();
+                            img.delete();
+
+                            photoIds.add(photo.getId());
+
+                            ResaveTable.addPhotoIds(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId), photo.getId());
+
+                            uploadsCount++;
+                            tempUploadsCount++;
+                            long endTime = System.currentTimeMillis();
+                            long deltaTime = endTime - startTime;
+                            if (deltaTime > 0 && deltaTime < 1000) {
+                                Thread.sleep(deltaTime);
+                            }
+                        }
                         if (uploadsCount >= 500) {
                             break;
                         }
-
-                        if (albumToUpload.getSize() + tempUploadsCount >= 10000) {
-                            albumToUpload.setSize(albumToUpload.getSize()+tempUploadsCount);
-                            if(userAlbums.stream().noneMatch(a -> a.getDescription().equals(ownerId+"_"+ownerAlbumId) && a.getSize() < 10000)){
-                                albumToUpload = new Photos(Config.VK())
-                                        .createAlbum(userActor, albumToUpload.getTitle())
-                                        .description(albumToUpload.getDescription())
-                                        .privacyView("only_me")
-                                        .execute();
-                            }else{
-                                albumToUpload = userAlbums.stream()
-                                        .filter(a-> a.getSize() < 10000
-                                                && a.getDescription().equals(ownerId+"_"+ownerAlbumId)).findFirst().get();
-                            }
-                            tempUploadsCount = 0;
-                            userAlbums.add(albumToUpload);
-                            uploadQuery = new Photos(Config.VK())
-                                    .getUploadServer(userActor)
-                                    .albumId(albumToUpload.getId());
-                            upload = uploadQuery.execute();
-                        }
-
-                        long startTime = System.currentTimeMillis();
-                        HttpURLConnection connection = null;
-                        for (String src : photo.getSizes().stream()
-                                .sorted((o1, o2) ->
-                                        Integer.compare(
-                                                o2.getWidth() * o2.getHeight(),
-                                                o1.getWidth() * o1.getHeight()
-                                        )
-                                )
-                                .map(Image::getUrl)
-                                .collect(Collectors.toList())) {
-                            var url = new URL(src);
-                            connection = (HttpURLConnection) url.openConnection();
-                            if (connection == null) {
-                                LOG.warn("Connection: unknown, photo: " + src);
-                                continue;
-                            }
-                            var code = connection.getResponseCode();
-                            if (code != 200) {
-                                LOG.warn("Response code: " + code + ", photo: " + src);
-                                connection.disconnect();
-                                continue;
-                            }
-                            break;
-                        }
-                        if (connection == null) {
-                            LOG.warn("Connection: unknown, photo: " + photo);
-                            continue;
-                        }
-                        File img = new File(message.getPeerId() + ".jpg");
-                        FileUtils.copyURLToFile(connection.getURL(), img);
-                        connection.disconnect();
-                        PhotoUploadResponse resp = new Upload(Config.VK()).photo(upload.getUploadUrl(), img).execute();
-                        var saveQuery = new Photos(Config.VK()).save(userActor)
-                                .albumId(resp.getAid())
-                                .hash(resp.getHash())
-                                .photosList(resp.getPhotosList())
-                                .server(resp.getServer())
-                                .caption(String.valueOf(photo.getId()));
-                        saveQuery.execute();
-                        img.delete();
-
-                        photoIds.add(photo.getId());
-
-                        ResaveTable.addPhotoIds(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId), photo.getId());
-
-                        uploadsCount++;
-                        tempUploadsCount++;
-                        long endTime = System.currentTimeMillis();
-                        long deltaTime = endTime - startTime;
-                        if (deltaTime > 0 && deltaTime < 1000) {
-                            Thread.sleep(deltaTime);
-                        }
-                    }
-                    if (uploadsCount >= 500) {
-                        break;
                     }
                 }
             }
