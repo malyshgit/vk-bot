@@ -648,7 +648,7 @@ public class Resave implements Script {
                 if(lastUploadTime < DateUtils.MILLIS_PER_HOUR && !totg) continue;
 
                 var tmp = ResaveTable.getAlbum(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId));
-                var photoIds = tmp.isJsonNull() ? new JsonArray() : tmp.get("photoids").getAsJsonArray();
+                var photoIds = tmp.has("photoids") ? tmp.get("photoids").getAsJsonArray() : new JsonArray();
                 var photoIdsCount = photoIds.size();
                 var ownerAlbum = new Photos(Config.VK()).get(userActor)
                         .ownerId(Integer.parseInt(ownerId)).albumId(ownerAlbumId).count(0).offset(0).execute();
