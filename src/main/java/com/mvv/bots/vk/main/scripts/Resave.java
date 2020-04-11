@@ -851,9 +851,9 @@ public class Resave implements Script {
                         }
                     }
                 }
+                options.addProperty("date", System.currentTimeMillis());
+                user.update();
             }
-            options.addProperty("date", System.currentTimeMillis());
-            user.update();
         } catch (ApiException | ClientException | InterruptedException | IOException e){
             LOG.error(e);
         }
