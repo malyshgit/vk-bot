@@ -165,6 +165,17 @@ public class Resave implements Script {
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             new Payload()
                                                     .put("script", getClass().getName())
+                                                    .put("step", 1)
+                                                    .toString()
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Обновить"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            new Payload()
+                                                    .put("script", getClass().getName())
                                                     .put("step", 12)
                                                     .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
