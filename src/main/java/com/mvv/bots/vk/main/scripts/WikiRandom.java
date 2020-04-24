@@ -78,6 +78,7 @@ public class WikiRandom implements Script {
                 case 0:
                     User user = UsersTable.findById(message.getFromId());
                     keyboard.setInline(true);
+                    var str = getArticle();
                     if(user.getFields().containsKey("wikirnd")){
                         var options = user.getFields().get("wikirnd").getAsJsonObject();
                         var update = options.get("update").getAsBoolean();
@@ -94,7 +95,12 @@ public class WikiRandom implements Script {
                                         ).setType(KeyboardButtonActionType.TEXT)
                                                 .setLabel(update
                                                         ? "Отписаться"
-                                                        : "Подписаться"))
+                                                        : "Подписаться")),
+                                new KeyboardButton()
+                                        .setColor(KeyboardButtonColor.DEFAULT)
+                                        .setAction(new KeyboardButtonAction().setLink(str[1])
+                                        .setType(KeyboardButtonActionType.OPEN_LINK)
+                                                .setLabel("Источник"))
                         ));
                     }else{
                         var object = new JsonObject();
@@ -136,7 +142,7 @@ public class WikiRandom implements Script {
                     }*/
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message(getArticle())
+                            .message(str[0])
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
@@ -190,7 +196,7 @@ public class WikiRandom implements Script {
         }
     }
 
-    public static String getArticle() throws IOException {
+    public static String[] getArticle() throws IOException {
         var str = "https://ru.wikipedia.org/api/rest_v1/page/random/summary";
 
         URL url = new URL(str);
@@ -200,9 +206,7 @@ public class WikiRandom implements Script {
         sb.append(jsonObject.get("title").getAsString());
         sb.append("\n");
         sb.append(jsonObject.get("extract").getAsString());
-        sb.append("\n");
-        sb.append(jsonObject.get("content_urls").getAsJsonObject().get("desktop").getAsJsonObject().get("page").getAsString());
-        return sb.toString();
+        return new String[]{sb.toString(), str};
     }
 
 }
