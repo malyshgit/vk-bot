@@ -93,6 +93,7 @@ public class Config {
             new Donation(),
             new Resave(),
             new Weather(),
+            new WikiRandom(),
             new ScriptList()
     ));
 }
