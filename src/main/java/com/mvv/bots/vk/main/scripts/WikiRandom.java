@@ -137,7 +137,6 @@ public class WikiRandom implements Script {
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message(getArticle())
-                            .dontParseLinks(false)
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
@@ -192,10 +191,18 @@ public class WikiRandom implements Script {
     }
 
     public static String getArticle() throws IOException {
-        var str = "https://ru.wikipedia.org/wiki/%D0%A1%D0%BB%D1%83%D0%B6%D0%B5%D0%B1%D0%BD%D0%B0%D1%8F:%D0%A1%D0%BB%D1%83%D1%87%D0%B0%D0%B9%D0%BD%D0%B0%D1%8F_%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0";
+        var str = "https://ru.wikipedia.org/api/rest_v1/page/random/summary";
 
         URL url = new URL(str);
-        return str;
+        String json =  new String(url.openStream().readAllBytes(), StandardCharsets.UTF_8);
+        JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
+        StringBuilder sb = new StringBuilder();
+        sb.append(jsonObject.get("title").getAsString());
+        sb.append("\n");
+        sb.append(jsonObject.get("extract").getAsString());
+        sb.append("\n");
+        sb.append(jsonObject.get("content_urls").getAsJsonObject().get("desktop").getAsJsonObject().get("page").getAsString());
+        return sb.toString();
     }
 
 }
