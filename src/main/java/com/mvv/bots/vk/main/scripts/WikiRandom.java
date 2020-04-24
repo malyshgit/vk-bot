@@ -97,7 +97,6 @@ public class WikiRandom implements Script {
                                                         ? "Отписаться"
                                                         : "Подписаться")),
                                 new KeyboardButton()
-                                        .setColor(KeyboardButtonColor.DEFAULT)
                                         .setAction(new KeyboardButtonAction().setLink(str[1])
                                         .setType(KeyboardButtonActionType.OPEN_LINK)
                                                 .setLabel("Источник"))
