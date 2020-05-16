@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.main.scripts;
+package com.github.malyshgit.bots.vk.main.commands;
 
-import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.main.AccessMode;
-import com.mvv.bots.vk.main.Script;
-import com.mvv.bots.vk.utils.Utils;
+import com.github.malyshgit.bots.vk.Config;
+import com.github.malyshgit.bots.vk.main.AccessMode;
+import com.github.malyshgit.bots.vk.main.Command;
+import com.github.malyshgit.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
@@ -18,7 +18,7 @@ import com.vk.api.sdk.objects.messages.keyboard.Payload;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Donation implements Script {
+public class Donation implements Command {
 
     @Override
     public String smile(){

@@ -1,7 +1,7 @@
-package com.mvv.bots.vk;
+package com.github.malyshgit.bots.vk;
 
-import com.mvv.bots.vk.main.Script;
-import com.mvv.bots.vk.main.scripts.*;
+import com.github.malyshgit.bots.vk.main.Command;
+import com.github.malyshgit.bots.vk.main.commands.*;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.GroupActor;
 import com.vk.api.sdk.client.actors.UserActor;
@@ -85,7 +85,7 @@ public class Config {
         }
     }*/
 
-    public static final List<Script> SCRIPTS = Script.getSortedList(List.of(
+    public static final List<Command> COMMANDS = Command.getSortedList(List.of(
             new AdminPanel(),
             //new Administration(),
             new Authorization(),
@@ -94,6 +94,6 @@ public class Config {
             new Resave(),
             new Weather(),
             new WikiRandom(),
-            new ScriptList()
+            new Commands()
     ));
 }

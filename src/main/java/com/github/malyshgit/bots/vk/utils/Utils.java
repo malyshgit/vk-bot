@@ -1,14 +1,9 @@
-package com.mvv.bots.vk.utils;
+package com.github.malyshgit.bots.vk.utils;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.sound.sampled.AudioFileFormat;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
 import java.awt.*;
-import java.io.File;
 import java.util.LinkedList;
 import java.util.concurrent.ThreadLocalRandom;
 

@@ -1,14 +1,13 @@
-package com.mvv.bots.vk.main.scripts;
+package com.github.malyshgit.bots.vk.main.commands;
 
+import com.github.malyshgit.bots.vk.Config;
+import com.github.malyshgit.bots.vk.database.dao.ResaveTable;
+import com.github.malyshgit.bots.vk.database.dao.UsersTable;
+import com.github.malyshgit.bots.vk.database.models.User;
+import com.github.malyshgit.bots.vk.main.AccessMode;
+import com.github.malyshgit.bots.vk.main.Command;
+import com.github.malyshgit.bots.vk.utils.Utils;
 import com.google.gson.*;
-import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.PostgreSQL;
-import com.mvv.bots.vk.database.dao.ResaveTable;
-import com.mvv.bots.vk.database.models.User;
-import com.mvv.bots.vk.database.dao.UsersTable;
-import com.mvv.bots.vk.main.AccessMode;
-import com.mvv.bots.vk.main.Script;
-import com.mvv.bots.vk.utils.Utils;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.InputMediaPhoto;
@@ -25,7 +24,6 @@ import com.vk.api.sdk.objects.messages.*;
 import com.vk.api.sdk.objects.messages.keyboard.Payload;
 import com.vk.api.sdk.objects.photos.Image;
 import com.vk.api.sdk.objects.photos.Photo;
-import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
 import com.vk.api.sdk.objects.photos.PhotoUpload;
 import com.vk.api.sdk.objects.photos.responses.GetResponse;
 import com.vk.api.sdk.objects.photos.responses.PhotoUploadResponse;
@@ -38,16 +36,12 @@ import org.apache.commons.text.RandomStringGenerator;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
-public class Resave implements Script {
+public class Resave implements Command {
 
     @Override
     public String smile(){
@@ -139,7 +133,7 @@ public class Resave implements Script {
                             .message("Описание")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 0:
@@ -153,7 +147,7 @@ public class Resave implements Script {
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             new Payload()
-                                                    .put("script", ScriptList.class.getName())
+                                                    .put("script", Commands.class.getName())
                                                     .put("step", 0)
                                                     .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
@@ -186,7 +180,7 @@ public class Resave implements Script {
                             .message("Пересохранение альбомов")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     send(message, 1);
                     break;
@@ -215,6 +209,7 @@ public class Resave implements Script {
                         if(Resave.confirmKeys.containsKey(confirmKey)){
                             if(Resave.confirmKeys.get(confirmKey) == user.getId()){
                                 tgalbum.addProperty("tgchatid", chatId);
+                                tgalbum.addProperty("totg", true);
                                 user.update();
                                 Resave.confirmKeys.remove(confirmKey);
                             }
@@ -227,7 +222,7 @@ public class Resave implements Script {
                                 .send(Config.GROUP)
                                 .message("Повторите попытку.")
                                 .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
+                                .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                                 .execute();
                         break;
                     }
@@ -241,7 +236,7 @@ public class Resave implements Script {
                                 .send(Config.GROUP)
                                 .message("Отправьте ссылку на альбом и нажмите \"Добавить\"")
                                 .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
+                                .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                                 .execute();
                         return;
                     }
@@ -303,7 +298,7 @@ public class Resave implements Script {
                     newAlbum.addProperty("ownerid", albumInfo[0]);
                     newAlbum.addProperty("albumid", albumInfo[1]);
                     newAlbum.addProperty("hide", false);
-                    newAlbum.addProperty("active", true);
+                    newAlbum.addProperty("active", false);
                     newAlbum.addProperty("totg", false);
                     albums.add(newAlbum);
                     object.add("albums", albums);
@@ -314,7 +309,7 @@ public class Resave implements Script {
                         .send(Config.GROUP)
                         .message("Альбом в очереди.")
                         .peerId(message.getPeerId())
-                        .randomId(Utils.getRandomInt32())
+                        .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                         .execute();
                     send(message, 1);
                     break;
@@ -325,7 +320,7 @@ public class Resave implements Script {
                                 .send(Config.GROUP)
                                 .message("Отправьте ссылку на альбом и нажмите \"Добавить\"")
                                 .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
+                                .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                                 .execute();
                         return;
                     }
@@ -469,7 +464,7 @@ public class Resave implements Script {
                             .message("Альбомы")
                             .template(template)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 2:
@@ -554,7 +549,7 @@ public class Resave implements Script {
                                         "4. Нажмите \"Проверить\"")
                                 .keyboard(keyboard)
                                 .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
+                                .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                                 .execute();
                         break;
                     }
@@ -598,7 +593,7 @@ public class Resave implements Script {
                             .message("Подтвердите удаление")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 71:
@@ -644,7 +639,7 @@ public class Resave implements Script {
             var options = user.getFields().get("resave").getAsJsonObject();
             var date = options.get("date").getAsLong();
             var lastUploadTime = System.currentTimeMillis() - date;
-                    
+            
             var albums = options.get("albums").getAsJsonArray();
             var uploadsCount = 0;
             for (var albumObject : albums) {
@@ -713,9 +708,10 @@ public class Resave implements Script {
                                     .stream()
                                     .max(Comparator.comparingInt(o -> o.getWidth() * o.getHeight()))
                                     .get().getUrl();
+                            if(src == null || src.isEmpty()) continue;
                             urls.put(photo.getId(), src);
 
-                            if (urls.size() == 10 || i == photos.size() - 1) {
+                            if (urls.size() == 10 || i >= photos.size() - 1) {
                                 var startTime = System.currentTimeMillis();
                                 var dt = (lastTime - startTime) / 1000;
                                 if (dt < 30) dt = 30;

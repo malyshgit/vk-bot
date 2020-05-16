@@ -1,9 +1,8 @@
-package com.mvv.bots.vk.database.models;
+package com.github.malyshgit.bots.vk.database.models;
 
 import com.google.gson.JsonElement;
-import com.mvv.bots.vk.database.dao.UsersTable;
+import com.github.malyshgit.bots.vk.database.dao.UsersTable;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 

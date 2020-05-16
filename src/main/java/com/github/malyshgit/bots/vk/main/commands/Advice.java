@@ -3,16 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.main.scripts;
+package com.github.malyshgit.bots.vk.main.commands;
 
+import com.github.malyshgit.bots.vk.Config;
+import com.github.malyshgit.bots.vk.database.dao.UsersTable;
+import com.github.malyshgit.bots.vk.database.models.User;
+import com.github.malyshgit.bots.vk.main.AccessMode;
+import com.github.malyshgit.bots.vk.main.Command;
+import com.github.malyshgit.bots.vk.utils.Utils;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.dao.UsersTable;
-import com.mvv.bots.vk.database.models.User;
-import com.mvv.bots.vk.main.AccessMode;
-import com.mvv.bots.vk.main.Script;
-import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
@@ -26,21 +26,21 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WikiRandom implements Script {
+public class Advice implements Command {
 
     @Override
     public String smile(){
-        return "\uD83D\uDCDC";
+        return "\uD83D\uDCAC";
     }
 
     @Override
     public String key(){
-        return "статья";
+        return "совет";
     }
 
     @Override
     public String description(){
-        return smile()+"["+ key()+"] - случайная статья с ru.wikipedia.org.";
+        return smile()+"["+ key()+"] - даст дельный совет.";
     }
 
     @Override
@@ -52,8 +52,8 @@ public class WikiRandom implements Script {
     public void update() {
         if(LocalDateTime.now().getMinute() >= 30) return;
         UsersTable.findAll().forEach(user -> {
-            if(user.getFields().containsKey("wikirnd")){
-                JsonObject options = user.getFields().get("wikirnd").getAsJsonObject();
+            if(user.getFields().containsKey("advice")){
+                JsonObject options = user.getFields().get("advice").getAsJsonObject();
                 var update = options.get("update").getAsBoolean();
                 if(update){
                     Message m = new Message();
@@ -78,9 +78,8 @@ public class WikiRandom implements Script {
                 case 0:
                     User user = UsersTable.findById(message.getFromId());
                     keyboard.setInline(true);
-                    var str = getArticle();
-                    if(user.getFields().containsKey("wikirnd")){
-                        var options = user.getFields().get("wikirnd").getAsJsonObject();
+                    if(user.getFields().containsKey("advice")){
+                        var options = user.getFields().get("advice").getAsJsonObject();
                         var update = options.get("update").getAsBoolean();
                         buttons.add(List.of(
                                 new KeyboardButton()
@@ -95,16 +94,12 @@ public class WikiRandom implements Script {
                                         ).setType(KeyboardButtonActionType.TEXT)
                                                 .setLabel(update
                                                         ? "Отписаться"
-                                                        : "Подписаться")),
-                                new KeyboardButton()
-                                        .setAction(new KeyboardButtonAction().setLink(str[1])
-                                        .setType(KeyboardButtonActionType.OPEN_LINK)
-                                                .setLabel("Источник"))
+                                                        : "Подписаться"))
                         ));
                     }else{
                         var object = new JsonObject();
                         object.addProperty("update", false);
-                        user.getFields().put("wikirnd", object);
+                        user.getFields().put("advice", object);
                         user.update();
                         send(message, 0);
                         return;
@@ -141,7 +136,7 @@ public class WikiRandom implements Script {
                     }*/
                     new Messages(Config.VK())
                             .send(Config.GROUP)
-                            .message(str[0])
+                            .message(advice(false))
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
@@ -149,7 +144,7 @@ public class WikiRandom implements Script {
                     break;
                 case 2:
                     user = UsersTable.findById(message.getFromId());
-                    var options = user.getFields().get("wikirnd").getAsJsonObject();
+                    var options = user.getFields().get("advice").getAsJsonObject();
                     var update = options.get("update").getAsBoolean();
                     options.addProperty("update", !update);
                     user.update();
@@ -195,17 +190,16 @@ public class WikiRandom implements Script {
         }
     }
 
-    public static String[] getArticle() throws IOException {
-        var str = "https://ru.wikipedia.org/api/rest_v1/page/random/summary";
-
-        URL url = new URL(str);
+    public static String advice(boolean censored) throws IOException {
+        URL url;
+        if(censored){
+            url = new URL("http://fucking-great-advice.ru/api/random/censored");
+        }else{
+            url = new URL("http://fucking-great-advice.ru/api/random");
+        }
         String json =  new String(url.openStream().readAllBytes(), StandardCharsets.UTF_8);
         JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
-        StringBuilder sb = new StringBuilder();
-        sb.append(jsonObject.get("title").getAsString());
-        sb.append("\n");
-        sb.append(jsonObject.get("extract").getAsString());
-        return new String[]{sb.toString(), str};
+        return jsonObject.get("text").getAsString();
     }
 
 }

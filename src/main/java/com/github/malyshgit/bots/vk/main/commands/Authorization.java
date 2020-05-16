@@ -3,14 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.main.scripts;
+package com.github.malyshgit.bots.vk.main.commands;
 
-import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.models.User;
-import com.mvv.bots.vk.database.dao.UsersTable;
-import com.mvv.bots.vk.main.AccessMode;
-import com.mvv.bots.vk.main.Script;
-import com.mvv.bots.vk.utils.Utils;
+import com.github.malyshgit.bots.vk.Config;
+import com.github.malyshgit.bots.vk.database.dao.UsersTable;
+import com.github.malyshgit.bots.vk.database.models.User;
+import com.github.malyshgit.bots.vk.main.AccessMode;
+import com.github.malyshgit.bots.vk.main.Command;
+import com.github.malyshgit.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.actions.OAuth;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -21,7 +21,7 @@ import com.vk.api.sdk.objects.messages.keyboard.Payload;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Authorization implements Script {
+public class Authorization implements Command {
 
     @Override
     public String smile(){
@@ -86,7 +86,7 @@ public class Authorization implements Script {
                                         .setColor(KeyboardButtonColor.NEGATIVE)
                                         .setAction(new KeyboardButtonAction().setPayload(
                                                 new Payload()
-                                                        .put("script", ScriptList.class.getName())
+                                                        .put("script", Commands.class.getName())
                                                         .put("step", 0)
                                                         .toString()
                                         ).setType(KeyboardButtonActionType.TEXT)
@@ -136,7 +136,7 @@ public class Authorization implements Script {
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    ScriptList.open(message);
+                    Commands.open(message);
                     break;
                 case 2:
                     user = UsersTable.findById(message.getFromId());
@@ -148,7 +148,7 @@ public class Authorization implements Script {
                             .peerId(message.getPeerId())
                             .randomId(Utils.getRandomInt32())
                             .execute();
-                    ScriptList.open(message);
+                    Commands.open(message);
                     break;
                 default:
                     break;

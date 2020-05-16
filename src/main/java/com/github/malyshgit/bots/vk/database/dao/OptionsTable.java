@@ -1,7 +1,6 @@
-package com.mvv.bots.vk.database.dao;
+package com.github.malyshgit.bots.vk.database.dao;
 
-import com.mvv.bots.vk.database.models.Option;
-import com.mvv.bots.vk.database.models.User;
+import com.github.malyshgit.bots.vk.database.models.Option;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

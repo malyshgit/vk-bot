@@ -1,4 +1,4 @@
-package com.mvv.bots.vk.main;
+package com.github.malyshgit.bots.vk.main;
 
 public enum AccessMode {
 

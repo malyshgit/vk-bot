@@ -1,11 +1,11 @@
-package com.mvv.bots.vk.database.dao;
+package com.github.malyshgit.bots.vk.database.dao;
 
+import com.github.malyshgit.bots.vk.database.PostgreSQL;
+import com.github.malyshgit.bots.vk.database.models.User;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mvv.bots.vk.database.PostgreSQL;
-import com.mvv.bots.vk.database.models.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

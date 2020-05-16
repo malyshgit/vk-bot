@@ -3,17 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.main.scripts;
+package com.github.malyshgit.bots.vk.main.commands;
 
-import com.google.gson.JsonElement;
+import com.github.malyshgit.bots.vk.Config;
+import com.github.malyshgit.bots.vk.database.dao.UsersTable;
+import com.github.malyshgit.bots.vk.database.models.User;
+import com.github.malyshgit.bots.vk.main.Command;
+import com.github.malyshgit.bots.vk.utils.Utils;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.models.User;
-import com.mvv.bots.vk.database.dao.UsersTable;
-import com.mvv.bots.vk.main.AccessMode;
-import com.mvv.bots.vk.main.Script;
-import com.mvv.bots.vk.utils.Utils;
+import com.github.malyshgit.bots.vk.main.AccessMode;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
@@ -28,7 +27,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Weather implements Script {
+public class Weather implements Command {
 
     @Override
     public String smile(){

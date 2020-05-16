@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.main.scripts;
+package com.github.malyshgit.bots.vk.main.commands;
 
-import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.main.AccessMode;
-import com.mvv.bots.vk.main.Script;
-import com.mvv.bots.vk.utils.Utils;
+import com.github.malyshgit.bots.vk.Config;
+import com.github.malyshgit.bots.vk.main.AccessMode;
+import com.github.malyshgit.bots.vk.main.Command;
+import com.github.malyshgit.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.*;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
@@ -18,7 +18,7 @@ import com.vk.api.sdk.objects.messages.keyboard.Payload;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Administration implements Script {
+public class Administration implements Command {
 
     @Override
     public String smile(){
@@ -76,7 +76,7 @@ public class Administration implements Script {
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             new Payload()
-                                                .put("script", ScriptList.class.getName())
+                                                .put("script", Commands.class.getName())
                                                 .put("step", 1)
                                                 .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)

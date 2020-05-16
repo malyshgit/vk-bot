@@ -3,24 +3,24 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.main.scripts;
+package com.github.malyshgit.bots.vk.main.commands;
 
+import com.github.malyshgit.bots.vk.Config;
+import com.github.malyshgit.bots.vk.main.AccessMode;
+import com.github.malyshgit.bots.vk.main.Command;
+import com.github.malyshgit.bots.vk.utils.Utils;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mvv.bots.vk.main.AccessMode;
-import com.mvv.bots.vk.main.Script;
-import com.mvv.bots.vk.utils.Utils;
 import com.vk.api.sdk.actions.Messages;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.messages.*;
-import com.mvv.bots.vk.Config;
 import com.vk.api.sdk.objects.messages.keyboard.Payload;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScriptList implements Script {
+public class Commands implements Command {
 
     @Override
     public String smile(){
@@ -72,18 +72,18 @@ public class ScriptList implements Script {
                         .execute();*/
             }else{
                 List<KeyboardButton> row = new ArrayList<>();
-                if(Config.SCRIPTS.size() <= 20){
-                    for (Script script : Config.SCRIPTS) {
-                        if (script.accessMode().equals(AccessMode.USER) || (message.getPeerId().equals(Config.ADMIN_ID) && script.accessMode().equals(AccessMode.ADMIN))) {
+                if(Config.COMMANDS.size() <= 20){
+                    for (Command command : Config.COMMANDS) {
+                        if (command.accessMode().equals(AccessMode.USER) || (message.getPeerId().equals(Config.ADMIN_ID) && command.accessMode().equals(AccessMode.ADMIN))) {
                             row.add(new KeyboardButton()
                                     .setColor(KeyboardButtonColor.PRIMARY)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             new Payload()
-                                                    .put("script", script.getClass().getName())
+                                                    .put("script", command.getClass().getName())
                                                     .put("step", 0)
                                                     .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
-                                            .setLabel(script.smile() + " " + script.key())));
+                                            .setLabel(command.smile() + " " + command.key())));
                             if(row.size() == 2){
                                 buttons.add(row);
                                 row = new ArrayList<>();
@@ -97,25 +97,25 @@ public class ScriptList implements Script {
                     if (payload.has("offset")) {
                         offset = payload.get("offset").getAsInt();
                     }
-                    List<Script> list;
-                    if (offset < Config.SCRIPTS.size() - 1) {
+                    List<Command> list;
+                    if (offset < Config.COMMANDS.size() - 1) {
                         int firstIndex = offset;
                         int lastIndex = offset + 17;
-                        if (lastIndex > Config.SCRIPTS.size() - 1) lastIndex = Config.SCRIPTS.size() - 1;
+                        if (lastIndex > Config.COMMANDS.size() - 1) lastIndex = Config.COMMANDS.size() - 1;
 
-                        list = Config.SCRIPTS.subList(firstIndex, lastIndex);
+                        list = Config.COMMANDS.subList(firstIndex, lastIndex);
 
-                        for (Script script : list) {
-                            if (script.accessMode().equals(AccessMode.USER) || (message.getPeerId().equals(Config.ADMIN_ID) && script.accessMode().equals(AccessMode.ADMIN))) {
+                        for (Command command : list) {
+                            if (command.accessMode().equals(AccessMode.USER) || (message.getPeerId().equals(Config.ADMIN_ID) && command.accessMode().equals(AccessMode.ADMIN))) {
                                 row.add(new KeyboardButton()
                                         .setColor(KeyboardButtonColor.PRIMARY)
                                         .setAction(new KeyboardButtonAction().setPayload(
                                                 new Payload()
-                                                        .put("script", script.getClass().getName())
+                                                        .put("script", command.getClass().getName())
                                                         .put("step", 0)
                                                         .toString()
                                         ).setType(KeyboardButtonActionType.TEXT)
-                                                .setLabel(script.smile() + " " + script.key())));
+                                                .setLabel(command.smile() + " " + command.key())));
 
                                 if(row.size() == 2){
                                     buttons.add(row);
@@ -137,7 +137,7 @@ public class ScriptList implements Script {
                                                     .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
                                             .setLabel("Вперед")));
-                        } else if(lastIndex >= Config.SCRIPTS.size() - 1){
+                        } else if(lastIndex >= Config.COMMANDS.size() - 1){
                             row.add(new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
@@ -188,7 +188,7 @@ public class ScriptList implements Script {
         }
     }
     public static void open(Message message){
-        new ScriptList().send(message, 0);
+        new Commands().send(message, 0);
     }
     
 }

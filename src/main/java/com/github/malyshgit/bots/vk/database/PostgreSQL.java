@@ -1,14 +1,10 @@
-package com.mvv.bots.vk.database;
+package com.github.malyshgit.bots.vk.database;
 
-import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.main.Server;
+import com.github.malyshgit.bots.vk.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.appender.ScriptAppenderSelector;
 
 import java.sql.*;
-import java.util.Arrays;
-import java.util.List;
 
 public class PostgreSQL {
     private static final Logger LOG = LogManager.getLogger(PostgreSQL.class);

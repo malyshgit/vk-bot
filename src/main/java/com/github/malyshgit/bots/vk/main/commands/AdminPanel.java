@@ -3,17 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mvv.bots.vk.main.scripts;
+package com.github.malyshgit.bots.vk.main.commands;
 
-import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.database.models.Option;
-import com.mvv.bots.vk.database.dao.OptionsTable;
-import com.mvv.bots.vk.database.models.User;
-import com.mvv.bots.vk.database.dao.UsersTable;
-import com.mvv.bots.vk.main.AccessMode;
-import com.mvv.bots.vk.main.Script;
-import com.mvv.bots.vk.main.Server;
-import com.mvv.bots.vk.utils.Utils;
+import com.github.malyshgit.bots.vk.Config;
+import com.github.malyshgit.bots.vk.database.dao.OptionsTable;
+import com.github.malyshgit.bots.vk.database.dao.UsersTable;
+import com.github.malyshgit.bots.vk.database.models.Option;
+import com.github.malyshgit.bots.vk.database.models.User;
+import com.github.malyshgit.bots.vk.main.Command;
+import com.github.malyshgit.bots.vk.utils.Utils;
+import com.github.malyshgit.bots.vk.main.AccessMode;
 import com.vk.api.sdk.actions.*;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
@@ -40,7 +39,7 @@ import com.vk.api.sdk.objects.responses.OwnerCoverUploadResponse;
 
 import javax.imageio.ImageIO;
 
-public class AdminPanel implements Script {
+public class AdminPanel implements Command {
 
     @Override
     public String smile(){
@@ -86,7 +85,7 @@ public class AdminPanel implements Script {
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             new Payload()
-                                                    .put("script", ScriptList.class.getName())
+                                                    .put("script", Commands.class.getName())
                                                     .put("step", 1)
                                                     .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
@@ -106,7 +105,7 @@ public class AdminPanel implements Script {
                             .message("Меню")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 0:
@@ -115,7 +114,7 @@ public class AdminPanel implements Script {
                                     .setColor(KeyboardButtonColor.NEGATIVE)
                                     .setAction(new KeyboardButtonAction().setPayload(
                                             new Payload()
-                                                    .put("script", ScriptList.class.getName())
+                                                    .put("script", Commands.class.getName())
                                                     .put("step", 1)
                                                     .toString()
                                     ).setType(KeyboardButtonActionType.TEXT)
@@ -162,7 +161,7 @@ public class AdminPanel implements Script {
                             .message("Меню")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 1:
@@ -200,7 +199,7 @@ public class AdminPanel implements Script {
                             .message("Меню")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 10:
@@ -232,7 +231,7 @@ public class AdminPanel implements Script {
                             .message("Список")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 101:
@@ -264,7 +263,7 @@ public class AdminPanel implements Script {
                             .message("База данных \"Настройки\"")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 1011:
@@ -275,7 +274,7 @@ public class AdminPanel implements Script {
                                 .send(Config.GROUP)
                                 .message(info)
                                 .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
+                                .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                                 .execute();
                     }
                     break;
@@ -285,7 +284,7 @@ public class AdminPanel implements Script {
                             .send(Config.GROUP)
                             .message("База данных пересоздана.")
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 102:
@@ -317,7 +316,7 @@ public class AdminPanel implements Script {
                             .message("База данных \"Пользователи\"")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 1021:
@@ -328,7 +327,7 @@ public class AdminPanel implements Script {
                                 .send(Config.GROUP)
                                 .message(info)
                                 .peerId(message.getPeerId())
-                                .randomId(Utils.getRandomInt32())
+                                .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                                 .execute();
                     }
                     break;
@@ -339,7 +338,7 @@ public class AdminPanel implements Script {
                             .send(Config.GROUP)
                             .message("База данных пересоздана.")
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 11:
@@ -350,7 +349,7 @@ public class AdminPanel implements Script {
                             .send(Config.GROUP)
                             .message("Базы данных пересозданы.")
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     send(message, 0);
                     break;
@@ -437,7 +436,7 @@ public class AdminPanel implements Script {
                             .message("Переключатели")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 211:
@@ -448,7 +447,7 @@ public class AdminPanel implements Script {
                             .send(Config.GROUP)
                             .message("Отладка включена.")
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     send(message, 2);
                     break;
@@ -460,7 +459,7 @@ public class AdminPanel implements Script {
                             .send(Config.GROUP)
                             .message("Отладка отключена.")
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     send(message, 2);
                     break;
@@ -472,7 +471,7 @@ public class AdminPanel implements Script {
                             .send(Config.GROUP)
                             .message("Обновление включено.")
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     send(message, 2);
                     break;
@@ -484,7 +483,7 @@ public class AdminPanel implements Script {
                             .send(Config.GROUP)
                             .message("Обновление отключено.")
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     send(message, 2);
                     break;
@@ -524,11 +523,11 @@ public class AdminPanel implements Script {
                             .message("Обновление")
                             .keyboard(keyboard)
                             .peerId(message.getPeerId())
-                            .randomId(Utils.getRandomInt32())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
                             .execute();
                     break;
                 case 41:
-                    new Thread(()->Config.SCRIPTS.forEach(Script::update)).start();
+                    new Thread(()->Config.COMMANDS.forEach(Command::update)).start();
                     break;
                 case 56:
                     /*getByIdResponse = new Messages(Config.VK()).getById(Config.GROUP,message.getId()-1).groupId(Config.GROUP_ID).execute();
@@ -626,12 +625,12 @@ public class AdminPanel implements Script {
                     .execute();
             BufferedImage coverImage = new BufferedImage(1590,400,BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = coverImage.createGraphics();
-            Utils.applyQualityRenderingHints(g2d);
+            com.github.malyshgit.bots.vk.utils.Utils.applyQualityRenderingHints(g2d);
             g2d.setColor(Color.BLACK);
             g2d.fillRect(0,0,1590,400);
             GroupFull groupFull = new Groups(Config.VK()).getById(Config.GROUP).groupId(String.valueOf(Config.GROUP_ID)).execute().get(0);
             g2d.setColor(Color.WHITE);
-            Utils.drawIntoRect(groupFull.getName(), new Rectangle(0,0,1590,400), Utils.Align.CENTER, g2d);
+            com.github.malyshgit.bots.vk.utils.Utils.drawIntoRect(groupFull.getName(), new Rectangle(0,0,1590,400), Utils.Align.CENTER, g2d);
             File coverFile = new File("cover.png");
             ImageIO.write(coverImage, "png", coverFile);
             OwnerCoverUploadResponse coverUploadResponse = new Upload(Config.VK()).photoOwnerCover(uploadServer.getUploadUrl().toString(), coverFile).execute();

@@ -1,4 +1,4 @@
-package com.mvv.bots.vk.database.models;
+package com.github.malyshgit.bots.vk.database.models;
 
 
 public class Option {

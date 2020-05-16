@@ -1,14 +1,14 @@
-package com.mvv.bots.vk.main;
+package com.github.malyshgit.bots.vk.main;
 
+import com.github.malyshgit.bots.vk.Config;
+import com.github.malyshgit.bots.vk.database.dao.OptionsTable;
+import com.github.malyshgit.bots.vk.database.dao.ResaveTable;
+import com.github.malyshgit.bots.vk.database.dao.UsersTable;
+import com.github.malyshgit.bots.vk.database.models.Option;
+import com.github.malyshgit.bots.vk.database.models.User;
+import com.github.malyshgit.bots.vk.utils.Utils;
 import com.google.gson.*;
-import com.mvv.bots.vk.database.dao.ResaveTable;
-import com.mvv.bots.vk.database.models.Option;
-import com.mvv.bots.vk.database.dao.OptionsTable;
-import com.mvv.bots.vk.database.models.User;
-import com.mvv.bots.vk.database.dao.UsersTable;
-import com.mvv.bots.vk.main.scripts.Authorization;
-import com.mvv.bots.vk.main.scripts.Resave;
-import com.mvv.bots.vk.utils.Utils;
+import com.github.malyshgit.bots.vk.main.commands.Authorization;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -18,8 +18,7 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.callback.messages.MessageWithClientInfo;
 import com.vk.api.sdk.objects.messages.Message;
-import com.mvv.bots.vk.Config;
-import com.mvv.bots.vk.main.scripts.ScriptList;
+import com.github.malyshgit.bots.vk.main.commands.Commands;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
@@ -69,7 +68,7 @@ public class Server {
             for(var arg : args){
                 switch (arg){
                     case "%update%":
-                        Config.SCRIPTS.forEach(Script::update);
+                        Config.COMMANDS.forEach(Command::update);
                         break;
                     default:
                         break;
@@ -236,7 +235,7 @@ public class Server {
             Option update = OptionsTable.findByKey("update");
             if(update != null) {
                 if (Boolean.parseBoolean(update.getValue())) {
-                    Config.SCRIPTS.forEach(Script::update);
+                    Config.COMMANDS.forEach(Command::update);
                     Option debbug = OptionsTable.findByKey("debbug");
                     if (debbug != null) {
                         if (Boolean.parseBoolean(debbug.getValue())) {
@@ -275,17 +274,17 @@ public class Server {
                     String command = jobject.get("command").getAsString();
                     if(command.equals("start")){
                         if(UsersTable.findById(message.getPeerId()) == null) UsersTable.save(new User(message.getPeerId()));
-                        new ScriptList().send(message, 0);
+                        new Commands().send(message, 0);
                     }
                 }else if(jobject.has("script") && jobject.has("step")){
-                    Script script = Script.getByName(jobject.get("script").getAsString());
+                    Command command = Command.getByName(jobject.get("script").getAsString());
                     int step = jobject.get("step").getAsInt();
-                    script.send(message, step);
+                    command.send(message, step);
                 }
-            }else if(!message.getText().isEmpty() && Script.containsByKey(message.getText())){
+            }else if(!message.getText().isEmpty() && Command.containsByKey(message.getText())){
                 if(UsersTable.findById(message.getPeerId()) == null) UsersTable.save(new User(message.getPeerId()));
-                Script script = Script.getByKey(message.getText());
-                script.send(message, 0);
+                Command command = Command.getByKey(message.getText());
+                command.send(message, 0);
             }else{
 
             }
