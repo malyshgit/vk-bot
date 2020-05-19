@@ -395,7 +395,7 @@ public class Resave implements Command {
                         nextOffset++;
                     }
                     var blist = new ArrayList<KeyboardButton>();
-                    if (nextOffset >= 10 && albums.size() > 10) {
+                    if (offset >= 10 && albums.size() > 10) {
                         blist.addAll(List.of(
                                 new KeyboardButton()
                                         .setColor(KeyboardButtonColor.DEFAULT)
