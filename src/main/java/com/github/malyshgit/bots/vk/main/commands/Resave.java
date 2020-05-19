@@ -333,152 +333,165 @@ public class Resave implements Command {
 
                     var nextOffset = offset;
                     for(var i = 0; elements.size() < 10; i++) {
-                        if (offset + i > albums.size() - 1) {
+                        if (nextOffset > albums.size() - 1) {
                             break;
                         }
-                        if (i == 0 && offset > 0) {
-                            elements.add(new TemplateElement()
-                                    .setTitle("Навигация")
-                                    .setDescription("Назад")
-                                    .setButtons(List.of(
-                                            new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 1)
-                                                                    .put("offset", Math.max(offset - 10, 0))
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel("<")),
-                                           new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 1)
-                                                                    .put("offset", Math.max(offset - 10, 0))
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel("<")),
-                                            new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 1)
-                                                                    .put("offset", 0)
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel("<<"))
-                                    ))
-                            );
-                        }
-                        if (i == 9 && nextOffset < albums.size()-1) {
-                            int lastOffset = 0;
-                            while(lastOffset < albums.size()-lastOffset){
-                                if(lastOffset == 0 || lastOffset == albums.size()){
-                                    lastOffset+=9;
-                                }else{
-                                    lastOffset+=8;
-                                }
-                            }
-                            elements.add(new TemplateElement()
-                                    .setTitle("Навигация")
-                                    .setDescription("Вперед")
-                                    .setButtons(List.of(
-                                            new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 1)
-                                                                    .put("offset", nextOffset)
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel(">")),
-                                            new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 1)
-                                                                    .put("offset", nextOffset)
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel(">")),
-                                            new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.DEFAULT)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 1)
-                                                                    .put("offset", lastOffset)
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel(">>"))
-                                    ))
-                            );
-                        } else {
-                            var album = albums.get(offset + i).getAsJsonObject();
-                            var title = album.get("title").getAsString();
-                            ownerId = album.get("ownerid").getAsString();
-                            albumId = album.get("albumid").getAsString();
-                            var hide = album.get("hide").getAsBoolean();
-                            var active = album.get("active").getAsBoolean();
-                            var totg = album.get("totg").getAsBoolean();
-                            var photoIdsCount = ResaveTable.getAlbumPhotosCount(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(albumId));
-                            elements.add(new TemplateElement()
-                                    .setTitle(title)
-                                    .setDescription("Загружено: "+photoIdsCount)
-                                    .setAction(new TemplateElementAction()
-                                            .setType(TemplateElementActionType.OPEN_LINK)
-                                            .setLink("https://vk.com/album"+ownerId+"_"+albumId)
-                                    )
-                                    .setButtons(List.of(
-                                            new KeyboardButton()
-                                                    .setColor(active ? KeyboardButtonColor.POSITIVE : KeyboardButtonColor.NEGATIVE)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 2)
-                                                                    .put("offset", offset)
-                                                                    .put("active", active)
-                                                                    .put("ownerid", ownerId)
-                                                                    .put("albumid", albumId)
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel("Заполнение")),
-                                            new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.PRIMARY)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 3)
-                                                                    .put("offset", offset)
-                                                                    .put("totg", totg)
-                                                                    .put("ownerid", ownerId)
-                                                                    .put("albumid", albumId)
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel(totg ? "Telegram" : "Вконтакте")),
-                                            new KeyboardButton()
-                                                    .setColor(KeyboardButtonColor.NEGATIVE)
-                                                    .setAction(new KeyboardButtonAction().setPayload(
-                                                            new Payload()
-                                                                    .put("script", getClass().getName())
-                                                                    .put("step", 7)
-                                                                    .put("offset", offset)
-                                                                    .put("ownerid", ownerId)
-                                                                    .put("albumid", albumId)
-                                                                    .toString()
-                                                    ).setType(KeyboardButtonActionType.TEXT)
-                                                            .setLabel("Удалить"))
-                                    ))
-                            );
-                            nextOffset++;
-                        }
+                        var album = albums.get(offset + i).getAsJsonObject();
+                        var title = album.get("title").getAsString();
+                        ownerId = album.get("ownerid").getAsString();
+                        albumId = album.get("albumid").getAsString();
+                        var hide = album.get("hide").getAsBoolean();
+                        var active = album.get("active").getAsBoolean();
+                        var totg = album.get("totg").getAsBoolean();
+                        var photoIdsCount = ResaveTable.getAlbumPhotosCount(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(albumId));
+                        elements.add(new TemplateElement()
+                                .setTitle(title)
+                                .setDescription("Загружено: "+photoIdsCount)
+                                .setAction(new TemplateElementAction()
+                                        .setType(TemplateElementActionType.OPEN_LINK)
+                                        .setLink("https://vk.com/album"+ownerId+"_"+albumId)
+                                )
+                                .setButtons(List.of(
+                                        new KeyboardButton()
+                                                .setColor(active ? KeyboardButtonColor.POSITIVE : KeyboardButtonColor.NEGATIVE)
+                                                .setAction(new KeyboardButtonAction().setPayload(
+                                                        new Payload()
+                                                                .put("script", getClass().getName())
+                                                                .put("step", 2)
+                                                                .put("offset", offset)
+                                                                .put("active", active)
+                                                                .put("ownerid", ownerId)
+                                                                .put("albumid", albumId)
+                                                                .toString()
+                                                ).setType(KeyboardButtonActionType.TEXT)
+                                                        .setLabel("Заполнение")),
+                                        new KeyboardButton()
+                                                .setColor(KeyboardButtonColor.PRIMARY)
+                                                .setAction(new KeyboardButtonAction().setPayload(
+                                                        new Payload()
+                                                                .put("script", getClass().getName())
+                                                                .put("step", 3)
+                                                                .put("offset", offset)
+                                                                .put("totg", totg)
+                                                                .put("ownerid", ownerId)
+                                                                .put("albumid", albumId)
+                                                                .toString()
+                                                ).setType(KeyboardButtonActionType.TEXT)
+                                                        .setLabel(totg ? "Telegram" : "Вконтакте")),
+                                        new KeyboardButton()
+                                                .setColor(KeyboardButtonColor.NEGATIVE)
+                                                .setAction(new KeyboardButtonAction().setPayload(
+                                                        new Payload()
+                                                                .put("script", getClass().getName())
+                                                                .put("step", 7)
+                                                                .put("offset", offset)
+                                                                .put("ownerid", ownerId)
+                                                                .put("albumid", albumId)
+                                                                .toString()
+                                                ).setType(KeyboardButtonActionType.TEXT)
+                                                        .setLabel("Удалить"))
+                                ))
+                        );
+                        nextOffset++;
                     }
+                    var blist = new ArrayList<KeyboardButton>();
+                    if (nextOffset >= 10 && albums.size() > 10) {
+                        blist.addAll(List.of(
+                                new KeyboardButton()
+                                        .setColor(KeyboardButtonColor.DEFAULT)
+                                        .setAction(new KeyboardButtonAction().setPayload(
+                                                new Payload()
+                                                        .put("script", getClass().getName())
+                                                        .put("step", 1)
+                                                        .put("offset", 0)
+                                                        .toString()
+                                        ).setType(KeyboardButtonActionType.TEXT)
+                                                .setLabel("<<")),
+                                new KeyboardButton()
+                                        .setColor(KeyboardButtonColor.DEFAULT)
+                                        .setAction(new KeyboardButtonAction().setPayload(
+                                                new Payload()
+                                                        .put("script", getClass().getName())
+                                                        .put("step", 1)
+                                                        .put("offset", Math.max(nextOffset - 10, 0))
+                                                        .toString()
+                                        ).setType(KeyboardButtonActionType.TEXT)
+                                                .setLabel("<"))
+                        ));
+                    }
+                    if (nextOffset < albums.size()-1) {
+                        int lastOffset = 0;
+                        while(lastOffset < albums.size()-lastOffset){
+                            if(lastOffset == 0 || lastOffset == albums.size()){
+                                lastOffset+=9;
+                            }else{
+                                lastOffset+=8;
+                            }
+                        }
+                        blist.addAll(List.of(
+                                new KeyboardButton()
+                                        .setColor(KeyboardButtonColor.DEFAULT)
+                                        .setAction(new KeyboardButtonAction().setPayload(
+                                                new Payload()
+                                                        .put("script", getClass().getName())
+                                                        .put("step", 1)
+                                                        .put("offset", lastOffset)
+                                                        .toString()
+                                        ).setType(KeyboardButtonActionType.TEXT)
+                                                .setLabel(">>")),
+                                new KeyboardButton()
+                                        .setColor(KeyboardButtonColor.DEFAULT)
+                                        .setAction(new KeyboardButtonAction().setPayload(
+                                                new Payload()
+                                                        .put("script", getClass().getName())
+                                                        .put("step", 1)
+                                                        .put("offset", nextOffset)
+                                                        .toString()
+                                        ).setType(KeyboardButtonActionType.TEXT)
+                                                .setLabel(">"))
+                        ));
+                    }
+                    buttons.add(blist);
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.NEGATIVE)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            new Payload()
+                                                    .put("script", Commands.class.getName())
+                                                    .put("step", 0)
+                                                    .toString()
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Назад"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 1)
+                                                    .toString()
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Обновить"))
+                    ));
+                    buttons.add(List.of(
+                            new KeyboardButton()
+                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                    .setAction(new KeyboardButtonAction().setPayload(
+                                            new Payload()
+                                                    .put("script", getClass().getName())
+                                                    .put("step", 12)
+                                                    .toString()
+                                    ).setType(KeyboardButtonActionType.TEXT)
+                                            .setLabel("Добавить"))
+                    ));
+                    new Messages(Config.VK())
+                            .send(Config.GROUP)
+                            .message("Навигация")
+                            .keyboard(keyboard)
+                            .peerId(message.getPeerId())
+                            .randomId(com.github.malyshgit.bots.vk.utils.Utils.getRandomInt32())
+                            .execute();
                     new Messages(Config.VK())
                             .send(Config.GROUP)
                             .message("Альбомы")
@@ -661,7 +674,8 @@ public class Resave implements Command {
             var lastUploadTime = System.currentTimeMillis() - date;
             
             var albums = options.get("albums").getAsJsonArray();
-            var uploadsCount = 0;
+            var totgUploadsCount = 0;
+            var tovkUploadsCount = 0;
             for (var albumObject : albums) {
                 var album = albumObject.getAsJsonObject();
                 if (!album.get("active").getAsBoolean()) continue;
@@ -721,7 +735,7 @@ public class Resave implements Command {
                                 .collect(Collectors.toList());
                         for (var i = 0; i < photos.size(); i++) {
                             var photo = photos.get(i);
-                            if (uploadsCount >= 500) {
+                            if (totgUploadsCount >= 500) {
                                 break;
                             }
                             var src = photo.getSizes()
@@ -743,7 +757,7 @@ public class Resave implements Command {
                                         urls.clear();
                                         continue;
                                     }
-                                    uploadsCount++;
+                                    totgUploadsCount++;
                                     var u = new ArrayList<>(urls.keySet()).get(0);
                                     if (!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
                                     ResaveTable.addPhotoIds(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId), u);
@@ -755,7 +769,7 @@ public class Resave implements Command {
                                         urls.clear();
                                         continue;
                                     }
-                                    uploadsCount += 10;
+                                    totgUploadsCount += 10;
                                     urls.keySet().forEach(u -> {
                                         if (!photoIds.contains(new JsonPrimitive(u))) photoIds.add(u);
                                     });
@@ -765,7 +779,7 @@ public class Resave implements Command {
                             }
                             lastTime = System.currentTimeMillis();
                         }
-                        if (uploadsCount >= 500) {
+                        if (totgUploadsCount >= 500) {
                             break;
                         }
                     } else {
@@ -794,7 +808,7 @@ public class Resave implements Command {
                                 .filter(p -> !photoIds.contains(new JsonPrimitive(p.getId())))
                                 .collect(Collectors.toList())) {
 
-                            if (uploadsCount >= 500) {
+                            if (tovkUploadsCount >= 500) {
                                 break;
                             }
 
@@ -865,7 +879,7 @@ public class Resave implements Command {
 
                             ResaveTable.addPhotoIds(user.getId(), Integer.parseInt(ownerId), Integer.parseInt(ownerAlbumId), photo.getId());
 
-                            uploadsCount++;
+                            tovkUploadsCount++;
                             tempUploadsCount++;
                             long endTime = System.currentTimeMillis();
                             long deltaTime = endTime - startTime;
@@ -873,7 +887,7 @@ public class Resave implements Command {
                                 Thread.sleep(deltaTime);
                             }
                         }
-                        if (uploadsCount >= 500) {
+                        if (tovkUploadsCount >= 500) {
                             break;
                         }
                     }
