@@ -419,7 +419,7 @@ public class Resave implements Command {
                                                 .setLabel("<"))
                         ));
                     }
-                    if (nextOffset < albums.size()-1) {
+                    if (nextOffset <= albums.size()-1) {
                         int lastOffset = 0;
                         while(lastOffset < albums.size()-lastOffset){
                             if(lastOffset == 0 || lastOffset == albums.size()){
