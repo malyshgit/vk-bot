@@ -451,7 +451,7 @@ public class Resave implements Command {
                                                 .setLabel(">"))
                         ));
                     }
-                    buttons.add(blist);
+                    if(blist.size() > 0) buttons.add(blist);
                     buttons.add(List.of(
                             new KeyboardButton()
                                     .setColor(KeyboardButtonColor.NEGATIVE)
