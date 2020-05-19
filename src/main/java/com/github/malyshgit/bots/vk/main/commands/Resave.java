@@ -351,6 +351,16 @@ public class Resave implements Command {
                                                                     .toString()
                                                     ).setType(KeyboardButtonActionType.TEXT)
                                                             .setLabel("<")),
+                                           new KeyboardButton()
+                                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                                    .setAction(new KeyboardButtonAction().setPayload(
+                                                            new Payload()
+                                                                    .put("script", getClass().getName())
+                                                                    .put("step", 1)
+                                                                    .put("offset", Math.max(offset - 10, 0))
+                                                                    .toString()
+                                                    ).setType(KeyboardButtonActionType.TEXT)
+                                                            .setLabel("<")),
                                             new KeyboardButton()
                                                     .setColor(KeyboardButtonColor.DEFAULT)
                                                     .setAction(new KeyboardButtonAction().setPayload(
@@ -377,6 +387,16 @@ public class Resave implements Command {
                                     .setTitle("Навигация")
                                     .setDescription("Вперед")
                                     .setButtons(List.of(
+                                            new KeyboardButton()
+                                                    .setColor(KeyboardButtonColor.DEFAULT)
+                                                    .setAction(new KeyboardButtonAction().setPayload(
+                                                            new Payload()
+                                                                    .put("script", getClass().getName())
+                                                                    .put("step", 1)
+                                                                    .put("offset", nextOffset)
+                                                                    .toString()
+                                                    ).setType(KeyboardButtonActionType.TEXT)
+                                                            .setLabel(">")),
                                             new KeyboardButton()
                                                     .setColor(KeyboardButtonColor.DEFAULT)
                                                     .setAction(new KeyboardButtonAction().setPayload(
