@@ -422,11 +422,7 @@ public class Resave implements Command {
                     if (nextOffset <= albums.size()-1) {
                         int lastOffset = 0;
                         while(lastOffset < albums.size()-lastOffset){
-                            if(lastOffset == 0 || lastOffset == albums.size()){
-                                lastOffset+=9;
-                            }else{
-                                lastOffset+=8;
-                            }
+                            lastOffset+=10;
                         }
                         blist.addAll(List.of(
                                 new KeyboardButton()
