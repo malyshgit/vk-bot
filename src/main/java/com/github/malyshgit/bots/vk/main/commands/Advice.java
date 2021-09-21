@@ -91,7 +91,7 @@ public class Advice implements Command {
                                                         .put("script", getClass().getName())
                                                         .put("step", 2)
                                                         .toString()
-                                        ).setType(KeyboardButtonActionType.TEXT)
+                                        ).setType(KeyboardButtonActionType.CALLBACK)
                                                 .setLabel(update
                                                         ? "Отписаться"
                                                         : "Подписаться"))
