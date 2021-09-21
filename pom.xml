@@ -39,7 +39,7 @@
     <dependency>
           <groupId>com.github.malyshgit</groupId>
           <artifactId>vk-java-sdk</artifactId>
-          <version>master-0.5.11</version>
+          <version>0.5.11</version>
       </dependency>
     <dependency>
       <groupId>com.github.pengrad</groupId>
